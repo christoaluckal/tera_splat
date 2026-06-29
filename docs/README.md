@@ -28,6 +28,7 @@ deformed splats, and simple deformation metrics.
 9. [Phase 8: Query Interface](08_phase_query_interface.md)
 10. [Phase 9: Evaluation](09_phase_evaluation.md)
 11. [Phase 10: Robotics Extension](10_phase_robotics_extension.md)
+12. [Current Solver Status](11_current_solver_status.md)
 
 ## Phase Dependencies
 
@@ -47,4 +48,3 @@ The prototype is useful when one command or API call can:
 - update Gaussian centers and eventually covariances,
 - render before/after views,
 - save deformation metrics and the run config.
-

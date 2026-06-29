@@ -95,3 +95,40 @@ extra constraints:
 - metrics such as indentation depth, displaced volume proxy, and deformation
   radius.
 
+## Current Compatibility Notes
+
+The local `tsplat` environment uses a newer Warp API than the checked-in
+PhysGaussian code expected. The prototype currently handles this with local
+compatibility shims in `scripts/run_ground_plane_solver.py` plus one local
+PhysGaussian API update:
+
+- `warp.torch` is shimmed to the top-level `warp` module.
+- `warp.types.float32` and `warp.types.array` are shimmed for older helper
+  signatures.
+- PhysGaussian tensor alias helpers are overridden to use `wp.from_torch`.
+- `wp.mat33(vector rows)` in the MPM interpolation code was updated to
+  `wp.matrix_from_rows(...)` for Warp 1.14 compatibility.
+
+CUDA visibility depends on how commands are launched. Inside the managed
+sandbox, `nvidia-smi`, PyTorch, and Warp cannot see the NVIDIA driver. Outside
+the sandbox, the host sees an RTX 3060 Ti and PyTorch reports CUDA available.
+
+## Current Solver Status
+
+The ground-plane smoke test now initializes particles from the aligned EDGS
+iteration-7000 splats and adds a sticky `surface_collider` at the extracted
+ground plane height.
+
+Observed status:
+
+- Tiny CPU MPM smoke tests can initialize and write a few frames.
+- Those tiny frames are effectively stationary because only a couple of tiny
+  substeps are advanced.
+- Longer CPU MPM runs segfault in Warp.
+- CUDA runs initialize, compile, and write the first few frames, then fail in
+  `p2g_apic_with_stress` with `CUDA error 700: illegal memory access`.
+
+The current working hypothesis is numerical/scene setup instability, not missing
+CUDA. Next solver work should soften the sand parameters, reduce timestep, keep
+particle/grid counts small, and verify all particles stay inside the valid MPM
+grid stencil before adding contact forces.

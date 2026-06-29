@@ -1,5 +1,183 @@
 # Prototype Plan: Contact-Conditioned Terrain Gaussian Splatting
 
+## Current Checkpoint
+
+The current working scene is the EDGS iteration-7000 checkpoint:
+
+```text
+../EDGS/output/point_cloud/iteration_7000/point_cloud.ply
+```
+
+For the first prototype pass, assume every Gaussian in the scene is sand. This
+intentionally ignores the rigid pole as a separate material/collider until the
+viewer, patch extraction, and baseline deformation are stable.
+
+Use the `tsplat` conda environment.
+
+Inspect the scene with Viser:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py
+```
+
+The viewer applies `--axis-transform opencv-to-zup` by default, converting
+camera/COLMAP-style axes to a Z-up world view:
+
+```text
+(x, y, z) -> (x, z, -y)
+```
+
+If you need to compare against the raw trained coordinates:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py --axis-transform identity
+```
+
+If the fixed axis conversion is still not enough, use analytic ground alignment.
+This fits the dominant plane in the splat centers and rotates that plane normal
+onto world `+Z`:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py --align-ground-z
+```
+
+The loader applies the same rotation to both Gaussian centers and covariances.
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+By default the viewer sends an opacity-filtered, weighted subset of 300k
+Gaussians for browser responsiveness. To send all retained Gaussians:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py --max-gaussians 0
+```
+
+Run a non-server load check:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py --dry-run
+```
+
+The PhysGaussian-style sand parameters for this prototype live in:
+
+```text
+configs/physgaussian_sand.json
+```
+
+Initialize the first MPM smoke test with a fitted ground plane:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py --dry-run
+```
+
+This writes:
+
+```text
+outputs/ground_plane_solver/
+  particles_initial_mpm.ply
+  ground_plane_metadata.json
+```
+
+The non-dry run uses the PhysGaussian Warp MPM solver and requires `warp` plus
+CUDA in the active environment:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py
+```
+
+Important environment note: sandboxed commands do not see the NVIDIA driver.
+Use an unsandboxed shell/session for CUDA solver runs. On the host, CUDA is
+visible:
+
+```text
+nvidia-smi: RTX 3060 Ti, driver 580.82.09
+torch.cuda.is_available(): True
+```
+
+The current real MPM status:
+
+- CPU MPM only survives tiny smoke tests; longer CPU runs segfault in Warp.
+- CUDA MPM initializes and writes a few frames, then fails in
+  `p2g_apic_with_stress` with `CUDA error 700: illegal memory access`.
+- The likely next fix is to soften/stabilize the sand parameters before adding
+  contact loading: reduce `E` from the current `5e7` toward the PhysGaussian
+  sand example scale, start with very small `dt`, and keep particle/grid counts
+  small while validating bounds.
+
+Known-good tiny CPU MPM smoke test:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py \
+  --max-particles 1000 \
+  --steps 2 \
+  --n-grid 32 \
+  --device cpu \
+  --output-dir outputs/ground_plane_solver_cpu_smoke
+```
+
+CUDA solver probe, expected to initialize but currently fail after a few frames
+until parameters are stabilized:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py \
+  --max-particles 1000 \
+  --steps 100 \
+  --dt 0.002 \
+  --n-grid 64 \
+  --device cuda:0 \
+  --output-dir outputs/ground_plane_solver_cuda_smoke
+```
+
+View a solver output animation in Viser:
+
+```bash
+conda run -n tsplat python scripts/view_solver_animation.py \
+  outputs/ground_plane_solver_cpu_smoke
+```
+
+Open:
+
+```text
+http://localhost:8081
+```
+
+For a representative 1/10 particle subset over a 2 second loop:
+
+```bash
+conda run -n tsplat python scripts/view_solver_animation.py \
+  outputs/ground_plane_solver_cpu_smoke \
+  --sample-fraction 0.1 \
+  --duration 2.0
+```
+
+To regenerate a denser playback sequence where total frames are
+`ceil(duration / dt)`:
+
+```bash
+conda run -n tsplat python scripts/resample_solver_frames.py \
+  outputs/ground_plane_solver_cpu_smoke \
+  outputs/ground_plane_solver_cpu_smoke_resampled_2s \
+  --duration 2.0 \
+  --dt 0.02
+```
+
+If the real MPM frames are identical or too sparse for viewer debugging, use the
+explicitly non-MPM gravity preview. It applies kinematic gravity and a
+ground-plane clamp so the viewer path can be inspected while the real MPM
+stability issue is addressed:
+
+```bash
+conda run -n tsplat python scripts/generate_ground_plane_preview.py \
+  outputs/ground_plane_solver_cpu_smoke \
+  outputs/ground_plane_solver_cpu_gravity_preview_2s \
+  --duration 2.0 \
+  --dt 0.02
+```
+
 ## 0. Project Goal
 
 Build a prototype that answers the query:
