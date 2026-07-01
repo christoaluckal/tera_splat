@@ -132,6 +132,26 @@ conda run -n tsplat python scripts/run_ground_plane_solver.py \
   --output-dir outputs/ground_plane_solver_cuda_smoke
 ```
 
+Soft sand CUDA stability ladder:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py \
+  --config configs/physgaussian_sand_soft.json \
+  --max-particles 1000 \
+  --steps 10 \
+  --dt 0.0001 \
+  --n-grid 64 \
+  --device cuda:0 \
+  --output-dir outputs/cuda_soft_1k_s10
+```
+
+Check displacement after any solver run:
+
+```bash
+conda run -n tsplat python scripts/check_solver_displacement.py \
+  outputs/cuda_soft_1k_s10
+```
+
 View a solver output animation in Viser:
 
 ```bash

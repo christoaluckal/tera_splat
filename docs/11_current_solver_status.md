@@ -76,10 +76,52 @@ solver stability/API compatibility, not missing CUDA.
 - Only add contact loading after the gravity + ground-plane run moves without
   kernel errors.
 
+The first soft config is:
+
+```text
+configs/physgaussian_sand_soft.json
+```
+
+Initial ladder command:
+
+```bash
+conda run -n tsplat python scripts/run_ground_plane_solver.py \
+  --config configs/physgaussian_sand_soft.json \
+  --max-particles 1000 \
+  --steps 10 \
+  --dt 0.0001 \
+  --n-grid 64 \
+  --device cuda:0 \
+  --output-dir outputs/cuda_soft_1k_s10
+```
+
+Displacement checker:
+
+```bash
+conda run -n tsplat python scripts/check_solver_displacement.py \
+  outputs/cuda_soft_1k_s10
+```
+
+First ladder result:
+
+```text
+outputs/cuda_soft_1k_s10
+frames: 11
+particles: 1000
+status: completed on cuda:0
+max_displacement: 7.69e-05
+mean_displacement: 9.85e-07
+z_delta_min: -7.69e-05
+z_delta_max: 8.94e-08
+```
+
+This confirms the softened CUDA setup is stable for a small run, but motion is
+still very small. Next ladder step should increase step count before increasing
+particle count, grid resolution, or stiffness.
+
 ## Viewer Caveat
 
 If real MPM output frames are identical, the viewer is not broken. The current
 tiny real MPM smoke frames have zero displacement because they advance too few
 very small substeps. The gravity preview is intentionally labeled non-MPM and
 should only be used to verify playback and ground-plane visualization.
-
