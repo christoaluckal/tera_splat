@@ -70,10 +70,14 @@ def resolve_simulation_dir(output_folder: Path) -> Path:
 
 def find_frame_paths(output_folder: Path) -> list[Path]:
     simulation_dir = resolve_simulation_dir(output_folder)
-    paths = sorted(simulation_dir.glob("sim_*.ply"))
+    paths = sorted(simulation_dir.glob("sim_*.ply"), key=frame_number)
     if not paths:
         raise FileNotFoundError(f"No sim_*.ply frames found under {simulation_dir}")
     return paths
+
+
+def frame_number(path: Path) -> int:
+    return int(path.stem.split("_")[-1])
 
 
 def read_xyz_ply(path: Path) -> np.ndarray:

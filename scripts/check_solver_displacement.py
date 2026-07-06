@@ -28,9 +28,13 @@ def read_xyz_ply(path: Path) -> np.ndarray:
     return np.stack([vertex["x"], vertex["y"], vertex["z"]], axis=1).astype(np.float64)
 
 
+def frame_number(path: Path) -> int:
+    return int(path.stem.split("_")[-1])
+
+
 def main() -> None:
     args = parse_args()
-    frame_paths = sorted(simulation_dir(args.output_folder).glob("sim_*.ply"))
+    frame_paths = sorted(simulation_dir(args.output_folder).glob("sim_*.ply"), key=frame_number)
     if len(frame_paths) < 2:
         raise FileNotFoundError("Need at least two sim_*.ply frames")
 

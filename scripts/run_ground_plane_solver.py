@@ -11,14 +11,14 @@ from __future__ import annotations
 
 import argparse
 import importlib
-import json
 import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from view_iteration_7000 import DEFAULT_PLY, load_3dgs_ply
+from particle_io import build_particles, load_material_config, write_metadata, write_particle_ply
+from view_iteration_7000 import DEFAULT_PLY
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +39,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-grid", type=int, default=None)
     parser.add_argument("--grid-lim", type=float, default=None)
     parser.add_argument("--padding", type=float, default=0.08)
+    parser.add_argument(
+        "--trim-quantile",
+        type=float,
+        default=0.0,
+        help="Drop points outside per-axis [q, 1-q] quantiles before normalization.",
+    )
+    parser.add_argument(
+        "--ground-quantile",
+        type=float,
+        default=0.0,
+        help="Particle height quantile used for the ground plane. 0.0 uses the minimum height.",
+    )
     parser.add_argument("--steps", type=int, default=40)
     parser.add_argument(
         "--duration",
@@ -54,93 +66,6 @@ def parse_args() -> argparse.Namespace:
         help="Build particles and ground plane metadata without importing Warp.",
     )
     return parser.parse_args()
-
-
-def load_material_config(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def normalize_to_mpm_domain(
-    points: np.ndarray,
-    *,
-    grid_lim: float,
-    padding: float,
-) -> tuple[np.ndarray, dict]:
-    bounds_min = points.min(axis=0)
-    bounds_max = points.max(axis=0)
-    center = (bounds_min + bounds_max) / 2.0
-    span = float(np.max(bounds_max - bounds_min))
-    usable = grid_lim * (1.0 - 2.0 * padding)
-    scale = usable / span
-    offset = np.array([grid_lim * 0.5, grid_lim * 0.5, grid_lim * padding], dtype=np.float32)
-    normalized = (points - center) * scale + offset
-    normalized[:, 2] -= normalized[:, 2].min() - grid_lim * padding
-    metadata = {
-        "source_bounds_min": bounds_min.tolist(),
-        "source_bounds_max": bounds_max.tolist(),
-        "source_center": center.tolist(),
-        "source_span": span,
-        "grid_lim": grid_lim,
-        "padding": padding,
-        "scale_to_mpm": scale,
-        "offset_after_centering": offset.tolist(),
-    }
-    return normalized.astype(np.float32), metadata
-
-
-def build_particles(args: argparse.Namespace, config: dict) -> tuple[np.ndarray, dict]:
-    grid_lim = float(args.grid_lim if args.grid_lim is not None else config.get("grid_lim", 2.0))
-    data = load_3dgs_ply(
-        args.ply,
-        opacity_threshold=args.opacity_threshold,
-        max_gaussians=args.max_particles,
-        seed=args.seed,
-        scale_multiplier=1.0,
-        axis_transform=args.axis_transform,
-        align_ground_z=True,
-    )
-    points, transform_metadata = normalize_to_mpm_domain(
-        data.centers,
-        grid_lim=grid_lim,
-        padding=args.padding,
-    )
-    ground_z = float(np.quantile(points[:, 2], 0.01))
-    metadata = {
-        "ply": str(args.ply),
-        "particle_count": int(points.shape[0]),
-        "axis_transform": args.axis_transform,
-        "align_ground_z": True,
-        "ground_normal_before_alignment": None
-        if data.ground_normal is None
-        else data.ground_normal.tolist(),
-        "ground_alignment_matrix": None
-        if data.ground_alignment is None
-        else data.ground_alignment.tolist(),
-        "mpm_transform": transform_metadata,
-        "ground_plane_mpm": {
-            "point": [0.0, 0.0, ground_z],
-            "normal": [0.0, 0.0, 1.0],
-            "surface": "sticky",
-            "friction": 0.0,
-        },
-    }
-    return points, metadata
-
-
-def write_particle_ply(points: np.ndarray, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("wb") as f:
-        header = f"""ply
-format binary_little_endian 1.0
-element vertex {points.shape[0]}
-property float x
-property float y
-property float z
-end_header
-"""
-        f.write(header.encode("ascii"))
-        f.write(points.astype(np.float32).tobytes())
 
 
 def run_solver(args: argparse.Namespace, points: np.ndarray, metadata: dict, config: dict) -> None:
@@ -240,8 +165,7 @@ def main() -> None:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     write_particle_ply(particles, args.output_dir / "particles_initial_mpm.ply")
-    with (args.output_dir / "ground_plane_metadata.json").open("w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2)
+    write_metadata(metadata, args.output_dir / "ground_plane_metadata.json")
 
     print(f"particles: {particles.shape[0]}")
     print(f"ground plane: {metadata['ground_plane_mpm']}")

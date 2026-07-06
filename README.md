@@ -68,6 +68,20 @@ The PhysGaussian-style sand parameters for this prototype live in:
 configs/physgaussian_sand.json
 ```
 
+Validate the PLY-to-particle conversion before running either MPM backend:
+
+```bash
+conda run -n tsplat python scripts/test_ply_to_particles.py \
+  --max-particles 1000 \
+  --output-dir outputs/ply_particle_test_1k
+```
+
+This writes the same initial particle PLY and ground-plane metadata consumed by
+the solver runners. It round-trips the PLY and reports particle bounds, ground
+height, and any particles below the current ground proxy. The default ground
+height is the minimum retained particle height; use `--ground-quantile` only for
+explicit experiments.
+
 Initialize the first MPM smoke test with a fitted ground plane:
 
 ```bash
@@ -150,6 +164,95 @@ Check displacement after any solver run:
 ```bash
 conda run -n tsplat python scripts/check_solver_displacement.py \
   outputs/cuda_soft_1k_s10
+```
+
+Genesis MPM backend, using the same PLY extraction and output format:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_ground_plane_solver.py \
+  --config configs/physgaussian_sand_soft.json \
+  --max-particles 25621 \
+  --trim-quantile 0.005 \
+  --duration 2.0 \
+  --dt 0.0005 \
+  --n-grid 64 \
+  --backend cuda \
+  --gravity-scale 0.05 \
+  --output-dir outputs/genesis_cuda_10pct_trim005_soft_g005_2s_dt0005
+```
+
+Notes for the current scene:
+
+- The retained splat count is 256,210, so 1/10 is about 25,621 input particles.
+- `--trim-quantile 0.005` removes spatial outliers before normalization; the
+  current 1/10 sample keeps about 24,921 particles after trimming.
+- Use the soft config for Genesis. The hard config `E=5e7` explodes on the
+  surface-only particle shell.
+- `--gravity-scale 0.05` is a visualization stabilizer. Real gravity on a
+  surface shell still settles because the terrain is not volumetrically filled.
+
+Genesis CPU movement smoke test:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_ground_plane_solver.py \
+  --max-particles 200 \
+  --steps 2 \
+  --dt 0.01 \
+  --n-grid 32 \
+  --backend cpu \
+  --output-dir outputs/genesis_cpu_smoke_200_dt001_active
+```
+
+Genesis needs writable compile caches. The runner sets `XDG_CACHE_HOME`,
+`GS_CACHE_FILE_PATH`, `NUMBA_CACHE_DIR`, and `MPLCONFIGDIR` under
+`outputs/.cache` before importing Genesis. Imported `gs.morphs.Nowhere`
+particles are explicitly activated after their PLY-derived positions are set.
+
+Inspect one particle PLY without loading an animation:
+
+```bash
+conda run -n tsplat python scripts/view_particle_ply.py \
+  outputs/ply_particle_test_10pct_trim005_min_ground/particles_initial_mpm.ply \
+  --point-size 0.003 \
+  --port 8082
+```
+
+Render an MP4 without preloading thousands of PLYs:
+
+```bash
+conda run -n tsplat python scripts/render_solver_video.py \
+  outputs/genesis_cuda_10pct_trim005_soft_g005_2s_dt0005 \
+  --duration 4.0 \
+  --fps 60 \
+  --point-radius 1 \
+  --output outputs/genesis_cuda_10pct_trim005_soft_g005_2s_dt0005/solver_animation_oblique_4s.mp4
+```
+
+Raised-ground 10-second run:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_ground_plane_solver.py \
+  --config configs/physgaussian_sand_soft.json \
+  --max-particles 25621 \
+  --trim-quantile 0.005 \
+  --ground-quantile 0.02 \
+  --duration 10.0 \
+  --dt 0.0005 \
+  --n-grid 64 \
+  --backend cuda \
+  --gravity-scale 0.05 \
+  --output-dir outputs/genesis_cuda_10pct_trim005_soft_g005_gq002_10s_dt0005
+```
+
+The 10-second run writes 20,001 PLY frames and is about 5.7G. Render it with:
+
+```bash
+conda run -n tsplat python scripts/render_solver_video.py \
+  outputs/genesis_cuda_10pct_trim005_soft_g005_gq002_10s_dt0005 \
+  --duration 10.0 \
+  --fps 60 \
+  --point-radius 1 \
+  --output outputs/genesis_cuda_10pct_trim005_soft_g005_gq002_10s_dt0005/solver_animation_oblique_10s.mp4
 ```
 
 View a solver output animation in Viser:
