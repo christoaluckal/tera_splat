@@ -69,7 +69,9 @@ conda run -n tsplat python -c "import torch; print(torch.cuda.is_available()); p
 - `--align-ground-z` fits the dominant sand plane and rotates its normal to
   world `+Z`; the same rotation is applied to centers and covariances.
 - `scripts/particle_io.py` is the shared PLY-to-particle path for both solver
-  backends.
+  backends. It currently builds a three-entity initial state: splat-derived
+  surface particles, multilayer regular-grid subsurface support, and a ground
+  plane.
 - `scripts/test_ply_to_particles.py` validates conversion, writes
   `particles_initial_mpm.ply`, round-trips it, and reports bounds/ground stats.
 - `scripts/run_ground_plane_solver.py --dry-run` creates initial PhysGaussian
@@ -132,6 +134,183 @@ conda run -n tsplat python scripts/view_particle_ply.py \
   --point-size 0.003 \
   --port 8082
 ```
+
+## Current Initial PLY Suite
+
+The current initial-state model is:
+
+1. initial surface from retained splat centers,
+2. regular XY-grid subsurface layers below the local surface,
+3. ground plane just below the lowest subsurface layer.
+
+The subsurface is no longer a cloned lower copy of the surface and no longer a
+full bottom-up filled volume. The raw splat centers are used to estimate the
+terrain height field, but `particles_surface_mpm.ply` is now an interpolated
+surface cap rather than the raw splat points. This avoids buried raw splat
+samples appearing as columns in the surface component.
+
+The generator builds regular XY grids, writes the visible surface cap at the
+interpolated height field, then creates subsurface layers at explicit depths.
+Each subsurface layer gets XY shift/noise, then its height is clamped below both
+the splat-derived height and the visible cap height at that jittered XY.
+
+Current standard arguments:
+
+```text
+--center-radius 1.0
+--subsurface-depth 0.2
+--subsurface-xy-jitter 0.45
+```
+
+`--subsurface-spacing-mpm` controls XY grid spacing. If
+`--subsurface-layer-depths` is omitted it also controls depth-layer spacing.
+The current preferred initialization uses explicit layer depths
+`0.05,0.10,0.15,0.20`.
+
+Generated suite:
+
+```text
+outputs/initial_multilayer_suite/
+  README.md
+  summary.csv
+  spacing008/
+  spacing004/
+  spacing002/
+  spacing001/
+```
+
+Current suite counts:
+
+```text
+case        spacing_mpm  layers  surface  subsurface  total
+spacing008 0.08         2       5,393    684         6,077
+spacing004 0.04         4       5,393    5,540       10,933
+spacing002 0.02         8       5,393    44,520      49,913
+spacing001 0.01         17      5,393    378,471     383,864
+```
+
+Current validated cap-only initial states:
+
+```text
+output                                             spacing_mpm  layers  surface_cap  subsurface  total
+outputs/initial_robust_cap_only_surface_v7         0.01         4       21,165       82,563      103,728
+outputs/initial_robust_cap_only_surface_spacing00025_v1
+                                                   0.0025       4       60,778       209,757     270,535
+```
+
+Both validated outputs have `surface_entity_source = interpolated_cap`, no
+particles below the ground plane, and no subsurface particles above the
+interpolated visible cap.
+
+Current accepted manual splat-slice initializer:
+
+```text
+source splat: ../EDGS/output/point_cloud/iteration_7000/point_cloud.ply
+aligned z band: [-2.4, -2.1]
+XY crop: centered 1.0 x 1.0 box
+accepted output:
+  outputs/splat_surface_regular_grid_subsurface_1x1_depth0p2_spacing0p025_layer0p0125_noise1p5/
+```
+
+This path keeps the colored splat slice as the visible surface. The subsurface
+is regular XY grids under a high-quantile local surface estimate, with per-layer
+XY shift and random XY noise. The accepted case has 21,536 surface splats,
+26,895 subsurface particles, 16 layers from 0.0125 to 0.2, and no copied
+surface-offset layer.
+
+3x3x3 Genesis matrix runner:
+
+```bash
+conda run -n tsplat python scripts/run_splat_matrix_experiments.py \
+  --layer-counts 8,16,24 \
+  --layer-depths 0.1,0.2,0.3 \
+  --particle-sizes 0.015,0.025,0.035
+```
+
+Each case goes under `outputs/splat_matrix_3x3x3/` with initial PLYs, metadata,
+Genesis metrics, `simulation_ply/`, and `solver_animation.mp4`.
+
+Current base-case tuning state:
+
+```text
+base case:
+  layers = 16
+  depth = 0.2
+  layer_spacing = 0.0125
+  render fps = 60
+
+latest output:
+  outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p0125/
+```
+
+Do not run another full matrix yet. The base case is still visibly bouncy,
+although less than earlier attempts.
+
+Recent base outputs:
+
+```text
+outputs/base_earth_gravity_layers16_depth0p2_ps0p025/
+  Earth gravity, E=2000, nu=0.2, density=200, friction_angle=35.
+
+outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p025/
+  E=700, nu=0.05, density=500, friction_angle=42, dt=0.00025,
+  ground offset 0.03, particle_size=0.025.
+
+outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p0125/
+  Same less-bouncy config, but particle_size=0.0125 to match layer spacing.
+```
+
+Comparison against Genesis `examples/coupling/sand_wheel.py`:
+
+```text
+sand_wheel uses default gs.materials.MPM.Sand():
+  E=1e6, nu=0.2, rho=1000, friction_angle=45
+  gravity=-9.81 from default SimOptions
+  SimOptions(dt=3e-3, substeps=10), effective substep dt=3e-4
+
+Key non-material differences:
+  - sand is emitted dynamically, not initialized as a packed bed
+  - plane material is Rigid(needs_coup=True, coup_friction=0.2)
+  - wheel rigid material uses coup_softness=0.0
+  - scene uses substeps=10
+```
+
+Current hypothesis: the bounce is primarily from initialization/contact setup,
+not because our material is stiffer than the Genesis example. Next base-case
+fixes should be:
+
+```text
+1. Add --substeps to scripts/run_genesis_ground_plane_solver.py.
+2. Use Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
+   coup_restitution=0.0) for the ground plane.
+3. Keep render fps at 60.
+4. Re-run only the single base case before any matrix.
+```
+
+Each case writes:
+
+```text
+particles_initial_mpm.ply
+particles_surface_mpm.ply
+particles_subsurface_mpm.ply
+ground_plane_metadata.json
+initial_oblique.png
+```
+
+Viewer for the densest generated case:
+
+```bash
+conda run -n tsplat python scripts/view_particle_ply.py \
+  outputs/initial_multilayer_suite/spacing001/particles_initial_mpm.ply \
+  --point-size 0.0015 \
+  --host 0.0.0.0 \
+  --port 8082
+```
+
+Avoid generating fully automatic multilayer `spacing00025` casually. With XY
+spacing and layer spacing both at `0.0025`, the current radius-1 crop is
+expected to create tens of millions of particles. The validated dense case uses
+only the four explicit layer depths above.
 
 ## Current PhysGaussian/Warp Solver Status
 

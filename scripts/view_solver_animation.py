@@ -72,6 +72,10 @@ def find_frame_paths(output_folder: Path) -> list[Path]:
     simulation_dir = resolve_simulation_dir(output_folder)
     paths = sorted(simulation_dir.glob("sim_*.ply"), key=frame_number)
     if not paths:
+        initial = output_folder / "particles_initial_mpm.ply"
+        if initial.exists():
+            return [initial]
+    if not paths:
         raise FileNotFoundError(f"No sim_*.ply frames found under {simulation_dir}")
     return paths
 

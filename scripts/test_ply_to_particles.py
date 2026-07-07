@@ -45,6 +45,80 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Particle height quantile used for the ground plane. 0.0 uses the minimum height.",
     )
+    parser.add_argument(
+        "--subsurface-depth",
+        type=float,
+        default=0.2,
+        help="Vertical spacing for bottom-up subsurface support layers, in source units. Use 0 to disable.",
+    )
+    parser.add_argument(
+        "--subsurface-spacing-mpm",
+        type=float,
+        default=None,
+        help="Override support layer spacing directly in normalized MPM units.",
+    )
+    parser.add_argument(
+        "--subsurface-xy-jitter",
+        type=float,
+        default=0.45,
+        help="Uniform XY jitter for subsurface particles as a fraction of support layer spacing.",
+    )
+    parser.add_argument(
+        "--subsurface-layer-depths",
+        default=None,
+        help="Comma-separated source-unit depths for explicit subsurface layers, e.g. 0.05,0.1,0.15,0.2.",
+    )
+    parser.add_argument(
+        "--subsurface-surface-height-method",
+        choices=("linear", "nearest"),
+        default="linear",
+        help="Surface height interpolation method for subsurface grid points.",
+    )
+    parser.add_argument(
+        "--subsurface-max-surface-distance",
+        type=float,
+        default=2.0,
+        help="Keep subsurface grid points within this many XY spacings of a surface point.",
+    )
+    parser.add_argument(
+        "--ground-offset-below-subsurface",
+        type=float,
+        default=0.01,
+        help="Place ground this many source units below the selected subsurface quantile.",
+    )
+    parser.add_argument(
+        "--ground-subsurface-quantile",
+        type=float,
+        default=0.01,
+        help="Subsurface height quantile used for robust ground placement.",
+    )
+    parser.add_argument(
+        "--no-surface-cap",
+        dest="surface_cap",
+        action="store_false",
+        default=True,
+        help="Disable the interpolated regular-grid surface cap.",
+    )
+    parser.add_argument("--surface-filter-neighbors", type=int, default=0)
+    parser.add_argument("--surface-filter-quantile", type=float, default=0.9)
+    parser.add_argument(
+        "--surface-filter-tolerance",
+        type=float,
+        default=0.03,
+        help="Keep original splat surface points within this source-unit distance below the local top surface.",
+    )
+    parser.add_argument(
+        "--z-stddev-filter",
+        type=float,
+        default=1.0,
+        help="Drop surface candidates with z > mean + N*std before subsurface fill. Use 0 to disable.",
+    )
+    parser.add_argument(
+        "--center-radius",
+        type=float,
+        default=0.0,
+        help="Keep only surface candidates within this aligned source-XY radius from the cloud center. Use 0 to disable.",
+    )
     return parser.parse_args()
 
 
@@ -57,6 +131,15 @@ def main() -> None:
     particle_path = args.output_dir / "particles_initial_mpm.ply"
     metadata_path = args.output_dir / "ground_plane_metadata.json"
     write_particle_ply(particles, particle_path)
+    surface_count = int(metadata.get("surface_particle_count", 0))
+    subsurface_count = int((metadata.get("subsurface_fill") or {}).get("subsurface_particle_count", 0))
+    if surface_count > 0:
+        write_particle_ply(particles[:surface_count], args.output_dir / "particles_surface_mpm.ply")
+    if subsurface_count > 0:
+        write_particle_ply(
+            particles[surface_count : surface_count + subsurface_count],
+            args.output_dir / "particles_subsurface_mpm.ply",
+        )
     write_metadata(metadata, metadata_path)
 
     reloaded = read_particle_ply(particle_path)
