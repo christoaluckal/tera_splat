@@ -42,11 +42,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--z-max", type=float, default=-2.1)
     parser.add_argument("--box-size", type=float, default=1.0)
     parser.add_argument("--xy-spacing", type=float, default=0.025)
+    parser.add_argument(
+        "--xy-spacing-from-particle-size",
+        action="store_true",
+        help="Use each case's --particle-size as the regular subsurface XY grid spacing.",
+    )
     parser.add_argument("--xy-jitter", type=float, default=0.8)
     parser.add_argument("--noise-scalar", type=float, default=1.5)
     parser.add_argument("--max-surface-distance", type=float, default=0.05)
     parser.add_argument("--surface-neighbors", type=int, default=32)
     parser.add_argument("--surface-quantile", type=float, default=0.9)
+    parser.add_argument("--min-surface-clearance", type=float, default=0.0)
     parser.add_argument("--layer-counts", default="8,16,24")
     parser.add_argument("--layer-depths", default="0.1,0.2,0.3")
     parser.add_argument("--particle-sizes", default="0.015,0.025,0.035")
@@ -58,6 +64,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--align-ground-z", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--steps", type=int, default=240)
     parser.add_argument("--dt", type=float, default=5e-4)
+    parser.add_argument("--substeps", type=int, default=1)
     parser.add_argument("--save-every", type=int, default=12)
     parser.add_argument("--metrics-interval", type=int, default=60)
     parser.add_argument("--backend", choices=("cuda", "cpu"), default="cuda")
@@ -69,10 +76,15 @@ def parse_args() -> argparse.Namespace:
         help="Per-step MPM velocity multiplier passed to Genesis. Values below 1 dissipate bounce.",
     )
     parser.add_argument("--n-grid", type=int, default=64)
+    parser.add_argument("--ground-coup-friction", type=float, default=0.2)
+    parser.add_argument("--ground-coup-softness", type=float, default=0.0)
+    parser.add_argument("--ground-coup-restitution", type=float, default=0.0)
     parser.add_argument("--video-duration", type=float, default=2.0)
     parser.add_argument("--video-fps", type=float, default=60.0)
     parser.add_argument("--video-point-radius", type=int, default=1)
     parser.add_argument("--video-view", choices=("oblique", "top"), default="oblique")
+    parser.add_argument("--video-sample-fraction", type=float, default=1.0)
+    parser.add_argument("--video-max-points", type=int, default=0)
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--dry-run", action="store_true", help="Generate initial states and metadata only.")
     return parser.parse_args()
@@ -82,6 +94,12 @@ def case_name(layer_count: int, layer_depth: float, particle_size: float) -> str
     depth_label = f"{layer_depth:.4f}".rstrip("0").rstrip(".").replace(".", "p")
     particle_label = f"{particle_size:.4f}".rstrip("0").rstrip(".").replace(".", "p")
     return f"layers{layer_count:02d}_depth{depth_label}_ps{particle_label}"
+
+
+def case_xy_spacing(args: argparse.Namespace, particle_size: float) -> float:
+    if args.xy_spacing_from_particle_size:
+        return float(particle_size)
+    return float(args.xy_spacing)
 
 
 def load_surface(args: argparse.Namespace) -> tuple[np.ndarray, np.ndarray, dict]:
@@ -135,17 +153,19 @@ def write_case_initial_state(
     particle_size: float,
 ) -> dict:
     layer_spacing = layer_depth / layer_count
+    xy_spacing = case_xy_spacing(args, particle_size)
     subsurface, subsurface_colors, subsurface_metadata = build_regular_grid_subsurface(
         surface,
         surface_colors,
         depth=layer_depth,
-        xy_spacing=args.xy_spacing,
+        xy_spacing=xy_spacing,
         layer_spacing=layer_spacing,
         xy_jitter_fraction=args.xy_jitter,
         noise_scalar=args.noise_scalar,
         max_surface_distance=args.max_surface_distance,
         surface_neighbors=args.surface_neighbors,
         surface_quantile=args.surface_quantile,
+        min_surface_clearance=args.min_surface_clearance,
         seed=args.seed + layer_count + int(layer_depth * 1000) + int(particle_size * 10000),
     )
     particles = np.concatenate([surface, subsurface], axis=0).astype(np.float32)
@@ -174,7 +194,14 @@ def write_case_initial_state(
             "layer_depth": float(layer_depth),
             "particle_size": float(particle_size),
             "layer_spacing": float(layer_spacing),
+            "xy_spacing": float(xy_spacing),
+            "xy_spacing_from_particle_size": bool(args.xy_spacing_from_particle_size),
             "velocity_damping": args.velocity_damping,
+            "substeps": args.substeps,
+            "ground_coup_friction": args.ground_coup_friction,
+            "ground_coup_softness": args.ground_coup_softness,
+            "ground_coup_restitution": args.ground_coup_restitution,
+            "min_surface_clearance": args.min_surface_clearance,
         },
         "subsurface_fill": {
             **subsurface_metadata,
@@ -263,6 +290,8 @@ def main() -> None:
                         str(args.steps),
                         "--dt",
                         str(args.dt),
+                        "--substeps",
+                        str(args.substeps),
                         "--save-every",
                         str(args.save_every),
                         "--metrics-interval",
@@ -273,6 +302,12 @@ def main() -> None:
                         str(args.n_grid),
                         "--particle-size",
                         str(particle_size),
+                        "--ground-coup-friction",
+                        str(args.ground_coup_friction),
+                        "--ground-coup-softness",
+                        str(args.ground_coup_softness),
+                        "--ground-coup-restitution",
+                        str(args.ground_coup_restitution),
                     ]
                     if args.velocity_damping is not None:
                         solver_command.extend(["--velocity-damping", str(args.velocity_damping)])
@@ -292,6 +327,10 @@ def main() -> None:
                             str(args.video_point_radius),
                             "--view",
                             args.video_view,
+                            "--sample-fraction",
+                            str(args.video_sample_fraction),
+                            "--max-points",
+                            str(args.video_max_points),
                         ],
                         REPO_ROOT,
                     )
@@ -304,6 +343,11 @@ def main() -> None:
                         "layer_depth": layer_depth,
                         "layer_spacing": layer_depth / layer_count,
                         "particle_size": particle_size,
+                        "xy_spacing": case_xy_spacing(args, particle_size),
+                        "substeps": args.substeps,
+                        "ground_coup_friction": args.ground_coup_friction,
+                        "ground_coup_softness": args.ground_coup_softness,
+                        "ground_coup_restitution": args.ground_coup_restitution,
                         "surface_particles": metadata["surface_particle_count"],
                         "subsurface_particles": metadata["subsurface_fill"]["subsurface_particle_count"],
                         "total_particles": metadata["particle_count"],

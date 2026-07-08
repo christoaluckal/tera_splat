@@ -140,6 +140,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps", type=int, default=40)
     parser.add_argument("--duration", type=float, default=None)
     parser.add_argument("--dt", type=float, default=None)
+    parser.add_argument(
+        "--substeps",
+        type=int,
+        default=None,
+        help="Genesis SimOptions substeps. Defaults to config substeps or 1.",
+    )
     parser.add_argument("--backend", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument(
         "--gravity-scale",
@@ -154,6 +160,9 @@ def parse_args() -> argparse.Namespace:
         help="Per-step MPM particle velocity multiplier. Values below 1 dissipate bounce.",
     )
     parser.add_argument("--particle-size", type=float, default=None)
+    parser.add_argument("--ground-coup-friction", type=float, default=None)
+    parser.add_argument("--ground-coup-softness", type=float, default=None)
+    parser.add_argument("--ground-coup-restitution", type=float, default=None)
     parser.add_argument(
         "--metrics-interval",
         type=int,
@@ -238,6 +247,7 @@ def run_solver(args: argparse.Namespace, points: np.ndarray, metadata: dict, con
     grid_lim = float(args.grid_lim if args.grid_lim is not None else config.get("grid_lim", 2.0))
     n_grid = int(args.n_grid if args.n_grid is not None else config.get("n_grid", 64))
     dt = float(args.dt if args.dt is not None else config.get("substep_dt", 2e-5))
+    substeps = int(args.substeps if args.substeps is not None else config.get("substeps", 1))
     steps = int(args.steps)
     if args.duration is not None:
         steps = int(np.ceil(args.duration / dt))
@@ -256,7 +266,7 @@ def run_solver(args: argparse.Namespace, points: np.ndarray, metadata: dict, con
     velocity_damping = float(np.clip(velocity_damping, 0.0, 1.0))
 
     scene = gs.Scene(
-        sim_options=gs.options.SimOptions(dt=dt, gravity=gravity, floor_height=lower_bound[2]),
+        sim_options=gs.options.SimOptions(dt=dt, substeps=substeps, gravity=gravity, floor_height=lower_bound[2]),
         coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
         mpm_options=gs.options.MPMOptions(
             dt=dt,
@@ -270,9 +280,29 @@ def run_solver(args: argparse.Namespace, points: np.ndarray, metadata: dict, con
     )
     ground_z = float(metadata["ground_plane_mpm"]["point"][2])
     plane_size = (grid_lim * 3.0, grid_lim * 3.0)
+    ground_coup_friction = float(
+        args.ground_coup_friction
+        if args.ground_coup_friction is not None
+        else config.get("ground_coup_friction", 0.2)
+    )
+    ground_coup_softness = float(
+        args.ground_coup_softness
+        if args.ground_coup_softness is not None
+        else config.get("ground_coup_softness", 0.0)
+    )
+    ground_coup_restitution = float(
+        args.ground_coup_restitution
+        if args.ground_coup_restitution is not None
+        else config.get("ground_coup_restitution", 0.0)
+    )
     scene.add_entity(
         gs.morphs.Plane(pos=(0.0, 0.0, ground_z), normal=(0.0, 0.0, 1.0), fixed=True, plane_size=plane_size),
-        material=gs.materials.Rigid(),
+        material=gs.materials.Rigid(
+            needs_coup=True,
+            coup_friction=ground_coup_friction,
+            coup_softness=ground_coup_softness,
+            coup_restitution=ground_coup_restitution,
+        ),
         name="extracted_ground_plane",
     )
     sand = scene.add_entity(
@@ -346,11 +376,16 @@ def run_solver(args: argparse.Namespace, points: np.ndarray, metadata: dict, con
         "frames": saved_frames,
         "save_every": max(args.save_every, 1),
         "dt": dt,
+        "substeps": substeps,
+        "effective_substep_dt": dt / max(substeps, 1),
         "duration": args.duration if args.duration is not None else steps * dt,
         "n_grid": n_grid,
         "grid_lim": grid_lim,
         "particle_size": particle_size,
         "velocity_damping": velocity_damping,
+        "ground_coup_friction": ground_coup_friction,
+        "ground_coup_softness": ground_coup_softness,
+        "ground_coup_restitution": ground_coup_restitution,
         "gravity_scale": args.gravity_scale,
         "genesis_init_seconds": genesis_init_seconds,
         "scene_build_seconds": scene_build_seconds,
@@ -433,9 +468,9 @@ def main() -> None:
         unit = ""
         if key.endswith("_seconds"):
             unit = "seconds"
-        elif key in {"particles", "surface_particles", "subsurface_particles", "steps", "frames", "n_grid"}:
+        elif key in {"particles", "surface_particles", "subsurface_particles", "steps", "frames", "n_grid", "substeps"}:
             unit = "count"
-        elif key in {"dt", "duration", "average_step_seconds"}:
+        elif key in {"dt", "duration", "average_step_seconds", "effective_substep_dt"}:
             unit = "seconds"
         elif key in {"steps_per_second"}:
             unit = "steps/second"

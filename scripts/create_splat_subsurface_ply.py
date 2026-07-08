@@ -58,6 +58,12 @@ def parse_args() -> argparse.Namespace:
         default=0.9,
         help="Local neighbor Z quantile used as the surface height estimate.",
     )
+    parser.add_argument(
+        "--min-surface-clearance",
+        type=float,
+        default=0.0,
+        help="Minimum vertical gap below nearby selected splat surface points for subsurface particles.",
+    )
     parser.add_argument("--opacity-threshold", type=float, default=0.02)
     parser.add_argument("--max-gaussians", type=int, default=300_000, help="Use 0 for all retained splats.")
     parser.add_argument("--seed", type=int, default=0)
@@ -110,6 +116,7 @@ def build_regular_grid_subsurface(
     max_surface_distance: float,
     surface_neighbors: int,
     surface_quantile: float,
+    min_surface_clearance: float,
     seed: int,
 ) -> tuple[np.ndarray, np.ndarray, dict]:
     from scipy.spatial import cKDTree
@@ -144,6 +151,7 @@ def build_regular_grid_subsurface(
     if k == 1:
         neighbor_indices = neighbor_indices[:, None]
     surface_z = np.quantile(surface[neighbor_indices, 2], surface_quantile, axis=1).astype(np.float32)
+    clearance_surface_z = np.quantile(surface[neighbor_indices, 2], 0.1, axis=1).astype(np.float32)
 
     layer_depths = np.arange(layer_spacing, depth + layer_spacing * 0.5, layer_spacing, dtype=np.float32)
     layer_depths = layer_depths[layer_depths <= depth + 1e-6]
@@ -170,15 +178,20 @@ def build_regular_grid_subsurface(
             layer_keep = layer_nearest_distance <= max_surface_distance
             layer_xy = layer_xy[layer_keep]
             layer_surface_z = surface_z[layer_keep]
+            layer_clearance_z = clearance_surface_z[layer_keep]
             layer_color_indices = layer_nearest[layer_keep]
         else:
             _, layer_nearest = tree.query(layer_xy, k=1)
             layer_surface_z = surface_z
+            layer_clearance_z = clearance_surface_z
             layer_color_indices = layer_nearest
 
         layer = np.empty((layer_xy.shape[0], 3), dtype=np.float32)
         layer[:, :2] = layer_xy
-        layer[:, 2] = layer_surface_z - float(layer_depth)
+        layer[:, 2] = np.minimum(
+            layer_surface_z - float(layer_depth),
+            layer_clearance_z - float(min_surface_clearance),
+        )
         layers.append(layer)
         layer_colors.append(surface_colors[layer_color_indices])
 
@@ -196,6 +209,7 @@ def build_regular_grid_subsurface(
         "max_surface_distance": float(max_surface_distance),
         "surface_neighbors": int(k),
         "surface_quantile": float(surface_quantile),
+        "min_surface_clearance": float(min_surface_clearance),
         "grid_xy_count": int(grid_xy.shape[0]),
         "nearest_distance_min": float(nearest_distance.min()) if nearest_distance.size else 0.0,
         "nearest_distance_max": float(nearest_distance.max()) if nearest_distance.size else 0.0,
@@ -247,6 +261,7 @@ def main() -> None:
         max_surface_distance=args.max_surface_distance,
         surface_neighbors=args.surface_neighbors,
         surface_quantile=args.surface_quantile,
+        min_surface_clearance=args.min_surface_clearance,
         seed=args.seed,
     )
 

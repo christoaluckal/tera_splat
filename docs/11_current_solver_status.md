@@ -135,9 +135,9 @@ conda run -n tsplat python scripts/run_splat_matrix_experiments.py \
 It writes 27 cases under `outputs/splat_matrix_3x3x3/`, each with initial PLYs,
 Genesis metrics, `simulation_ply/`, and `solver_animation.mp4`.
 
-## Current Base-Case Tuning
+## Current Base State
 
-The current base case is no longer a full matrix. Tune one case first:
+The active base state is the settled mid-stiff case:
 
 ```text
 layers: 16
@@ -145,11 +145,49 @@ depth: 0.2
 layer spacing: 0.0125
 particle size: 0.0125
 render fps: 60
+initial state: outputs/base_settled_stiff_mid/particles_initial_mpm.ply
+metadata: outputs/base_settled_stiff_mid/ground_plane_metadata.json
+config: configs/physgaussian_sand_stiff_mid.json
+reference output: outputs/base_settled_stiff_mid/solver_animation.mp4
+```
+
+Material:
+
+```text
+E=1e5
+nu=0.2
+density/rho=1000
+friction_angle=45
+gravity=-9.81
+SimOptions substeps=10
+ground coupling: friction=0.2, softness=0.0, restitution=0.0
+```
+
+This base starts from the settled final frame of the earlier clearance/coupled
+ground run:
+
+```text
+outputs/base_clearance025_substeps10_coupled_layers16_depth0p2_ps0p0125/layers16_depth0p2_ps0p0125/simulation_ply/sim_4000.ply
 ```
 
 Recent base outputs:
 
 ```text
+outputs/base_settled_stiff_mid/
+  Current base state. Settled geometry plus mid-stiff sand. The mean Z stays
+  effectively fixed over a 10s/60fps run: -2.50747 -> -2.50812.
+
+outputs/settled_material_sweep/
+  Three settled material checks: current soft, mid-stiff, and
+  Genesis-default-like. Mid-stiff and Genesis-default-like are stable.
+
+outputs/particle_size_layer_matrix_3x3_capped_video/
+  3x3 particle-size/layer-density sweep. All cases looked similar and had
+  similar vertical COM behavior, so resolution is not the primary bounce knob.
+
+outputs/base_clearance025_substeps10_coupled_layers16_depth0p2_ps0p0125/
+  Previous bouncy base with clearance, substeps=10, and coupled ground.
+
 outputs/base_earth_gravity_layers16_depth0p2_ps0p025/
   Earth gravity, E=2000, nu=0.2, density=200, friction_angle=35.
 
@@ -159,11 +197,16 @@ outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p025/
 
 outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p0125/
   Same less-bouncy config, but particle_size=0.0125 to match layer spacing.
+
+outputs/base_substeps10_coupled_ground_layers16_depth0p2_ps0p0125/
+  Adds SimOptions substeps=10 and Genesis-style coupled ground contact:
+  Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
+  coup_restitution=0.0).
 ```
 
-The latest `particle_size=0.0125` case is less bouncy than the prior base but
-still has visible rebound. Do not run another matrix until this base case is
-acceptable.
+Do not restart future tuning from the unrelaxed splat/subsurface PLY unless the
+goal is explicitly to test initialization. Use `outputs/base_settled_stiff_mid/`
+as the current base.
 
 ## Genesis `sand_wheel.py` Comparison
 
@@ -191,24 +234,26 @@ differences are:
 4. Scene uses SimOptions substeps=10.
 ```
 
-Current likely bounce causes are initialization/contact related rather than
-just material stiffness:
+Observed bounce causes are initialization plus overly soft material parameters:
 
 ```text
-- Pre-filled particles can start in compression.
-- Ground is a Genesis Plane with default Rigid coupling, not the reference
-  coupled rigid plane settings.
-- The runner does not expose SimOptions substeps yet.
+- Pre-filled particles started as an unrelaxed packed bed and collapsed under
+  gravity before oscillating.
+- Particle size and layer count sweeps did not materially change the behavior.
+- Settling the geometry and increasing material stiffness removed the large
+  vertical oscillation.
 ```
 
-Next base-case fixes should be:
+Implemented base-case fixes:
 
 ```text
-1. Add --substeps to scripts/run_genesis_ground_plane_solver.py.
-2. Use Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
+1. Added --substeps to scripts/run_genesis_ground_plane_solver.py.
+2. Added Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
    coup_restitution=0.0) for the ground plane.
-3. Keep 60 fps rendering.
-4. Re-run only the base case before any matrix.
+3. Forwarded these options through scripts/run_splat_matrix_experiments.py.
+4. Re-ran only the base case before any matrix.
+5. Added configs/physgaussian_sand_stiff_mid.json.
+6. Promoted outputs/base_settled_stiff_mid/ as the active base state.
 ```
 
 Each suite folder contains:

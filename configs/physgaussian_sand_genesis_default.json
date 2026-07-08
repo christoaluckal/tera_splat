@@ -1,0 +1,48 @@
+{
+  "opacity_threshold": 0.02,
+  "rotation_degree": [
+    0.0
+  ],
+  "rotation_axis": [
+    0
+  ],
+  "substep_dt": 1e-4,
+  "frame_dt": 4e-2,
+  "frame_num": 50,
+  "E": 1000000.0,
+  "nu": 0.2,
+  "material": "sand",
+  "density": 1000,
+  "g": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "friction_angle": 45,
+  "n_grid": 64,
+  "particle_filling": null,
+  "boundary_conditions": [
+    {
+      "type": "bounding_box"
+    }
+  ],
+  "mpm_space_vertical_upward_axis": [
+    0,
+    0,
+    1
+  ],
+  "mpm_space_viewpoint_center": [
+    0,
+    0,
+    0
+  ],
+  "default_camera_index": -1,
+  "show_hint": false,
+  "init_azimuthm": 170,
+  "init_elevation": 0,
+  "init_radius": 1.6,
+  "move_camera": false,
+  "delta_a": 0.0,
+  "delta_e": 0.0,
+  "delta_r": 0.0
+}

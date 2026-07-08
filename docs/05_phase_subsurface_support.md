@@ -134,8 +134,7 @@ It writes each case under `outputs/splat_matrix_3x3x3/`, runs Genesis from the
 prebuilt splat-slice particles, renders `solver_animation.mp4`, and records
 `summary.csv`.
 
-Do not run the full matrix while base physics is still being tuned. The active
-single base case is:
+The active base state is now settled before reuse:
 
 ```text
 layers = 16
@@ -143,16 +142,24 @@ depth = 0.2
 layer_spacing = 0.0125
 particle_size = 0.0125
 render fps = 60
-latest output = outputs/base_earth_less_bouncy_layers16_depth0p2_ps0p0125/
+base state = outputs/base_settled_stiff_mid/
+initial PLY = outputs/base_settled_stiff_mid/particles_initial_mpm.ply
+config = configs/physgaussian_sand_stiff_mid.json
 ```
 
 The Genesis `sand_wheel.py` example does not use softer sand; it uses default
 `gs.materials.MPM.Sand()` (`E=1e6`, `nu=0.2`, `rho=1000`,
 `friction_angle=45`) with `SimOptions(dt=3e-3, substeps=10)`. Its main
-differences are dynamic sand emission and coupled rigid contact settings. Next
-base-case work should add solver substeps and set the ground rigid material to
+differences are dynamic sand emission and coupled rigid contact settings. The
+runner now exposes solver substeps and sets the ground rigid material to
 `Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
-coup_restitution=0.0)`.
+coup_restitution=0.0)` for the current Genesis runs.
+
+The particle-size/layer-density sweep under
+`outputs/particle_size_layer_matrix_3x3_capped_video/` changed particle counts
+from 126k to 596k but produced similar behavior. Resolution is not the primary
+bounce knob. The stable current base uses a settled initial state plus
+mid-stiff sand (`E=1e5`, `nu=0.2`, `rho=1000`, `friction_angle=45`).
 
 ## PhysGaussian Reuse
 
