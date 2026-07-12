@@ -495,6 +495,87 @@ load; otherwise gravity keeps settling the surface.
 
 Prefer the soft config for Genesis and current CUDA stability work.
 
+## Current Indenter Contact State
+
+Use the Genesis example pattern for any physical entity that should exert on
+the MPM sand bed:
+
+```python
+scene = gs.Scene(
+    sim_options=gs.options.SimOptions(dt=..., substeps=10, gravity=(0, 0, -9.81)),
+    coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
+    mpm_options=gs.options.MPMOptions(...),
+)
+
+entity = scene.add_entity(
+    gs.morphs.Cylinder(...),
+    material=gs.materials.Rigid(
+        needs_coup=True,
+        coup_friction=...,
+        coup_softness=0.0,
+        coup_restitution=0.0,
+    ),
+)
+
+sand = scene.add_entity(..., material=gs.materials.MPM.Sand(...))
+```
+
+This matches the mechanism used by Genesis' `sand_wheel.py` example: coupled
+rigid geometry interacts with MPM through `LegacyCouplerOptions(rigid_mpm=True)`.
+For this project, cylinders, wheels, feet, blades, and ground supports that
+need physical sand interaction should be modeled as `Rigid(needs_coup=True)`.
+
+Do not use the debug particle-edit paths for final behavior:
+
+```text
+--debug-contact-mode none
+```
+
+`scripts/run_genesis_indenter_test.py` currently has two indenter body modes,
+but only one is recommended for physical runs:
+
+```text
+--indenter-body-mode rigid
+  Coupled Genesis rigid cylinder. This is the current project default and the
+  path that matches the Genesis example set.
+  The best current non-debug run is:
+    outputs/indenter_physical_pd_soft_coup_test/
+    outputs/indenter_physical_pd_soft_coup_test/indenter_animation.mp4
+
+--indenter-body-mode tool
+  Experimental only. Genesis Tool is a prescribed one-way SDF collider. In the
+  current scene it moves, but it does not transfer meaningful motion to the
+  sand bed, so do not use Tool-mode outputs as physical evidence.
+```
+
+Validated Tool test:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_indenter_test.py \
+  --indenter-body-mode tool \
+  --indenter-softness 0.03 \
+  --indenter-friction 0.8 \
+  --indent-depth 0.08 \
+  --indent-start-time 0.10 \
+  --indent-ramp-time 0.80 \
+  --indent-hold-time 0.70 \
+  --steps 6400 \
+  --save-every 80 \
+  --output-dir outputs/indenter_tool_contact_synced
+```
+
+Result: with an 8 cm commanded tool depth, the surface under the disk moved
+only about `-0.08 cm`, comparable to background settling. The rendered video is:
+
+```text
+outputs/indenter_tool_contact_synced/indenter_animation.mp4
+```
+
+This means Tool mode is implemented, but not acceptable as the physical indenter
+solution. Continue from rigid coupled contact for now. If Tool is revisited, it
+should be treated as a Genesis internals investigation rather than the default
+application path.
+
 ## Next Engineering Steps
 
 1. Keep extending the soft PhysGaussian/Warp stability ladder:

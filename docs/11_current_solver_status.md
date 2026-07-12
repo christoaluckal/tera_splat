@@ -578,6 +578,76 @@ conda run -n tsplat python scripts/render_solver_video.py \
 `check_solver_displacement.py` now sort `sim_*.ply` frames by numeric frame
 index so runs beyond `sim_9999.ply` use `sim_20000.ply` as the final frame.
 
+## Indenter Contact Status
+
+Indenter deformation should remain solver-owned and should follow the same
+contact mechanism used in the Genesis example set, including
+`examples/coupling/sand_wheel.py`: physical objects that exert on MPM sand
+should be coupled rigid entities.
+
+The required pattern is:
+
+```python
+scene = gs.Scene(
+    sim_options=gs.options.SimOptions(dt=..., substeps=10, gravity=(0, 0, -9.81)),
+    coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
+    mpm_options=gs.options.MPMOptions(...),
+)
+
+scene.add_entity(
+    gs.morphs.Cylinder(...),
+    material=gs.materials.Rigid(
+        needs_coup=True,
+        coup_friction=...,
+        coup_softness=0.0,
+        coup_restitution=0.0,
+    ),
+)
+```
+
+Use this for cylinders, wheels, feet, blades, and any other entity that should
+physically move the sand bed. The sand remains `gs.materials.MPM.Sand(...)`.
+
+The debug modes in `scripts/run_genesis_indenter_test.py` directly edit
+particle positions and are for visualization/debugging only; final physical
+runs should use:
+
+```text
+--debug-contact-mode none
+```
+
+Current indenter body modes:
+
+```text
+--indenter-body-mode rigid
+  Coupled Genesis rigid cylinder. This is the recommended/default physical
+  path because it matches the Genesis examples.
+
+--indenter-body-mode tool
+  Experimental only. Genesis Tool is a prescribed one-way SDF collider. It now
+  moves through the bed when velocity-driven, but it still produces no
+  meaningful sand displacement in this scene.
+```
+
+Latest Tool tests:
+
+```text
+output: outputs/indenter_tool_contact_synced/
+video:  outputs/indenter_tool_contact_synced/indenter_animation.mp4
+target depth: 8 cm
+surface under disk mean dz: -0.08 cm
+
+output: outputs/indenter_tool_velocity_debug/
+video:  outputs/indenter_tool_velocity_debug/indenter_animation.mp4
+final actual z: -2.5252378
+final command z: -2.5252054
+surface under disk mean dz: -0.087 cm
+```
+
+Those displacements are background-settling scale, not indenter imprints. Do
+not use Tool-mode outputs as physical evidence. Continue with coupled rigid MPM
+contact unless the explicit goal is to debug Genesis Tool-MPM internals.
+
 ## Viewer Caveat
 
 If real MPM output frames are identical, the viewer is not broken. The current

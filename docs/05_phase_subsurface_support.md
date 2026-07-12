@@ -155,6 +155,15 @@ runner now exposes solver substeps and sets the ground rigid material to
 `Rigid(needs_coup=True, coup_friction=0.2, coup_softness=0.0,
 coup_restitution=0.0)` for the current Genesis runs.
 
+Use that same Genesis example pattern for future physical contact entities:
+objects that should exert on the sand bed should be `gs.materials.Rigid` with
+`needs_coup=True`, and the scene should use
+`gs.options.LegacyCouplerOptions(rigid_mpm=True)`. This is the current project
+convention for cylinders, wheels, feet, blades, and ground supports. The
+Genesis `Tool` material is not the default mechanism for this prototype; it is
+experimental here and has not produced meaningful sand displacement in the
+current bed.
+
 The particle-size/layer-density sweep under
 `outputs/particle_size_layer_matrix_3x3_capped_video/` changed particle counts
 from 126k to 596k but produced similar behavior. Resolution is not the primary
