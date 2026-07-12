@@ -748,6 +748,46 @@ and low rigid-body dissipation. If the desired test is weight-driven sinkage
 rather than impact, start the object just touching or barely above the surface
 with zero velocity and let it settle quasi-statically.
 
+Passive quasi-static 10 kg result:
+
+```text
+output: outputs/indenter_gravity_quasistatic_10kg_diag/
+video:  outputs/indenter_gravity_quasistatic_10kg_diag/indenter_animation_long.mp4
+query_xy: [0.2955, 0.17895]
+start_clearance: 0.0 m
+mass_after_override: 10.0 kg
+control mode: gravity
+final actual drop from initial center: 0.00475 m
+surface under cylinder mean dz: -0.35 cm
+surface under cylinder min dz: -0.45 cm
+```
+
+Sinkage-focused passive test:
+
+```text
+config: configs/physgaussian_sand_sinkage_mid.json
+output: outputs/indenter_gravity_quasistatic_10kg_r004_sinkage_mid/
+video:  outputs/indenter_gravity_quasistatic_10kg_r004_sinkage_mid/indenter_animation_long.mp4
+query_xy: [0.2955, 0.17895]
+control mode: gravity
+mass_after_override: 10.0 kg
+radius: 0.04 m
+start_clearance: 0.0 m
+indenter_softness: 0.005
+sand E: 50000 Pa
+sand friction_angle: 35 deg
+final actual cylinder drop: 0.05559 m
+surface under cylinder mean dz: -2.10 cm
+surface under cylinder min dz: -2.99 cm
+```
+
+This confirms the main weight-driven sinkage knobs are contact pressure and
+sand yield/compliance rather than particle size alone. The previous 10 kg,
+8 cm radius, `E=1e5`, `friction_angle=45` case generated only millimeter-scale
+surface displacement. Halving the radius increases pressure by roughly 4x, and
+the lower `E`/`friction_angle` material allows a visible depression under the
+same 10 kg passive load.
+
 Latest Tool tests:
 
 ```text
