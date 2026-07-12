@@ -24,7 +24,7 @@ from particle_io import load_material_config, read_particle_ply, write_particle_
 from run_genesis_ground_plane_solver import cuda_device_name, directory_size_bytes, make_bounds, tensor_to_numpy
 
 
-DEFAULT_BASE = REPO_ROOT / "outputs" / "base_settled_stiff_mid"
+DEFAULT_BASE = REPO_ROOT / "assets" / "base_settled_stiff_mid"
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,9 +66,24 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--indenter-control-mode",
-        choices=("pose", "pd"),
+        choices=("pose", "pd", "gravity"),
         default="pd",
-        help="How to drive the rigid indenter. pd uses Genesis DOF controllers; pose uses direct set_pos.",
+        help=(
+            "How to drive the rigid indenter. pd uses Genesis DOF controllers; pose uses direct set_pos; "
+            "gravity leaves the rigid body passive after initialization."
+        ),
+    )
+    parser.add_argument(
+        "--indenter-mass",
+        type=float,
+        default=None,
+        help="If set, override total rigid indenter mass in kg after scene.build().",
+    )
+    parser.add_argument(
+        "--indenter-rho",
+        type=float,
+        default=None,
+        help="Rigid material density in kg/m^3 used by Genesis to estimate mass before any --indenter-mass override.",
     )
     parser.add_argument("--indenter-kp", type=float, default=8.0e5)
     parser.add_argument("--indenter-kv", type=float, default=2.0e4)
@@ -407,6 +422,7 @@ def main() -> None:
                 fixed=args.fixed_indenter,
             ),
             material=gs.materials.Rigid(
+                rho=args.indenter_rho,
                 needs_coup=True,
                 coup_friction=args.indenter_friction,
                 coup_softness=args.indenter_softness,
@@ -433,6 +449,13 @@ def main() -> None:
     sand.set_particles_vel(torch.zeros((points.shape[0], 3), dtype=torch.float32, device=gs.device))
     sand.set_particles_active(torch.ones((points.shape[0],), dtype=torch.bool, device=gs.device))
     initial_surface_pos = torch.as_tensor(points[:surface_count], dtype=torch.float32, device=gs.device)
+    indenter_mass_before_override = None
+    indenter_mass_after_override = None
+    if args.indenter_body_mode == "rigid":
+        indenter_mass_before_override = float(indenter.get_mass())
+        if args.indenter_mass is not None:
+            indenter.set_mass(float(args.indenter_mass))
+        indenter_mass_after_override = float(indenter.get_mass())
     if args.indenter_body_mode == "tool":
         indenter.set_position([[float(query_xy[0]), float(query_xy[1]), initial_center_z]])
         indenter.set_velocity(vel=[[0.0, 0.0, 0.0]])
@@ -471,6 +494,10 @@ def main() -> None:
             "friction": args.indenter_friction,
             "softness": args.indenter_softness,
             "restitution": args.indenter_restitution,
+            "rho": args.indenter_rho,
+            "mass_requested": args.indenter_mass,
+            "mass_before_override": indenter_mass_before_override,
+            "mass_after_override": indenter_mass_after_override,
             "initial_center_z": initial_center_z,
             "body_mode": args.indenter_body_mode,
             "recommended_physical_mode": "rigid",
@@ -507,6 +534,7 @@ def main() -> None:
             "command_y": float(query_xy[1]),
             "command_z": initial_center_z,
             "depth": 0.0,
+            "actual_depth": initial_center_z - actual_z,
             "bottom_z": actual_z - args.indenter_height * 0.5,
             "command_bottom_z": initial_center_z - args.indenter_height * 0.5,
         }
@@ -516,13 +544,18 @@ def main() -> None:
     previous_depth = 0.0
     for step in range(1, args.steps + 1):
         t = step * args.dt
-        depth = smoothstep_depth(t, start=args.indent_start_time, ramp=args.indent_ramp_time, depth=args.indent_depth)
+        if args.indenter_control_mode == "gravity":
+            depth = 0.0
+        else:
+            depth = smoothstep_depth(t, start=args.indent_start_time, ramp=args.indent_ramp_time, depth=args.indent_depth)
         center_z = initial_center_z - depth
         velocity_z = (center_z - previous_center_z) / args.dt
         if args.indenter_body_mode == "tool":
             # ToolEntity is an advected prescribed collider. Updating velocity
             # each step keeps motion in Genesis' local Tool frame buffer.
             indenter.set_velocity(vel=[[0.0, 0.0, velocity_z]])
+        elif args.indenter_control_mode == "gravity":
+            pass
         elif args.indenter_control_mode == "pd" and indenter.n_dofs > 0:
             dof_position = np.zeros((indenter.n_dofs,), dtype=np.float32)
             dof_velocity = np.zeros((indenter.n_dofs,), dtype=np.float32)
@@ -585,6 +618,7 @@ def main() -> None:
                     "command_y": float(query_xy[1]),
                     "command_z": center_z,
                     "depth": depth,
+                    "actual_depth": initial_center_z - actual_z,
                     "bottom_z": actual_z - args.indenter_height * 0.5,
                     "command_bottom_z": center_z - args.indenter_height * 0.5,
                 }
@@ -609,7 +643,12 @@ def main() -> None:
             ("surface_z_at_query", surface_z, "meters"),
             ("target_indent_depth", args.indent_depth, "meters"),
             ("final_indent_depth", pose_rows[-1]["depth"], "meters"),
+            ("final_actual_depth", pose_rows[-1]["actual_depth"], "meters"),
             ("indenter_body_mode", args.indenter_body_mode, ""),
+            ("indenter_rho", args.indenter_rho, "kg/m^3"),
+            ("indenter_mass_requested", args.indenter_mass, "kg"),
+            ("indenter_mass_before_override", indenter_mass_before_override, "kg"),
+            ("indenter_mass_after_override", indenter_mass_after_override, "kg"),
             ("indenter_sdf_res", args.indenter_sdf_res, ""),
             ("indenter_control_mode", args.indenter_control_mode, ""),
             ("indenter_kp", args.indenter_kp, ""),

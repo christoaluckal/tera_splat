@@ -241,13 +241,13 @@ base case:
   render fps = 60
 
 active base:
-  outputs/base_settled_stiff_mid/
+  assets/base_settled_stiff_mid/
 
 initial PLY:
-  outputs/base_settled_stiff_mid/particles_initial_mpm.ply
+  assets/base_settled_stiff_mid/particles_initial_mpm.ply
 
 metadata:
-  outputs/base_settled_stiff_mid/ground_plane_metadata.json
+  assets/base_settled_stiff_mid/ground_plane_metadata.json
 
 config:
   configs/physgaussian_sand_stiff_mid.json
@@ -260,7 +260,7 @@ default.
 Recent base outputs:
 
 ```text
-outputs/base_settled_stiff_mid/
+assets/base_settled_stiff_mid/
   Current base state. Settled geometry with E=1e5, nu=0.2, density=1000,
   friction_angle=45, substeps=10, and coupled ground. Reference animation is
   solver_animation.mp4.
@@ -327,7 +327,7 @@ Implemented base-case fixes:
 4. Re-ran only the single base case before any matrix.
 5. Added configs/physgaussian_sand_stiff_mid.json and
    configs/physgaussian_sand_genesis_default.json.
-6. Promoted outputs/base_settled_stiff_mid/ as the active base state.
+6. Promoted assets/base_settled_stiff_mid/ as the active base state.
 ```
 
 Each case writes:
@@ -539,14 +539,21 @@ but only one is recommended for physical runs:
   Coupled Genesis rigid cylinder. This is the current project default and the
   path that matches the Genesis example set.
   The current accepted non-debug run is:
-    outputs/indenter_rigid_coupled_base/
-    outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+    assets/indenter_rigid_coupled_base/
+    assets/indenter_rigid_coupled_base/indenter_animation.mp4
 
   Measured result for that run:
     contact_mechanism = rigid_mpm_coupling
     target indent = 8.0 cm
     surface under cylinder mean dz = -3.56 cm
     surface under cylinder min dz = -4.94 cm
+
+  Important distinction:
+    The accepted run above is actuator/displacement controlled. The cylinder has
+    rigid mass/inertia, but deformation is dominated by the PD target trajectory
+    and force limit, not by passive object weight. In Genesis, passive weight is
+    controlled by rigid mass/density plus gravity; actuator-driven indentation
+    is controlled by the PD gains, target trajectory, and force limit.
 
 --indenter-body-mode tool
   Experimental only. Genesis Tool is a prescribed one-way SDF collider. In the
@@ -601,15 +608,110 @@ conda run -n tsplat python scripts/run_genesis_indenter_test.py \
   --indent-hold-time 0.70 \
   --steps 6400 \
   --save-every 80 \
-  --output-dir outputs/indenter_rigid_coupled_base
+  --output-dir assets/indenter_rigid_coupled_base
 ```
+
+Passive 1 kg gravity-drop command:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_indenter_test.py \
+  --indenter-body-mode rigid \
+  --debug-contact-mode none \
+  --indenter-control-mode gravity \
+  --indenter-mass 1.0 \
+  --query-xy 0.2955 0.17895 \
+  --start-clearance 0.15 \
+  --indenter-softness 0.03 \
+  --indenter-friction 0.8 \
+  --indenter-restitution 0.0 \
+  --steps 6400 \
+  --save-every 80 \
+  --output-dir outputs/indenter_gravity_drop_1kg_diag
+```
+
+In this mode the rigid body is initialized above the sand and then receives no
+pose/PD commands. It falls under scene gravity and interacts with the MPM sand
+only through rigid-MPM coupling.
+
+The query point is intentionally off-center because the visual center of this
+scene corresponds to a semantically rigid object in the original data, even
+though the current homogeneous prototype treats all selected points as sand.
+Use the diagonal interior point above for passive drop tests unless explicitly
+testing the center.
+
+Mass notes:
+
+```text
+--indenter-rho sets rigid density before build.
+--indenter-mass overrides total rigid mass after build.
+If neither is set, Genesis estimates primitive-object mass from geometry using
+its default object density, currently 600 kg/m^3.
+```
+
+Passive 1 kg gravity-drop result:
+
+```text
+output: outputs/indenter_gravity_drop_1kg_diag/
+video:  outputs/indenter_gravity_drop_1kg_diag/indenter_animation.mp4
+query_xy: [0.2955, 0.17895]
+mass_before_override: 0.4825 kg
+mass_after_override: 1.0 kg
+control mode: gravity
+final actual drop from initial center: 0.1226 m
+surface under cylinder mean dz: -0.10 cm
+surface under cylinder min dz: -0.38 cm
+```
+
+Interpretation: this is a passive mass/weight test, not an actuator test. A
+1 kg cylinder produces only about 9.81 N of weight. Spread over an 8 cm radius
+disk, the pressure is small, so it produces little visible deformation in the
+current settled mid-stiff sand bed. Use higher mass, smaller radius, lower
+clearance, or longer duration for visible gravity-only sinkage.
+
+Passive 10 kg gravity-drop result:
+
+```text
+output: outputs/indenter_gravity_drop_10kg_diag/
+video:  outputs/indenter_gravity_drop_10kg_diag/indenter_animation_long.mp4
+query_xy: [0.2955, 0.17895]
+mass_before_override: 0.4825 kg
+mass_after_override: 10.0 kg
+control mode: gravity
+final actual drop from initial center: 0.1318 m
+surface under cylinder mean dz: -0.96 cm
+surface under cylinder min dz: -1.51 cm
+```
+
+This is an exploratory output, so it remains under `outputs/`. Keep `assets/`
+for long-term stable base/accepted artifacts only.
+
+Why the passive drop bounces while the PD run does not:
+
+```text
+PD run:
+  --indenter-control-mode pd
+  actuator target keeps moving/holding the cylinder downward
+  kv actuator damping suppresses rebound
+
+Passive drop:
+  --indenter-control-mode gravity
+  no pose target and no actuator damping
+  gravity + inertia + rigid-MPM contact only
+```
+
+`coup_restitution=0.0` removes explicit restitution, but it does not remove all
+rebound. The passive rigid body can still bounce from MPM sand elastic recovery,
+contact softness acting like a spring zone, timestep/substep discretization,
+and low rigid-body dissipation. If the desired test is weight-driven sinkage
+rather than impact, start the object just touching or barely above the surface
+with zero velocity and let it settle quasi-statically.
 
 Render command:
 
 ```bash
 conda run -n tsplat python scripts/render_indenter_animation.py \
-  outputs/indenter_rigid_coupled_base \
-  --output outputs/indenter_rigid_coupled_base/indenter_animation.mp4 \
+  assets/indenter_rigid_coupled_base \
+  --output assets/indenter_rigid_coupled_base/indenter_animation.mp4 \
   --fps 60
 ```
 
@@ -625,17 +727,17 @@ Accepted command:
 
 ```bash
 conda run -n tsplat python scripts/transfer_mpm_to_gaussians.py \
-  --run-dir outputs/indenter_rigid_coupled_base
+  --run-dir assets/indenter_rigid_coupled_base
 ```
 
 Output:
 
 ```text
-outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
-outputs/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
+assets/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
+assets/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
 ```
 
-The current run starts from `outputs/base_settled_stiff_mid/`, so the transfer
+The current run starts from `assets/base_settled_stiff_mid/`, so the transfer
 uses `final-position` mode by default: the selected surface splat centers are
 set to the final MPM surface particle positions and transformed back into the
 source PLY coordinate frame. All non-position Gaussian attributes are preserved.
@@ -654,7 +756,7 @@ The deformed PLY loads successfully with:
 
 ```bash
 conda run -n tsplat python scripts/view_iteration_7000.py \
-  --ply outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply \
+  --ply assets/indenter_rigid_coupled_base/terrain_deformed_center_only.ply \
   --dry-run \
   --max-gaussians 0 \
   --align-ground-z

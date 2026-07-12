@@ -145,10 +145,10 @@ depth: 0.2
 layer spacing: 0.0125
 particle size: 0.0125
 render fps: 60
-initial state: outputs/base_settled_stiff_mid/particles_initial_mpm.ply
-metadata: outputs/base_settled_stiff_mid/ground_plane_metadata.json
+initial state: assets/base_settled_stiff_mid/particles_initial_mpm.ply
+metadata: assets/base_settled_stiff_mid/ground_plane_metadata.json
 config: configs/physgaussian_sand_stiff_mid.json
-reference output: outputs/base_settled_stiff_mid/solver_animation.mp4
+reference output: assets/base_settled_stiff_mid/solver_animation.mp4
 ```
 
 Material:
@@ -173,7 +173,7 @@ outputs/base_clearance025_substeps10_coupled_layers16_depth0p2_ps0p0125/layers16
 Recent base outputs:
 
 ```text
-outputs/base_settled_stiff_mid/
+assets/base_settled_stiff_mid/
   Current base state. Settled geometry plus mid-stiff sand. The mean Z stays
   effectively fixed over a 10s/60fps run: -2.50747 -> -2.50812.
 
@@ -205,7 +205,7 @@ outputs/base_substeps10_coupled_ground_layers16_depth0p2_ps0p0125/
 ```
 
 Do not restart future tuning from the unrelaxed splat/subsurface PLY unless the
-goal is explicitly to test initialization. Use `outputs/base_settled_stiff_mid/`
+goal is explicitly to test initialization. Use `assets/base_settled_stiff_mid/`
 as the current base.
 
 ## Genesis `sand_wheel.py` Comparison
@@ -253,7 +253,7 @@ Implemented base-case fixes:
 3. Forwarded these options through scripts/run_splat_matrix_experiments.py.
 4. Re-ran only the base case before any matrix.
 5. Added configs/physgaussian_sand_stiff_mid.json.
-6. Promoted outputs/base_settled_stiff_mid/ as the active base state.
+6. Promoted assets/base_settled_stiff_mid/ as the active base state.
 ```
 
 Each suite folder contains:
@@ -632,8 +632,8 @@ Current indenter body modes:
 Accepted rigid run:
 
 ```text
-output: outputs/indenter_rigid_coupled_base/
-video:  outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+output: assets/indenter_rigid_coupled_base/
+video:  assets/indenter_rigid_coupled_base/indenter_animation.mp4
 contact_mechanism: rigid_mpm_coupling
 body_mode: rigid
 target indent: 8.0 cm
@@ -641,6 +641,11 @@ surface under cylinder mean dz: -3.56 cm
 surface under cylinder min dz: -4.94 cm
 debug contact mode: none
 ```
+
+This accepted run is actuator/displacement controlled. Rigid mass exists, but
+the indentation is dominated by the PD target trajectory and force limit. A
+passive mass/weight test should instead use `--indenter-control-mode gravity`
+with an explicit `--indenter-mass`.
 
 Command:
 
@@ -661,8 +666,87 @@ conda run -n tsplat python scripts/run_genesis_indenter_test.py \
   --indent-hold-time 0.70 \
   --steps 6400 \
   --save-every 80 \
-  --output-dir outputs/indenter_rigid_coupled_base
+  --output-dir assets/indenter_rigid_coupled_base
 ```
+
+Passive 1 kg gravity-drop command:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_indenter_test.py \
+  --indenter-body-mode rigid \
+  --debug-contact-mode none \
+  --indenter-control-mode gravity \
+  --indenter-mass 1.0 \
+  --query-xy 0.2955 0.17895 \
+  --start-clearance 0.15 \
+  --indenter-softness 0.03 \
+  --indenter-friction 0.8 \
+  --indenter-restitution 0.0 \
+  --steps 6400 \
+  --save-every 80 \
+  --output-dir outputs/indenter_gravity_drop_1kg_diag
+```
+
+The query point is an interior point on the patch diagonal, away from `(0, 0)`,
+because the scene center is semantically a rigid object in the source data even
+though the current homogeneous prototype treats it as sand.
+
+Passive 1 kg gravity-drop result:
+
+```text
+output: outputs/indenter_gravity_drop_1kg_diag/
+video:  outputs/indenter_gravity_drop_1kg_diag/indenter_animation.mp4
+query_xy: [0.2955, 0.17895]
+mass_before_override: 0.4825 kg
+mass_after_override: 1.0 kg
+control mode: gravity
+final actual drop from initial center: 0.1226 m
+surface under cylinder mean dz: -0.10 cm
+surface under cylinder min dz: -0.38 cm
+```
+
+This is a passive mass/weight test, not a displacement actuator test. A 1 kg
+body applies only about 9.81 N under gravity; over an 8 cm radius disk this is
+a small pressure and produces little visible deformation in the current
+mid-stiff settled bed.
+
+Passive 10 kg gravity-drop result:
+
+```text
+output: outputs/indenter_gravity_drop_10kg_diag/
+video:  outputs/indenter_gravity_drop_10kg_diag/indenter_animation_long.mp4
+query_xy: [0.2955, 0.17895]
+mass_before_override: 0.4825 kg
+mass_after_override: 10.0 kg
+control mode: gravity
+final actual drop from initial center: 0.1318 m
+surface under cylinder mean dz: -0.96 cm
+surface under cylinder min dz: -1.51 cm
+```
+
+This is an exploratory output, so it stays under `outputs/`. Keep `assets/` for
+long-term stable base/accepted artifacts only.
+
+Why the passive drop bounces while the PD run does not:
+
+```text
+PD run:
+  --indenter-control-mode pd
+  actuator target keeps moving/holding the cylinder downward
+  kv actuator damping suppresses rebound
+
+Passive drop:
+  --indenter-control-mode gravity
+  no pose target and no actuator damping
+  gravity + inertia + rigid-MPM contact only
+```
+
+`coup_restitution=0.0` removes explicit restitution, but it does not remove all
+rebound. The passive rigid body can still bounce from MPM sand elastic recovery,
+contact softness acting like a spring zone, timestep/substep discretization,
+and low rigid-body dissipation. If the desired test is weight-driven sinkage
+rather than impact, start the object just touching or barely above the surface
+with zero velocity and let it settle quasi-statically.
 
 Latest Tool tests:
 

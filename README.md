@@ -545,7 +545,7 @@ scripts/run_genesis_indenter_test.py
 The accepted working artifact is:
 
 ```text
-outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+assets/indenter_rigid_coupled_base/indenter_animation.mp4
 ```
 
 Analytic pressure fields and direct particle velocity edits are useful only as

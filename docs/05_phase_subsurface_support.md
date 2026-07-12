@@ -142,8 +142,8 @@ depth = 0.2
 layer_spacing = 0.0125
 particle_size = 0.0125
 render fps = 60
-base state = outputs/base_settled_stiff_mid/
-initial PLY = outputs/base_settled_stiff_mid/particles_initial_mpm.ply
+base state = assets/base_settled_stiff_mid/
+initial PLY = assets/base_settled_stiff_mid/particles_initial_mpm.ply
 config = configs/physgaussian_sand_stiff_mid.json
 ```
 

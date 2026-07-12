@@ -27,7 +27,7 @@ from view_iteration_7000 import (
 )
 
 
-DEFAULT_RUN = Path(__file__).resolve().parents[1] / "outputs" / "indenter_rigid_coupled_base"
+DEFAULT_RUN = Path(__file__).resolve().parents[1] / "assets" / "indenter_rigid_coupled_base"
 
 
 def parse_args() -> argparse.Namespace:

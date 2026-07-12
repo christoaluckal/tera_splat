@@ -26,14 +26,14 @@ Current implementation:
 
 ```bash
 conda run -n tsplat python scripts/transfer_mpm_to_gaussians.py \
-  --run-dir outputs/indenter_rigid_coupled_base
+  --run-dir assets/indenter_rigid_coupled_base
 ```
 
 This writes:
 
 ```text
-outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
-outputs/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
+assets/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
+assets/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
 ```
 
 The current accepted run starts from a settled base, so the default transfer
