@@ -6,7 +6,7 @@ Show that the system is doing more than visual editing.
 
 ## Inputs
 
-- Before/after predictions from analytic and MPM methods.
+- Before/after predictions from analytic baselines and coupled rigid-MPM methods.
 - Controlled real or synthetic indentation references.
 - Camera poses and optional depth maps.
 - Run metrics from each query.
@@ -21,8 +21,8 @@ Start with a controlled sand tray:
 4. Reconstruct or estimate before/after geometry.
 5. Compare predicted and observed after-state.
 
-Use the same query locations, contact radius, and indentation depth for all
-baselines.
+Use the same query locations, rigid entity geometry, commanded motion/load, and
+indentation depth for all baselines.
 
 ## PhysGaussian Reuse
 
@@ -38,13 +38,13 @@ using visual similarity.
   - analytic indentation,
   - MPM without subsurface support,
   - MPM with subsurface support,
-  - MPM with material conditioning.
+  - coupled rigid-MPM contact with material conditioning.
 - Metrics report for each query.
 
 ## Success Criteria
 
-- MPM with subsurface support beats no-deformation and analytic-only baselines
-  on geometry-focused metrics.
+- Coupled rigid-MPM with subsurface support beats no-deformation and
+  analytic-only baselines on geometry-focused metrics.
 - Rendered after-view is plausible and localized.
 - Multiple query locations can be evaluated in the same terrain map.
 - Results include both successes and failure cases.
@@ -71,4 +71,3 @@ Geometry and terrain:
 - Real sand measurements are noisy and hard to align.
 - Rendering metrics may penalize lighting differences more than deformation.
 - Geometry metrics depend on reliable depth or reconstructed after-state.
-

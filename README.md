@@ -327,7 +327,31 @@ A terrain Gaussian map can be turned into a queryable physical world model if ea
 * localized force or displacement queries,
 * splat deformation and rerendering.
 
-The first prototype should use surface pressure or shallow displacement rather than rigid penetration. This avoids the hardest contact mechanics while still demonstrating the main idea.
+The current forward path uses Genesis' coupled rigid-MPM contact for physical
+loading. Objects that should move the sand bed should be modeled as coupled
+rigid entities, matching Genesis' `examples/coupling/sand_wheel.py` pattern:
+
+```python
+scene = gs.Scene(
+    sim_options=gs.options.SimOptions(dt=..., substeps=10, gravity=(0, 0, -9.81)),
+    coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
+    mpm_options=gs.options.MPMOptions(...),
+)
+
+scene.add_entity(
+    gs.morphs.Cylinder(...),
+    material=gs.materials.Rigid(
+        needs_coup=True,
+        coup_friction=...,
+        coup_softness=0.0,
+        coup_restitution=0.0,
+    ),
+)
+```
+
+Analytic pressure patches and direct particle edits are now baselines/debug
+tools only. The accepted physical indenter path is a coupled rigid cylinder
+with `--debug-contact-mode none`.
 
 ## 2. Recommended Prototype Query
 
@@ -339,7 +363,7 @@ Input:
 - query location x
 - material = sand
 - circular contact radius r
-- downward pressure or displacement magnitude
+- coupled rigid entity shape and commanded motion/load
 - duration or number of simulation steps
 
 Output:
@@ -352,7 +376,7 @@ Output:
 Example:
 
 ```text
-Apply a 5 cm radius circular pressure patch at location x on sand for 0.2 seconds.
+Press a coupled rigid cylinder into sand at location x for 0.2 seconds.
 Predict the resulting terrain splat deformation and render the new view.
 ```
 
@@ -480,34 +504,56 @@ Update Gaussian covariances only after the center displacement works.
 * The deformation is localized.
 * This baseline becomes the first comparison for MPM.
 
-## 6. Phase 4 — Surface Pressure MPM Patch
+## 6. Phase 4 — Coupled Rigid MPM Contact
 
 ### Goal
 
-Replace analytic deformation with a local MPM simulation while avoiding rigid penetrative contact.
+Replace analytic deformation with a local MPM simulation using Genesis'
+coupled rigid-MPM contact path.
 
 ### Method
 
-Convert the local terrain patch into particles. Apply a downward force or velocity field to surface particles inside a circular patch.
+Convert the local terrain patch into particles. Add a physical contact entity
+as a coupled rigid body:
 
-Initial force model:
+```python
+scene = gs.Scene(
+    sim_options=gs.options.SimOptions(dt=..., substeps=10, gravity=(0, 0, -9.81)),
+    coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
+    mpm_options=gs.options.MPMOptions(...),
+)
 
-```text
-f_i = f_0 * exp(-||xy_i - xy_query||^2 / (2 r^2)) * (-normal)
+scene.add_entity(
+    gs.morphs.Cylinder(...),
+    material=gs.materials.Rigid(
+        needs_coup=True,
+        coup_friction=...,
+        coup_softness=0.0,
+        coup_restitution=0.0,
+    ),
+)
 ```
 
-Alternatively, use displacement control:
+For the current indenter case, use:
 
 ```text
-surface particles inside radius r receive a target downward velocity for N steps
+scripts/run_genesis_indenter_test.py
+--indenter-body-mode rigid
+--debug-contact-mode none
 ```
 
-Displacement control is recommended first because it is easier to stabilize than force control.
+The accepted working artifact is:
+
+```text
+outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+```
+
+Analytic pressure fields and direct particle velocity edits are useful only as
+baselines/debugging tools. They are not the forward physical contact method.
 
 ### Tools
 
-* Taichi
-* taichi_mpm
+* Genesis
 * NumPy
 * PyTorch
 * Open3D
@@ -528,7 +574,7 @@ For the first test, use a simplified material:
 
 ### Deliverables
 
-* `mpm_patch_sim.py`
+* `scripts/run_genesis_indenter_test.py`
 * local particles before/after
 * deformation field
 * updated Gaussian centers
@@ -813,12 +859,12 @@ Physics/task metrics:
 
 ## 12. Phase 10 — Robotics Extension
 
-Only start this after the shallow pressure prototype works.
+Only start this after the coupled rigid cylinder prototype works.
 
 ### Extensions
 
-1. Wheel contact patch instead of circular patch.
-2. Footstep-shaped pressure patch.
+1. Coupled rigid wheel geometry instead of circular cylinder.
+2. Coupled rigid foot or plate geometry.
 3. Tangential shear force.
 4. Repeated contacts.
 5. Online update from observed before/after terrain.

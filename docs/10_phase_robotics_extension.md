@@ -2,32 +2,36 @@
 
 ## Goal
 
-Extend the shallow pressure prototype toward robot-relevant terrain contact only
-after the local sand deformation pipeline works.
+Extend the coupled rigid-MPM terrain contact prototype toward robot-relevant
+terrain interaction only after the local sand deformation pipeline works.
 
 ## Inputs
 
 - Working query interface from Phase 8.
 - Validated shallow deformation behavior from Phase 9.
-- Robot contact descriptions: wheel patch, foot patch, shear direction, load,
-  and repeated contact schedule.
+- Robot contact descriptions: coupled rigid wheel/foot/blade geometry, shear
+  direction, commanded motion or load, and repeated contact schedule.
 - Optional robot observations from depth, LiDAR, odometry, torque/current, or
   IMU.
 
 ## Method
 
-Replace the simple circular pressure patch with contact shapes and histories
+Replace the simple coupled rigid cylinder with contact shapes and histories
 that matter for locomotion:
 
-- wheel contact patch,
-- footstep-shaped pressure patch,
+- coupled rigid wheel geometry,
+- coupled rigid foot or plate geometry,
 - tangential shear force,
 - repeated contacts,
 - online before/after terrain updates,
 - slip and sinkage estimates,
 - planner queries for lower-deformation terrain regions.
 
-Keep these as extensions, not requirements for the first prototype.
+Keep these as extensions, not requirements for the first prototype. Follow the
+Genesis example convention for physical contact: robot-relevant objects should
+be `gs.materials.Rigid(needs_coup=True)` in a scene with
+`gs.options.LegacyCouplerOptions(rigid_mpm=True)`. Analytic pressure footprints
+are acceptable baselines, but not the default physical mechanism.
 
 ## PhysGaussian Reuse
 
@@ -38,7 +42,7 @@ terrain representation if the earlier phases succeeded.
 ## Deliverables
 
 - Robot contact query schema.
-- Wheel or foot pressure footprint model.
+- Coupled rigid wheel or foot contact model.
 - Repeated-contact simulation case.
 - Sinkage/rut-depth metric.
 - Updated terrain splat map after observed contact.
@@ -56,4 +60,3 @@ terrain representation if the earlier phases succeeded.
   than shallow vertical displacement.
 - Robot observations may be noisy, partial, and delayed.
 - Planner integration should wait until the prediction pipeline is credible.
-

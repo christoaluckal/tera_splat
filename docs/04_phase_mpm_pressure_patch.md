@@ -1,35 +1,61 @@
-# Phase 4: Surface Pressure MPM Patch
+# Phase 4: Coupled Rigid MPM Contact
 
 ## Goal
 
-Replace analytic deformation with a local MPM simulation while avoiding deep
-rigid-body contact.
+Replace analytic deformation with a local MPM simulation using Genesis'
+physically coupled rigid-MPM contact path. This is the accepted mechanism going
+forward for any entity that should exert on the sand bed.
 
 ## Inputs
 
 - Local terrain patch from Phase 2.
 - Sand material parameters.
-- Contact radius, duration, and either target displacement or pressure.
+- Rigid contact entity shape, duration, and either commanded motion or load.
 - Boundary conditions for floor/support and simulation bounds.
 
 ## Method
 
-Start with displacement control, because it is easier to stabilize than raw
-force control:
+Use the same mechanism as Genesis' `examples/coupling/sand_wheel.py`:
 
-```text
-surface particles inside contact radius receive downward target velocity
-for N substeps
+```python
+scene = gs.Scene(
+    sim_options=gs.options.SimOptions(dt=..., substeps=10, gravity=(0, 0, -9.81)),
+    coupler_options=gs.options.LegacyCouplerOptions(rigid_mpm=True),
+    mpm_options=gs.options.MPMOptions(...),
+)
+
+scene.add_entity(
+    gs.morphs.Cylinder(...),
+    material=gs.materials.Rigid(
+        needs_coup=True,
+        coup_friction=...,
+        coup_softness=0.0,
+        coup_restitution=0.0,
+    ),
+)
+
+sand = scene.add_entity(..., material=gs.materials.MPM.Sand(...))
 ```
 
-Then test pressure/impulse control:
+Start with a displacement- or velocity-controlled rigid cylinder because it is
+easier to inspect than raw force control. The cylinder itself must be a coupled
+rigid entity; do not directly move particles for final physical results.
+
+Debug-only alternatives:
 
 ```text
-f_i = f_0 * exp(-||xy_i - xy_query||^2 / (2 r_contact^2)) * (-normal)
+- analytic pressure patches,
+- direct surface particle velocity edits,
+- debug clamp/plastic particle edits,
+- Genesis Tool-mode tests.
 ```
 
-Keep the first MPM patch small and local. The point is to produce a stable,
-inspectable shallow dent, not to solve full wheel or foot contact.
+These may help isolate rendering or measurement issues, but they are not
+physical evidence. Final runs should use coupled rigid MPM contact and
+`--debug-contact-mode none`.
+
+Keep the first MPM contact case small and local. The point is to produce a
+stable, inspectable shallow dent, not to solve full wheel or foot contact.
 
 Before any contact loading, run a gravity-only ground-plane smoke test:
 
@@ -52,13 +78,16 @@ Reuse the Warp MPM solver concepts from PhysGaussian:
 - use existing boundary conditions where possible.
 
 Existing controls such as `enforce_particle_translation` or `particle_impulse`
-can approximate early displacement/force tests. A true circular query wrapper is
-a later implementation task, because the current CLI does not expose
-`query_xyz + radius + depth` directly.
+can approximate early debugging tests, but they should not be used as final
+physical contact results. The current physical query wrapper is
+`scripts/run_genesis_indenter_test.py` with `--indenter-body-mode rigid` and
+`--debug-contact-mode none`.
 
 Current local implementation notes:
 
 - `scripts/run_ground_plane_solver.py` creates the first ground-plane MPM setup.
+- `scripts/run_genesis_indenter_test.py` runs the accepted coupled-rigid
+  cylinder contact test.
 - `scripts/view_solver_animation.py` displays solver PLY output folders.
 - `scripts/generate_ground_plane_preview.py` is only a non-MPM viewer/debug
   fallback; do not treat it as a physics result.

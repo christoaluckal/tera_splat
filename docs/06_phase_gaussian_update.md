@@ -22,6 +22,27 @@ x_i' = x_i + interpolate_displacement(x_i)
 Use nearest-neighbor or kernel interpolation from MPM particles to Gaussian
 centers. Keep opacity and appearance unchanged.
 
+Current implementation:
+
+```bash
+conda run -n tsplat python scripts/transfer_mpm_to_gaussians.py \
+  --run-dir outputs/indenter_rigid_coupled_base
+```
+
+This writes:
+
+```text
+outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
+outputs/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
+```
+
+The current accepted run starts from a settled base, so the default transfer
+mode is `final-position`: selected surface splat centers are set to the final
+MPM surface particle positions, then transformed back into the source PLY
+coordinate frame. All non-position Gaussian attributes are preserved. The
+script also exposes `--transfer-mode indenter-delta` for debugging only, which
+applies only the final-minus-initial MPM displacement to the source centers.
+
 Then add covariance transfer:
 
 ```text
@@ -64,4 +85,3 @@ before rasterization. The terrain prototype should preserve that idea:
 - Covariance update can amplify unstable deformation gradients.
 - Rendered filled particles may look wrong unless appearance inheritance is
   handled carefully.
-

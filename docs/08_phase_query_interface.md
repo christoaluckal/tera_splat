@@ -9,8 +9,8 @@ Define a clean interface for counterfactual terrain deformation queries.
 - Terrain Gaussian scene.
 - Query location.
 - Material label.
-- Contact radius.
-- Mode: displacement first, pressure later.
+- Coupled rigid entity shape, such as a cylinder.
+- Mode: displacement/velocity-controlled rigid entity first, force control later.
 - Magnitude, duration, and simulation steps.
 
 ## Method
@@ -22,8 +22,10 @@ python query_terrain.py \
   --scene terrain_initial.ply \
   --query_xyz 0.2 0.1 0.0 \
   --material sand \
-  --radius 0.05 \
-  --mode displacement \
+  --entity cylinder \
+  --radius 0.08 \
+  --height 0.04 \
+  --mode rigid_displacement \
   --depth 0.01 \
   --steps 100 \
   --out outputs/query_001
@@ -35,12 +37,20 @@ The matching Python API should expose the same concepts:
 result = terrain_model.query(
     location=x,
     material="sand",
-    contact_radius=0.05,
-    mode="displacement",
+    entity="cylinder",
+    contact_radius=0.08,
+    entity_height=0.04,
+    mode="rigid_displacement",
     displacement=0.01,
     steps=100,
 )
 ```
+
+The query implementation should map this to Genesis' coupled rigid-MPM contact
+path: `Rigid(needs_coup=True)` for the entity and
+`LegacyCouplerOptions(rigid_mpm=True)` for the scene. Pressure-patch or direct
+particle-edit modes can remain as baselines/debug tools, but should not be the
+default physical query.
 
 ## PhysGaussian Reuse
 
@@ -48,9 +58,9 @@ The query layer should eventually generate the PhysGaussian-compatible MPM
 config and boundary controls underneath. It should not expose PhysGaussian's
 whole config file to users for the common shallow-contact case.
 
-Because PhysGaussian does not currently expose a circular terrain query as a
-single command, this phase should be treated as a wrapper design, not a direct
-reuse of the existing `gs_simulation.py` CLI.
+Because PhysGaussian does not currently expose a coupled terrain contact query
+as a single command, this phase should be treated as a wrapper design, not a
+direct reuse of the existing `gs_simulation.py` CLI.
 
 ## Deliverables
 
@@ -90,4 +100,3 @@ particles_deformed.ply
 - Query coordinates are easy to confuse across world, local, and MPM spaces.
 - A general API may hide necessary debug controls too early.
 - Pressure units should be deferred until displacement mode is stable.
-

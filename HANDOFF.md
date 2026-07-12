@@ -538,9 +538,15 @@ but only one is recommended for physical runs:
 --indenter-body-mode rigid
   Coupled Genesis rigid cylinder. This is the current project default and the
   path that matches the Genesis example set.
-  The best current non-debug run is:
-    outputs/indenter_physical_pd_soft_coup_test/
-    outputs/indenter_physical_pd_soft_coup_test/indenter_animation.mp4
+  The current accepted non-debug run is:
+    outputs/indenter_rigid_coupled_base/
+    outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+
+  Measured result for that run:
+    contact_mechanism = rigid_mpm_coupling
+    target indent = 8.0 cm
+    surface under cylinder mean dz = -3.56 cm
+    surface under cylinder min dz = -4.94 cm
 
 --indenter-body-mode tool
   Experimental only. Genesis Tool is a prescribed one-way SDF collider. In the
@@ -575,6 +581,84 @@ This means Tool mode is implemented, but not acceptable as the physical indenter
 solution. Continue from rigid coupled contact for now. If Tool is revisited, it
 should be treated as a Genesis internals investigation rather than the default
 application path.
+
+Accepted rigid command:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_indenter_test.py \
+  --indenter-body-mode rigid \
+  --debug-contact-mode none \
+  --indenter-control-mode pd \
+  --indenter-softness 0.03 \
+  --indenter-friction 0.8 \
+  --indenter-restitution 0.0 \
+  --indenter-kp 800000 \
+  --indenter-kv 20000 \
+  --indenter-force-limit 200000 \
+  --indent-depth 0.08 \
+  --indent-start-time 0.10 \
+  --indent-ramp-time 0.80 \
+  --indent-hold-time 0.70 \
+  --steps 6400 \
+  --save-every 80 \
+  --output-dir outputs/indenter_rigid_coupled_base
+```
+
+Render command:
+
+```bash
+conda run -n tsplat python scripts/render_indenter_animation.py \
+  outputs/indenter_rigid_coupled_base \
+  --output outputs/indenter_rigid_coupled_base/indenter_animation.mp4 \
+  --fps 60
+```
+
+## Current Gaussian Transfer State
+
+Phase 6 center-only transfer is implemented in:
+
+```text
+scripts/transfer_mpm_to_gaussians.py
+```
+
+Accepted command:
+
+```bash
+conda run -n tsplat python scripts/transfer_mpm_to_gaussians.py \
+  --run-dir outputs/indenter_rigid_coupled_base
+```
+
+Output:
+
+```text
+outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply
+outputs/indenter_rigid_coupled_base/terrain_deformed_center_only_metadata.json
+```
+
+The current run starts from `outputs/base_settled_stiff_mid/`, so the transfer
+uses `final-position` mode by default: the selected surface splat centers are
+set to the final MPM surface particle positions and transformed back into the
+source PLY coordinate frame. All non-position Gaussian attributes are preserved.
+
+Validation for the current artifact:
+
+```text
+source vertices: 813451
+loaded retained splats: 256210
+updated splats: 21536
+changed PLY vertices: 21536
+covariance update: not applied
+```
+
+The deformed PLY loads successfully with:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py \
+  --ply outputs/indenter_rigid_coupled_base/terrain_deformed_center_only.ply \
+  --dry-run \
+  --max-gaussians 0 \
+  --align-ground-z
+```
 
 ## Next Engineering Steps
 

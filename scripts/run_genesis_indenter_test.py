@@ -49,8 +49,8 @@ def parse_args() -> argparse.Namespace:
         choices=("rigid", "tool"),
         default="rigid",
         help=(
-            "rigid uses a coupled Genesis rigid body. tool uses a prescribed Genesis Tool SDF collider, "
-            "which is one-way tool->MPM contact and does not directly edit particles."
+            "rigid uses Genesis' standard Rigid(needs_coup=True) MPM coupling path. "
+            "tool is experimental and is not recommended for physical sand displacement."
         ),
     )
     parser.add_argument(
@@ -153,6 +153,15 @@ def get_tool_position(tool) -> tuple[float, float, float]:
     state = tool.get_state()
     pos = state.pos.detach().cpu().numpy().reshape(-1, 3)[0]
     return float(pos[0]), float(pos[1]), float(pos[2])
+
+
+def get_entity_position(entity, fallback: tuple[float, float, float]) -> tuple[float, float, float]:
+    try:
+        pos = entity.get_pos()
+    except AttributeError:
+        return fallback
+    pos_np = pos.detach().cpu().numpy().reshape(-1, 3)[0]
+    return float(pos_np[0]), float(pos_np[1]), float(pos_np[2])
 
 
 def write_metrics_csv(path: Path, rows: list[tuple[str, object, str]]) -> None:
@@ -448,6 +457,7 @@ def main() -> None:
     run_metadata = {
         **metadata,
         "load_mode": "indenter-displacement",
+        "contact_mechanism": "rigid_mpm_coupling" if args.indenter_body_mode == "rigid" else "experimental_tool_mpm_coupling",
         "query_xy": query_xy.astype(float).tolist(),
         "surface_z_at_query": surface_z,
         "indenter": {
@@ -463,6 +473,7 @@ def main() -> None:
             "restitution": args.indenter_restitution,
             "initial_center_z": initial_center_z,
             "body_mode": args.indenter_body_mode,
+            "recommended_physical_mode": "rigid",
             "sdf_res": args.indenter_sdf_res,
             "control_mode": args.indenter_control_mode,
             "kp": args.indenter_kp,
@@ -483,6 +494,8 @@ def main() -> None:
     actual_z = initial_center_z
     if args.indenter_body_mode == "tool":
         actual_x, actual_y, actual_z = get_tool_position(indenter)
+    else:
+        actual_x, actual_y, actual_z = get_entity_position(indenter, (actual_x, actual_y, actual_z))
     pose_rows = [
         {
             "step": 0,
@@ -559,6 +572,8 @@ def main() -> None:
             actual_z = center_z
             if args.indenter_body_mode == "tool":
                 actual_x, actual_y, actual_z = get_tool_position(indenter)
+            else:
+                actual_x, actual_y, actual_z = get_entity_position(indenter, (actual_x, actual_y, actual_z))
             pose_rows.append(
                 {
                     "step": step,

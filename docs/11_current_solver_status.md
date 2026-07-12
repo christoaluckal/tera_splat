@@ -629,6 +629,41 @@ Current indenter body modes:
   meaningful sand displacement in this scene.
 ```
 
+Accepted rigid run:
+
+```text
+output: outputs/indenter_rigid_coupled_base/
+video:  outputs/indenter_rigid_coupled_base/indenter_animation.mp4
+contact_mechanism: rigid_mpm_coupling
+body_mode: rigid
+target indent: 8.0 cm
+surface under cylinder mean dz: -3.56 cm
+surface under cylinder min dz: -4.94 cm
+debug contact mode: none
+```
+
+Command:
+
+```bash
+conda run -n tsplat python scripts/run_genesis_indenter_test.py \
+  --indenter-body-mode rigid \
+  --debug-contact-mode none \
+  --indenter-control-mode pd \
+  --indenter-softness 0.03 \
+  --indenter-friction 0.8 \
+  --indenter-restitution 0.0 \
+  --indenter-kp 800000 \
+  --indenter-kv 20000 \
+  --indenter-force-limit 200000 \
+  --indent-depth 0.08 \
+  --indent-start-time 0.10 \
+  --indent-ramp-time 0.80 \
+  --indent-hold-time 0.70 \
+  --steps 6400 \
+  --save-every 80 \
+  --output-dir outputs/indenter_rigid_coupled_base
+```
+
 Latest Tool tests:
 
 ```text
