@@ -788,6 +788,53 @@ surface displacement. Halving the radius increases pressure by roughly 4x, and
 the lower `E`/`friction_angle` material allows a visible depression under the
 same 10 kg passive load.
 
+Large indenter sweep runner:
+
+```bash
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --output-root outputs/indenter_matrix_sweep_4level
+```
+
+The default sweep is a 4-level Cartesian product over five knobs:
+
+```text
+mass:           2.5, 5, 10, 20 kg
+radius:         0.03, 0.04, 0.06, 0.08 m
+sand E:         25000, 50000, 100000, 200000 Pa
+friction angle: 25, 35, 45, 55 deg
+softness:       0, 0.0025, 0.005, 0.01
+```
+
+That is 1024 cases by default. Use these controls before launching the full
+set:
+
+```bash
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --dry-run \
+  --max-cases 1 \
+  --output-root outputs/indenter_matrix_sweep_smoke_dry
+
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --max-cases 4 \
+  --output-root outputs/indenter_matrix_sweep_smoke
+```
+
+Each case saves `run_metrics.csv`, `indenter_pose.csv`, initial/final particle
+PLYs, and an `indenter_animation_stats.mp4` unless `--skip-render` is set. The
+matrix root saves:
+
+```text
+summary.csv
+matrix_metadata.json
+```
+
+`summary.csv` includes both compute metrics from the run and displacement
+metrics computed from initial/final surface particles, including mean/min
+vertical displacement under the cylinder. The renderer now accepts
+`--stats-text`, and the matrix runner writes a per-case `video_overlay_stats.txt`
+so case parameters, sim time, wall time, object drop, and particle displacement
+are visible in the video.
+
 Latest Tool tests:
 
 ```text

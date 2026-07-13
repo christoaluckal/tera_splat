@@ -745,6 +745,43 @@ and `friction_angle=35` instead of `45`. This is the current best passive
 gravity-only sinkage baseline; it should still be kept in `outputs/` until it
 is promoted to a long-term asset.
 
+Large indenter sweep runner:
+
+```bash
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --output-root outputs/indenter_matrix_sweep_4level
+```
+
+Default grid is 4 options each across five knobs:
+
+```text
+mass:           2.5, 5, 10, 20 kg
+radius:         0.03, 0.04, 0.06, 0.08 m
+sand E:         25000, 50000, 100000, 200000 Pa
+friction angle: 25, 35, 45, 55 deg
+softness:       0, 0.0025, 0.005, 0.01
+```
+
+Full default size is 1024 cases. Smoke-test first:
+
+```bash
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --dry-run \
+  --max-cases 1 \
+  --output-root outputs/indenter_matrix_sweep_smoke_dry
+
+conda run -n tsplat python scripts/run_indenter_matrix_sweep.py \
+  --max-cases 4 \
+  --output-root outputs/indenter_matrix_sweep_smoke
+```
+
+Each case writes `run_metrics.csv`, `indenter_pose.csv`, initial/final PLYs,
+and `indenter_animation_stats.mp4` unless `--skip-render` is used. The root
+`summary.csv` aggregates sim-time, wall-time, final object drop, and surface
+displacement metrics under/near the cylinder. The renderer supports
+`--stats-text`; the sweep runner creates `video_overlay_stats.txt` per case and
+overlays those stats directly into the MP4.
+
 Render command:
 
 ```bash

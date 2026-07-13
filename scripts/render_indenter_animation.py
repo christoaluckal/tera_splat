@@ -35,6 +35,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-points", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--view", choices=("oblique", "top"), default="oblique")
+    parser.add_argument(
+        "--stats-text",
+        type=Path,
+        default=None,
+        help="Optional text file to overlay in the rendered video.",
+    )
     return parser.parse_args()
 
 
@@ -101,6 +107,30 @@ def draw_polyline(image: np.ndarray, points: np.ndarray, color: tuple[int, int, 
     cv2.polylines(image, [pts], closed, color, thickness=2, lineType=cv2.LINE_AA)
 
 
+def draw_text_block(image: np.ndarray, lines: list[str], *, x: int, y: int) -> None:
+    if not lines:
+        return
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.52
+    thickness = 1
+    line_height = 20
+    padding = 10
+    max_width = 0
+    for line in lines:
+        size, _ = cv2.getTextSize(line, font, font_scale, thickness)
+        max_width = max(max_width, size[0])
+    box_w = max_width + padding * 2
+    box_h = line_height * len(lines) + padding * 2
+    overlay = image.copy()
+    cv2.rectangle(overlay, (x, y), (x + box_w, y + box_h), (255, 255, 255), thickness=-1)
+    cv2.addWeighted(overlay, 0.78, image, 0.22, 0.0, image)
+    cv2.rectangle(image, (x, y), (x + box_w, y + box_h), (165, 165, 165), thickness=1)
+    text_y = y + padding + 15
+    for line in lines:
+        cv2.putText(image, line, (x + padding, text_y), font, font_scale, (25, 25, 25), thickness, cv2.LINE_AA)
+        text_y += line_height
+
+
 def render_frame(
     points: np.ndarray,
     *,
@@ -116,6 +146,7 @@ def render_frame(
     height: int,
     point_radius: int,
     label: str,
+    stats_lines: list[str],
 ) -> np.ndarray:
     image = np.full((height, width, 3), 245, dtype=np.uint8)
     xy_min, scale, margin = compute_projection_transform(bounds_min, bounds_max, view=view, width=width, height=height)
@@ -147,6 +178,7 @@ def render_frame(
             cv2.line(image, tuple(bottom_px[idx]), tuple(top_px[idx]), (20, 20, 220), 2, cv2.LINE_AA)
 
     cv2.putText(image, label, (24, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (30, 30, 30), 2, cv2.LINE_AA)
+    draw_text_block(image, stats_lines, x=24, y=56)
     return image
 
 
@@ -161,6 +193,10 @@ def main() -> None:
     indenter = metadata.get("indenter") or {}
     radius = float(indenter.get("radius", 0.08))
     height_m = float(indenter.get("height", 0.04))
+    stats_lines = []
+    if args.stats_text is not None and args.stats_text.exists():
+        with args.stats_text.open("r", encoding="utf-8") as f:
+            stats_lines = [line.strip() for line in f if line.strip()]
 
     first = read_xyz_ply(frame_paths[0])
     selected_particles = choose_particle_indices(
@@ -217,6 +253,7 @@ def main() -> None:
             height=args.height,
             point_radius=args.point_radius,
             label=label,
+            stats_lines=stats_lines,
         )
         writer.write(image)
         if (video_index + 1) % max(int(args.fps), 1) == 0:
