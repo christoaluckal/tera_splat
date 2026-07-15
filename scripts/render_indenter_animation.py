@@ -35,6 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-points", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--view", choices=("oblique", "top"), default="oblique")
+    parser.add_argument("--indenter-style", choices=("solid", "wire"), default="solid")
     parser.add_argument(
         "--stats-text",
         type=Path,
@@ -107,6 +108,42 @@ def draw_polyline(image: np.ndarray, points: np.ndarray, color: tuple[int, int, 
     cv2.polylines(image, [pts], closed, color, thickness=2, lineType=cv2.LINE_AA)
 
 
+def draw_solid_cylinder(
+    image: np.ndarray,
+    *,
+    bottom: np.ndarray,
+    top: np.ndarray,
+    view: str,
+    xy_min: np.ndarray,
+    scale: float,
+    margin: float,
+    width: int,
+    height: int,
+) -> None:
+    bottom_px = world_to_pixel(bottom, view=view, xy_min=xy_min, scale=scale, margin=margin, width=width, height=height)
+    top_px = world_to_pixel(top, view=view, xy_min=xy_min, scale=scale, margin=margin, width=width, height=height)
+    _, bottom_depth = project_points(bottom, view)
+    _, top_depth = project_points(top, view)
+
+    faces: list[tuple[float, np.ndarray, tuple[int, int, int]]] = []
+    n = bottom_px.shape[0]
+    for idx in range(n):
+        nxt = (idx + 1) % n
+        poly = np.array([bottom_px[idx], bottom_px[nxt], top_px[nxt], top_px[idx]], dtype=np.int32)
+        depth = float(np.mean([bottom_depth[idx], bottom_depth[nxt], top_depth[nxt], top_depth[idx]]))
+        shade = 155 + int(55 * idx / max(n - 1, 1))
+        faces.append((depth, poly, (45, 80, shade)))
+    faces.append((float(np.mean(bottom_depth)), bottom_px.astype(np.int32), (30, 55, 165)))
+    faces.append((float(np.mean(top_depth)), top_px.astype(np.int32), (70, 115, 235)))
+
+    overlay = image.copy()
+    for _, poly, color in sorted(faces, key=lambda item: item[0]):
+        cv2.fillConvexPoly(overlay, poly, color, lineType=cv2.LINE_AA)
+    cv2.addWeighted(overlay, 0.72, image, 0.28, 0.0, image)
+    cv2.polylines(image, [bottom_px.reshape((-1, 1, 2))], True, (15, 25, 120), 2, cv2.LINE_AA)
+    cv2.polylines(image, [top_px.reshape((-1, 1, 2))], True, (15, 25, 120), 2, cv2.LINE_AA)
+
+
 def draw_text_block(image: np.ndarray, lines: list[str], *, x: int, y: int) -> None:
     if not lines:
         return
@@ -147,6 +184,7 @@ def render_frame(
     point_radius: int,
     label: str,
     stats_lines: list[str],
+    indenter_style: str,
 ) -> np.ndarray:
     image = np.full((height, width, 3), 245, dtype=np.uint8)
     xy_min, scale, margin = compute_projection_transform(bounds_min, bounds_max, view=view, width=width, height=height)
@@ -172,10 +210,23 @@ def render_frame(
         bottom, top = cylinder_points(pose["x"], pose["y"], pose["z"], radius, height_m)
         bottom_px = world_to_pixel(bottom, view=view, xy_min=xy_min, scale=scale, margin=margin, width=width, height=height)
         top_px = world_to_pixel(top, view=view, xy_min=xy_min, scale=scale, margin=margin, width=width, height=height)
-        draw_polyline(image, bottom_px, (20, 20, 220))
-        draw_polyline(image, top_px, (20, 20, 220))
-        for idx in range(0, bottom_px.shape[0], max(bottom_px.shape[0] // 8, 1)):
-            cv2.line(image, tuple(bottom_px[idx]), tuple(top_px[idx]), (20, 20, 220), 2, cv2.LINE_AA)
+        if indenter_style == "solid":
+            draw_solid_cylinder(
+                image,
+                bottom=bottom,
+                top=top,
+                view=view,
+                xy_min=xy_min,
+                scale=scale,
+                margin=margin,
+                width=width,
+                height=height,
+            )
+        else:
+            draw_polyline(image, bottom_px, (20, 20, 220))
+            draw_polyline(image, top_px, (20, 20, 220))
+            for idx in range(0, bottom_px.shape[0], max(bottom_px.shape[0] // 8, 1)):
+                cv2.line(image, tuple(bottom_px[idx]), tuple(top_px[idx]), (20, 20, 220), 2, cv2.LINE_AA)
 
     cv2.putText(image, label, (24, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (30, 30, 30), 2, cv2.LINE_AA)
     draw_text_block(image, stats_lines, x=24, y=56)
@@ -254,6 +305,7 @@ def main() -> None:
             point_radius=args.point_radius,
             label=label,
             stats_lines=stats_lines,
+            indenter_style=args.indenter_style,
         )
         writer.write(image)
         if (video_index + 1) % max(int(args.fps), 1) == 0:

@@ -66,6 +66,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-cases", type=int, default=0, help="Stop after this many selected cases. 0 means all cases.")
     parser.add_argument("--case-stride", type=int, default=1, help="Run every Nth Cartesian-product case.")
     parser.add_argument("--case-offset", type=int, default=0, help="Start selection at this Cartesian-product case index.")
+    parser.add_argument(
+        "--case-ids",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Optional explicit Cartesian-product case indices to run.",
+    )
     return parser.parse_args()
 
 
@@ -181,8 +188,11 @@ def selected_cases(args: argparse.Namespace) -> list[tuple[int, dict[str, float]
         if len(values) != 4:
             raise ValueError(f"--{name} must contain exactly 4 values; got {len(values)}")
 
+    requested_ids = set(args.case_ids) if args.case_ids is not None else None
     cases = []
     for index, values in enumerate(itertools.product(masses, radii, sand_e_values, friction_angles, softnesses)):
+        if requested_ids is not None and index not in requested_ids:
+            continue
         if index < args.case_offset:
             continue
         if (index - args.case_offset) % max(args.case_stride, 1) != 0:
@@ -202,6 +212,11 @@ def selected_cases(args: argparse.Namespace) -> list[tuple[int, dict[str, float]
         )
         if args.max_cases > 0 and len(cases) >= args.max_cases:
             break
+    if requested_ids is not None:
+        found_ids = {index for index, _ in cases}
+        missing_ids = sorted(requested_ids - found_ids)
+        if missing_ids:
+            raise ValueError(f"Requested case ids are outside the sweep grid or filtered out: {missing_ids}")
     return cases
 
 
