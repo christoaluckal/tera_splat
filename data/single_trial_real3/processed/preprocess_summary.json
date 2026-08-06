@@ -1,0 +1,176 @@
+{
+  "trial_dir": "/home/moog-2/christo/splatting_stuff/physical/tera_splat/data/single_trial_real3",
+  "primary_cell_size_m": 0.005,
+  "primary_bounds_xy_m": [
+    -0.1524,
+    0.1524,
+    -0.1524,
+    0.1524
+  ],
+  "primary_shape": [
+    61,
+    61
+  ],
+  "valid_cells": 1038,
+  "provided_delta_matches_computed_nanmax_abs_m": 0.0,
+  "primary_delta_stats": {
+    "valid_cells": 1038,
+    "valid_area_m2": 0.02595,
+    "mean_change_m": 0.003136046130942939,
+    "median_change_m": 0.0034729120890708734,
+    "p01_m": -0.030548387576609173,
+    "p05_m": -0.0066827745895625115,
+    "p25_m": -0.00037442224341585005,
+    "p75_m": 0.006466608833464392,
+    "p95_m": 0.01297566801084066,
+    "p99_m": 0.03141837584696347,
+    "net_volume_m3": 8.138039709796928e-05,
+    "cut_volume_m3": -3.946109645475526e-05,
+    "fill_volume_m3": 0.00012084149355272449
+  },
+  "realsense_center_report": {
+    "cell_m": 0.005,
+    "grid_shape": [
+      61,
+      61
+    ],
+    "total_cells": 3721,
+    "before_occupied_cells": 1435,
+    "after_occupied_cells": 1451,
+    "overlap_cells": 1038,
+    "overlap_fraction": 0.27895726955119593,
+    "overlap_area_m2": 0.02595,
+    "before_points_in_roi": 3995,
+    "after_points_in_roi": 3476,
+    "median_change_m": 0.0034729120890708734,
+    "mean_change_m": 0.003136046130942939,
+    "p01_m": -0.030548387576609173,
+    "p05_m": -0.0066827745895625115,
+    "p25_m": -0.00037442224341585005,
+    "p75_m": 0.006466608833464392,
+    "p95_m": 0.01297566801084066,
+    "p99_m": 0.03141837584696347,
+    "net_volume_m3": 8.138039709796928e-05,
+    "cut_volume_m3": -3.946109645475526e-05,
+    "fill_volume_m3": 0.00012084149355272449
+  },
+  "realsense_full_report": {
+    "direct_dem": {
+      "overlap_cells": 22498,
+      "overlap_area_m2": 2.2498,
+      "median_change_m": -0.004533652836303314,
+      "mean_change_m": -0.005241170686061369,
+      "p05_m": -0.020956224004381584,
+      "p25_m": -0.011798881615897261,
+      "p75_m": 0.0009833525790055558,
+      "p95_m": 0.0100336982431061,
+      "net_volume_m3": -0.011791585809500868,
+      "cut_volume_m3": -0.015604724772013683,
+      "fill_volume_m3": 0.003813138962512814
+    },
+    "icp_aligned_dem": {
+      "overlap_cells": 22498,
+      "overlap_area_m2": 2.2498,
+      "median_change_m": -0.003966818893742027,
+      "mean_change_m": -0.004770841552640385,
+      "p05_m": -0.020171034773506017,
+      "p25_m": -0.011031413008143197,
+      "p75_m": 0.0012720785271571385,
+      "p95_m": 0.00975672965119996,
+      "net_volume_m3": -0.010733439325130338,
+      "cut_volume_m3": -0.01459486115823346,
+      "fill_volume_m3": 0.003861421833103121
+    },
+    "icp": {
+      "iterations": 5,
+      "final_rmse_m": 0.00880404521940305,
+      "fitness": 0.999256958866005,
+      "inlier_count": 104896,
+      "max_dist_m": 0.05,
+      "trim_quantile": 0.8,
+      "trace": [
+        {
+          "iter": 1,
+          "rmse_m": 0.0038705897457470798,
+          "fitness": 0.7993026844742508,
+          "pairs": 83906
+        },
+        {
+          "iter": 2,
+          "rmse_m": 0.0038234099722761566,
+          "fitness": 0.7993598414845581,
+          "pairs": 83912
+        },
+        {
+          "iter": 3,
+          "rmse_m": 0.003816605455772149,
+          "fitness": 0.7993884199897118,
+          "pairs": 83915
+        },
+        {
+          "iter": 4,
+          "rmse_m": 0.0038155859517601614,
+          "fitness": 0.7994074723264808,
+          "pairs": 83917
+        },
+        {
+          "iter": 5,
+          "rmse_m": 0.0038153588316708694,
+          "fitness": 0.7994074723264808,
+          "pairs": 83917
+        }
+      ],
+      "translation_m": [
+        -1.5505815444865788e-07,
+        2.6876475131349203e-06,
+        0.00047213040888380493
+      ],
+      "rotation_matrix": [
+        [
+          0.9999993692005011,
+          -1.287499851490669e-06,
+          -0.0011232083246566168
+        ],
+        [
+          2.0160396609849736e-08,
+          0.9999993634465546,
+          -0.0011283202054103998
+        ],
+        [
+          0.0011232090623865857,
+          0.00112831947102226,
+          0.9999987326474833
+        ]
+      ]
+    }
+  },
+  "noise_stats": {
+    "source": "derived_from_existing_real3_reports_without_two_view_recompute",
+    "icp_final_rmse_m": 0.00880404521940305,
+    "full_direct_vs_icp_delta_abs_median_m": 0.0005970458175667695,
+    "full_direct_vs_icp_delta_abs_p95_m": 0.0016650399254333143,
+    "recommended_huber_delta_m": 0.00880404521940305,
+    "note": "This is a provisional scan/registration noise proxy. Replace with two-view disagreement and static-border residuals before final calibration."
+  },
+  "copied_plys": {
+    "S0_fused": "/home/moog-2/christo/splatting_stuff/physical/tera_splat/data/single_trial_real3/processed/S0_fused.ply",
+    "S1_fused": "/home/moog-2/christo/splatting_stuff/physical/tera_splat/data/single_trial_real3/processed/S1_fused.ply",
+    "S1_fused_icp_aligned": "/home/moog-2/christo/splatting_stuff/physical/tera_splat/data/single_trial_real3/processed/S1_fused_icp_aligned.ply"
+  },
+  "blocking_fields": [
+    "center footprint overlay verification",
+    "static-border scan bias correction",
+    "two-view height exports/noise estimate",
+    "Genesis mass-controlled action mode",
+    "mass/inertia application check",
+    "free-fall gravity check",
+    "two-way rigid-MPM contact check",
+    "mass monotonicity check",
+    "loaded settling termination check",
+    "post-removal settling termination check",
+    "initial simulated S0 projection/footprint check",
+    "complete MPM state restore check",
+    "no-cylinder drift check",
+    "synthetic 3x3 recovery check"
+  ]
+}

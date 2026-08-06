@@ -40,7 +40,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--indent-start-time", type=float, default=0.10)
     parser.add_argument("--indent-ramp-time", type=float, default=0.45)
     parser.add_argument("--indent-hold-time", type=float, default=0.45)
+    parser.add_argument(
+        "--retract-ramp-time",
+        type=float,
+        default=0.0,
+        help="If positive, ramp the commanded indenter back upward after the indent hold.",
+    )
+    parser.add_argument(
+        "--remove-clearance",
+        type=float,
+        default=0.0,
+        help="Extra height above the initial center after retraction. Used only when --retract-ramp-time > 0.",
+    )
     parser.add_argument("--start-clearance", type=float, default=0.02)
+    parser.add_argument(
+        "--pre-roll-steps",
+        type=int,
+        default=0,
+        help="Run this many unsaved settling steps before writing frame 0.",
+    )
+    parser.add_argument(
+        "--pre-roll-clearance",
+        type=float,
+        default=0.25,
+        help="Additional height above the initial indenter center during pre-roll settling.",
+    )
+    parser.add_argument(
+        "--keep-pre-roll-velocity",
+        action="store_true",
+        help="Do not zero MPM particle velocity after pre-roll settling.",
+    )
     parser.add_argument("--indenter-friction", type=float, default=0.4)
     parser.add_argument("--indenter-softness", type=float, default=0.0)
     parser.add_argument("--indenter-restitution", type=float, default=0.0)
@@ -95,11 +124,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--debug-contact-mode",
-        choices=("none", "column-clamp", "surface-plastic"),
+        choices=("none", "column-clamp", "surface-plastic", "bounded-imprint"),
         default="none",
         help=(
             "Debug contact approximation. column-clamp moves every particle under the disk below the bottom. "
-            "surface-plastic only edits surface particles and adds a simple radial rim."
+            "surface-plastic only edits surface particles and adds a simple radial rim. "
+            "bounded-imprint applies a viz-only persistent crater/rim bounded by the initial surface."
         ),
     )
     parser.add_argument(
@@ -147,6 +177,24 @@ def smoothstep_depth(t: float, *, start: float, ramp: float, depth: float) -> fl
     return float(depth * s)
 
 
+def commanded_depth(t: float, args: argparse.Namespace) -> float:
+    if args.indenter_control_mode == "gravity":
+        return 0.0
+
+    depth = smoothstep_depth(t, start=args.indent_start_time, ramp=args.indent_ramp_time, depth=args.indent_depth)
+    if args.retract_ramp_time <= 0.0:
+        return depth
+
+    retract_start = args.indent_start_time + args.indent_ramp_time + args.indent_hold_time
+    if t <= retract_start:
+        return depth
+
+    tau = np.clip((t - retract_start) / max(args.retract_ramp_time, 1e-12), 0.0, 1.0)
+    s = tau * tau * (3.0 - 2.0 * tau)
+    final_depth = -max(args.remove_clearance, 0.0)
+    return float((1.0 - s) * args.indent_depth + s * final_depth)
+
+
 def estimate_surface_z(points: np.ndarray, query_xy: np.ndarray, radius: float) -> float:
     distance = np.linalg.norm(points[:, :2] - query_xy[None, :], axis=1)
     local = points[distance <= max(radius, 1e-6)]
@@ -184,6 +232,57 @@ def write_metrics_csv(path: Path, rows: list[tuple[str, object, str]]) -> None:
         writer = csv.writer(f)
         writer.writerow(["metric", "value", "unit"])
         writer.writerows(rows)
+
+
+def surface_displacement_metric_rows(
+    *,
+    prefix: str,
+    baseline_points: np.ndarray,
+    current_points: np.ndarray,
+    query_xy: np.ndarray,
+    radius: float,
+    surface_count: int,
+) -> list[tuple[str, object, str]]:
+    if surface_count <= 0:
+        return []
+
+    surface_count = min(surface_count, baseline_points.shape[0], current_points.shape[0])
+    baseline = baseline_points[:surface_count]
+    current = current_points[:surface_count]
+    dz = current[:, 2] - baseline[:, 2]
+    dxy = current[:, :2] - baseline[:, :2]
+    dnorm = np.linalg.norm(current - baseline, axis=1)
+    distance = np.linalg.norm(baseline[:, :2] - query_xy[None, :], axis=1)
+    under = distance <= radius
+    near = distance <= radius * 2.0
+    rim_width = max(radius * 0.55, 1e-8)
+    annulus = (distance > radius) & (distance <= radius + 2.5 * rim_width)
+    if not np.any(under):
+        nearest_count = min(128, max(surface_count - 1, 0))
+        under = distance <= np.partition(distance, nearest_count)[nearest_count]
+
+    rows: list[tuple[str, object, str]] = [
+        (f"{prefix}_surface_particles", surface_count, "count"),
+        (f"{prefix}_under_disk_particles", int(np.count_nonzero(under)), "count"),
+        (f"{prefix}_near_disk_particles", int(np.count_nonzero(near)), "count"),
+        (f"{prefix}_under_mean_dz", float(np.mean(dz[under])), "meters"),
+        (f"{prefix}_under_min_dz", float(np.min(dz[under])), "meters"),
+        (f"{prefix}_under_p05_dz", float(np.quantile(dz[under], 0.05)), "meters"),
+        (f"{prefix}_under_max_dz", float(np.max(dz[under])), "meters"),
+        (f"{prefix}_under_mean_xy_disp", float(np.mean(np.linalg.norm(dxy[under], axis=1))), "meters"),
+        (f"{prefix}_near_mean_dz", float(np.mean(dz[near])) if np.any(near) else 0.0, "meters"),
+        (f"{prefix}_surface_mean_norm_disp", float(np.mean(dnorm)), "meters"),
+        (f"{prefix}_surface_max_norm_disp", float(np.max(dnorm)), "meters"),
+    ]
+    if np.any(annulus):
+        rows.extend(
+            [
+                (f"{prefix}_annulus_particles", int(np.count_nonzero(annulus)), "count"),
+                (f"{prefix}_annulus_mean_dz", float(np.mean(dz[annulus])), "meters"),
+                (f"{prefix}_annulus_max_dz", float(np.max(dz[annulus])), "meters"),
+            ]
+        )
+    return rows
 
 
 def write_unit_cylinder_obj(path: Path, *, sections: int = 96) -> None:
@@ -342,6 +441,58 @@ def apply_surface_plastic_contact(
         sand.set_particles_vel(vel_all)
 
 
+def apply_bounded_imprint_contact(
+    *,
+    sand,
+    initial_surface_pos: torch.Tensor,
+    query_xy: np.ndarray,
+    surface_count: int,
+    indenter_radius: float,
+    current_depth: float,
+    surface_lateral_scale: float,
+    rim_height_scale: float,
+    rim_width_scale: float,
+) -> None:
+    if surface_count <= 0 or current_depth <= 0.0:
+        return
+
+    pos_all = sand.get_particles_pos().clone()
+    vel_all = sand.get_particles_vel().clone()
+    initial_surface = initial_surface_pos[:surface_count]
+    pos = pos_all[:surface_count]
+    dx0 = initial_surface[:, 0] - float(query_xy[0])
+    dy0 = initial_surface[:, 1] - float(query_xy[1])
+    ux0, uy0, radius0 = radial_unit(dx0, dy0)
+
+    inside = radius0 <= indenter_radius
+    if torch.any(inside):
+        inside_idx = torch.nonzero(inside, as_tuple=False).squeeze(1)
+        radial = torch.clamp(radius0[inside] / max(indenter_radius, 1e-8), 0.0, 1.0)
+        bowl = 0.65 + 0.35 * (1.0 - radial * radial)
+        target_z = initial_surface[inside_idx, 2] - float(current_depth) * bowl
+        pos_all[inside_idx, 2] = torch.minimum(pos[inside, 2], target_z)
+        outward = float(current_depth) * surface_lateral_scale * radial * 0.35
+        pos_all[inside_idx, 0] = initial_surface[inside_idx, 0] + ux0[inside] * outward
+        pos_all[inside_idx, 1] = initial_surface[inside_idx, 1] + uy0[inside] * outward
+        vel_all[inside_idx, :] = 0.0
+
+    rim_width = max(indenter_radius * rim_width_scale, 1e-8)
+    annulus = (radius0 > indenter_radius) & (radius0 <= indenter_radius + 2.5 * rim_width)
+    if torch.any(annulus) and rim_height_scale > 0.0:
+        annulus_idx = torch.nonzero(annulus, as_tuple=False).squeeze(1)
+        normalized = (radius0[annulus] - indenter_radius) / rim_width
+        shape = torch.exp(-(normalized * normalized))
+        rim_target_z = initial_surface[annulus_idx, 2] + float(current_depth) * rim_height_scale * 0.35 * shape
+        outward = float(current_depth) * surface_lateral_scale * 0.45 * shape
+        pos_all[annulus_idx, 2] = torch.maximum(pos_all[annulus_idx, 2], rim_target_z)
+        pos_all[annulus_idx, 0] = initial_surface[annulus_idx, 0] + ux0[annulus] * outward
+        pos_all[annulus_idx, 1] = initial_surface[annulus_idx, 1] + uy0[annulus] * outward
+        vel_all[annulus_idx, :] = 0.0
+
+    sand.set_particles_pos(pos_all)
+    sand.set_particles_vel(vel_all)
+
+
 def main() -> None:
     args = parse_args()
     if args.debug_kinematic_contact and args.debug_contact_mode == "none":
@@ -473,8 +624,40 @@ def main() -> None:
         indenter.set_dofs_position(dof_position, zero_velocity=True)
         indenter.control_dofs_position_velocity(dof_position, dof_velocity)
 
+    pre_roll_seconds = 0.0
+    if args.pre_roll_steps > 0:
+        pre_roll_center_z = initial_center_z + max(args.pre_roll_clearance, 0.0)
+        pre_roll_start = time.perf_counter()
+        for _ in range(args.pre_roll_steps):
+            if args.indenter_body_mode == "tool":
+                indenter.set_position([[float(query_xy[0]), float(query_xy[1]), pre_roll_center_z]])
+                indenter.set_velocity(vel=[[0.0, 0.0, 0.0]])
+            elif args.indenter_control_mode == "pd" and indenter.n_dofs > 0:
+                dof_position = np.zeros((indenter.n_dofs,), dtype=np.float32)
+                dof_velocity = np.zeros((indenter.n_dofs,), dtype=np.float32)
+                dof_position[:3] = (float(query_xy[0]), float(query_xy[1]), pre_roll_center_z)
+                indenter.control_dofs_position_velocity(dof_position, dof_velocity)
+            elif args.indenter_body_mode == "rigid":
+                indenter.set_pos((float(query_xy[0]), float(query_xy[1]), pre_roll_center_z), zero_velocity=True)
+            scene.step(update_visualizer=False, refresh_visualizer=False)
+        pre_roll_seconds = time.perf_counter() - pre_roll_start
+        if not args.keep_pre_roll_velocity:
+            sand.set_particles_vel(torch.zeros((points.shape[0], 3), dtype=torch.float32, device=gs.device))
+        if args.indenter_body_mode == "tool":
+            indenter.set_position([[float(query_xy[0]), float(query_xy[1]), initial_center_z]])
+            indenter.set_velocity(vel=[[0.0, 0.0, 0.0]])
+        elif args.indenter_control_mode == "pd" and indenter.n_dofs > 0:
+            dof_position = np.zeros((indenter.n_dofs,), dtype=np.float32)
+            dof_velocity = np.zeros((indenter.n_dofs,), dtype=np.float32)
+            dof_position[:3] = (float(query_xy[0]), float(query_xy[1]), initial_center_z)
+            indenter.set_dofs_position(dof_position, zero_velocity=True)
+            indenter.control_dofs_position_velocity(dof_position, dof_velocity)
+        elif args.indenter_body_mode == "rigid":
+            indenter.set_pos((float(query_xy[0]), float(query_xy[1]), initial_center_z), zero_velocity=True)
+
     sim_dir = args.output_dir / "simulation_ply"
-    write_particle_ply(tensor_to_numpy(sand.get_particles_pos()), sim_dir / "sim_0000.ply")
+    baseline_points = tensor_to_numpy(sand.get_particles_pos())
+    write_particle_ply(baseline_points, sim_dir / "sim_0000.ply")
     write_particle_ply(points, args.output_dir / "particles_initial_mpm.ply")
 
     run_metadata = {
@@ -490,7 +673,12 @@ def main() -> None:
             "indent_start_time": args.indent_start_time,
             "indent_ramp_time": args.indent_ramp_time,
             "indent_hold_time": args.indent_hold_time,
+            "retract_ramp_time": args.retract_ramp_time,
+            "remove_clearance": args.remove_clearance,
             "start_clearance": args.start_clearance,
+            "pre_roll_steps": args.pre_roll_steps,
+            "pre_roll_clearance": args.pre_roll_clearance,
+            "keep_pre_roll_velocity": args.keep_pre_roll_velocity,
             "friction": args.indenter_friction,
             "softness": args.indenter_softness,
             "restitution": args.indenter_restitution,
@@ -542,12 +730,13 @@ def main() -> None:
     loop_start = time.perf_counter()
     previous_center_z = initial_center_z
     previous_depth = 0.0
+    peak_actual_depth = max(float(pose_rows[0]["actual_depth"]), 0.0)
+    peak_points = baseline_points.copy()
+    peak_step = 0
+    peak_time = 0.0
     for step in range(1, args.steps + 1):
         t = step * args.dt
-        if args.indenter_control_mode == "gravity":
-            depth = 0.0
-        else:
-            depth = smoothstep_depth(t, start=args.indent_start_time, ramp=args.indent_ramp_time, depth=args.indent_depth)
+        depth = commanded_depth(t, args)
         center_z = initial_center_z - depth
         velocity_z = (center_z - previous_center_z) / args.dt
         if args.indenter_body_mode == "tool":
@@ -595,11 +784,23 @@ def main() -> None:
                 rim_height_scale=args.rim_height_scale,
                 rim_width_scale=args.rim_width_scale,
             )
+        elif args.debug_contact_mode == "bounded-imprint":
+            apply_bounded_imprint_contact(
+                sand=sand,
+                initial_surface_pos=initial_surface_pos,
+                query_xy=query_xy,
+                surface_count=surface_count,
+                indenter_radius=args.indenter_radius,
+                current_depth=depth,
+                surface_lateral_scale=args.surface_lateral_scale,
+                rim_height_scale=args.rim_height_scale,
+                rim_width_scale=args.rim_width_scale,
+            )
         previous_center_z = center_z
         previous_depth = depth
         if step % max(args.save_every, 1) == 0 or step == args.steps:
-            write_particle_ply(tensor_to_numpy(sand.get_particles_pos()), sim_dir / f"sim_{step:04d}.ply")
-        if step % max(args.save_every, 1) == 0 or step == args.steps:
+            current_points = tensor_to_numpy(sand.get_particles_pos())
+            write_particle_ply(current_points, sim_dir / f"sim_{step:04d}.ply")
             actual_x = float(query_xy[0])
             actual_y = float(query_xy[1])
             actual_z = center_z
@@ -607,27 +808,58 @@ def main() -> None:
                 actual_x, actual_y, actual_z = get_tool_position(indenter)
             else:
                 actual_x, actual_y, actual_z = get_entity_position(indenter, (actual_x, actual_y, actual_z))
-            pose_rows.append(
-                {
-                    "step": step,
-                    "time": t,
-                    "x": actual_x,
-                    "y": actual_y,
-                    "z": actual_z,
-                    "command_x": float(query_xy[0]),
-                    "command_y": float(query_xy[1]),
-                    "command_z": center_z,
-                    "depth": depth,
-                    "actual_depth": initial_center_z - actual_z,
-                    "bottom_z": actual_z - args.indenter_height * 0.5,
-                    "command_bottom_z": center_z - args.indenter_height * 0.5,
-                }
-            )
+            pose_row = {
+                "step": step,
+                "time": t,
+                "x": actual_x,
+                "y": actual_y,
+                "z": actual_z,
+                "command_x": float(query_xy[0]),
+                "command_y": float(query_xy[1]),
+                "command_z": center_z,
+                "depth": depth,
+                "actual_depth": initial_center_z - actual_z,
+                "bottom_z": actual_z - args.indenter_height * 0.5,
+                "command_bottom_z": center_z - args.indenter_height * 0.5,
+            }
+            pose_rows.append(pose_row)
+            actual_depth = max(float(pose_row["actual_depth"]), 0.0)
+            if actual_depth >= peak_actual_depth:
+                peak_actual_depth = actual_depth
+                peak_points = current_points.copy()
+                peak_step = step
+                peak_time = t
     loop_seconds = time.perf_counter() - loop_start
 
     write_pose_csv(args.output_dir / "indenter_pose.csv", pose_rows)
     final_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(final_points, args.output_dir / "particles_final_mpm.ply")
+    displacement_rows = [
+        ("sinkage_baseline", "sim_0000_after_pre_roll", ""),
+        ("peak_sinkage_step", peak_step, "count"),
+        ("peak_sinkage_time", peak_time, "seconds"),
+        ("peak_actual_depth", peak_actual_depth, "meters"),
+    ]
+    displacement_rows.extend(
+        surface_displacement_metric_rows(
+            prefix="peak",
+            baseline_points=baseline_points,
+            current_points=peak_points,
+            query_xy=query_xy,
+            radius=args.indenter_radius,
+            surface_count=surface_count,
+        )
+    )
+    displacement_rows.extend(
+        surface_displacement_metric_rows(
+            prefix="final",
+            baseline_points=baseline_points,
+            current_points=final_points,
+            query_xy=query_xy,
+            radius=args.indenter_radius,
+            surface_count=surface_count,
+        )
+    )
     write_metrics_csv(
         args.output_dir / "run_metrics.csv",
         [
@@ -642,6 +874,12 @@ def main() -> None:
             ("particle_size", args.particle_size, "meters"),
             ("surface_z_at_query", surface_z, "meters"),
             ("target_indent_depth", args.indent_depth, "meters"),
+            ("retract_ramp_time", args.retract_ramp_time, "seconds"),
+            ("remove_clearance", args.remove_clearance, "meters"),
+            ("pre_roll_steps", args.pre_roll_steps, "count"),
+            ("pre_roll_clearance", args.pre_roll_clearance, "meters"),
+            ("pre_roll_seconds", pre_roll_seconds, "seconds"),
+            ("keep_pre_roll_velocity", args.keep_pre_roll_velocity, ""),
             ("final_indent_depth", pose_rows[-1]["depth"], "meters"),
             ("final_actual_depth", pose_rows[-1]["actual_depth"], "meters"),
             ("indenter_body_mode", args.indenter_body_mode, ""),
@@ -666,7 +904,8 @@ def main() -> None:
             ("steps_per_second", args.steps / max(loop_seconds, 1e-12), "steps/second"),
             ("total_wall_seconds", time.perf_counter() - total_start, "seconds"),
             ("output_dir_bytes", directory_size_bytes(args.output_dir), "bytes"),
-        ],
+        ]
+        + displacement_rows,
     )
     print(f"particles: {points.shape[0]}")
     print(f"surface_z_at_query: {surface_z:.6f}")

@@ -1,0 +1,43 @@
+tool: cylinder
+geometry:
+  diameter_m: 0.14605
+  radius_m: 0.073025
+  height_m: 0.0508
+rigid_body:
+  mass_kg: 1.5
+  equivalent_uniform_density_kg_m3: 1762.522
+  inertia_model: uniform_solid_cylinder_approximation
+  inertia_diagonal_kg_m2: [0.002322324, 0.002322324, 0.003999488]
+contact_center_xy_world_m: [0.0, 0.0]
+placement:
+  mode: mass_controlled
+  initial_condition: first_contact
+  initial_linear_velocity_mps: [0.0, 0.0, 0.0]
+  initial_angular_velocity_radps: [0.0, 0.0, 0.0]
+  release_under_gravity: true
+  additional_applied_force_n: [0.0, 0.0, 0.0]
+first_contact:
+  surface_statistic: percentile
+  percentile: 99.0
+  nominal_clearance_m: 0.0
+loaded_settling:
+  max_time_s: 5.0
+  cylinder_speed_threshold_mps: 0.0005
+  local_particle_speed_percentile: 99
+  particle_speed_threshold_mps: 0.0005
+  required_duration_s: 0.25
+removal:
+  mode: kinematic_lift_after_loaded_equilibrium
+  upward_speed_mps: 0.005
+  clearance_above_surface_m: 0.010
+post_removal_settling:
+  max_time_s: 5.0
+  local_particle_speed_percentile: 99
+  particle_speed_threshold_mps: 0.0005
+  required_duration_s: 0.25
+calibration_ready: false
+notes:
+  - 0.14605 m is cylinder diameter; radius is 0.073025 m.
+  - The real trial was mass-controlled gravitational loading, not prescribed indentation depth.
+  - contact_center_xy_world_m assumes the bed-frame origin is the physical bed center; verify by footprint overlay before calibration.
+  - Settling/removal thresholds are fixed simulation assumptions and need sensitivity tests.

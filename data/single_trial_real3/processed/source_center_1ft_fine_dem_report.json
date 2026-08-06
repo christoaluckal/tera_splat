@@ -1,0 +1,75 @@
+{
+  "source": {
+    "before_ply": "src/realsense_splat/episodes/real3_pre_metrics_offline/before_scene_roi_3tag/fused_points.ply",
+    "after_ply": "src/realsense_splat/episodes/real3_post_metrics_offline/after_scene_roi_3tag/fused_points.ply",
+    "icp_report": "src/realsense_splat/episodes/real3_compare_metrics_3tag/after_sparse_icp_txt/icp_alignment_report.json",
+    "transform": "package transform_source_to_target"
+  },
+  "roi": {
+    "description": "center 1x1 ft square around bed origin",
+    "bounds_xy_m": [
+      -0.1524,
+      0.1524,
+      -0.1524,
+      0.1524
+    ],
+    "side_m": 0.3048,
+    "side_ft": 1.0,
+    "before_points_in_roi_raw": 3995,
+    "after_points_in_roi_raw": 3476
+  },
+  "runs": {
+    "0.005m": {
+      "cell_m": 0.005,
+      "grid_shape": [
+        61,
+        61
+      ],
+      "total_cells": 3721,
+      "before_occupied_cells": 1435,
+      "after_occupied_cells": 1451,
+      "overlap_cells": 1038,
+      "overlap_fraction": 0.27895726955119593,
+      "overlap_area_m2": 0.02595,
+      "before_points_in_roi": 3995,
+      "after_points_in_roi": 3476,
+      "median_change_m": 0.0034729120890708734,
+      "mean_change_m": 0.003136046130942939,
+      "p01_m": -0.030548387576609173,
+      "p05_m": -0.0066827745895625115,
+      "p25_m": -0.00037442224341585005,
+      "p75_m": 0.006466608833464392,
+      "p95_m": 0.01297566801084066,
+      "p99_m": 0.03141837584696347,
+      "net_volume_m3": 8.138039709796928e-05,
+      "cut_volume_m3": -3.946109645475526e-05,
+      "fill_volume_m3": 0.00012084149355272449
+    },
+    "0.0025m": {
+      "cell_m": 0.0025,
+      "grid_shape": [
+        122,
+        122
+      ],
+      "total_cells": 14884,
+      "before_occupied_cells": 3012,
+      "after_occupied_cells": 2326,
+      "overlap_cells": 1149,
+      "overlap_fraction": 0.07719699005643645,
+      "overlap_area_m2": 0.00718125,
+      "before_points_in_roi": 3995,
+      "after_points_in_roi": 3476,
+      "median_change_m": 0.0017657709133292922,
+      "mean_change_m": 0.0014160007328173306,
+      "p01_m": -0.028588234695876735,
+      "p05_m": -0.019034078994340346,
+      "p25_m": -0.005748202185730352,
+      "p75_m": 0.008940399833416816,
+      "p95_m": 0.020208433639240006,
+      "p99_m": 0.025514661395786665,
+      "net_volume_m3": 1.0168655262544457e-05,
+      "cut_volume_m3": -2.8187336653111668e-05,
+      "fill_volume_m3": 3.8355991915656127e-05
+    }
+  }
+}

@@ -37,11 +37,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--view", choices=("oblique", "top"), default="oblique")
     parser.add_argument("--indenter-style", choices=("solid", "wire"), default="solid")
     parser.add_argument(
+        "--particle-view",
+        choices=("all", "surface", "subsurface"),
+        default="all",
+        help="Render all particles, only the initial surface particles, or only subsurface particles.",
+    )
+    parser.add_argument(
         "--stats-text",
         type=Path,
         default=None,
         help="Optional text file to overlay in the rendered video.",
     )
+    parser.add_argument("--visual-imprint", action="store_true", help="Persist a render-only crater/rim from max positive indenter depth.")
+    parser.add_argument("--visual-imprint-scale", type=float, default=0.8)
+    parser.add_argument("--visual-rim-height-scale", type=float, default=0.45)
+    parser.add_argument("--visual-rim-width-scale", type=float, default=0.55)
+    parser.add_argument("--visual-lateral-scale", type=float, default=0.35)
     return parser.parse_args()
 
 
@@ -55,6 +66,18 @@ def read_pose_csv(path: Path) -> dict[int, dict[str, float]]:
 
 def step_from_frame(path: Path) -> int:
     return int(path.stem.split("_")[-1])
+
+
+def particle_view_indices(points: np.ndarray, metadata: dict, particle_view: str) -> np.ndarray | None:
+    if particle_view == "all":
+        return None
+    surface_count = int(metadata.get("surface_particle_count", 0))
+    if surface_count <= 0:
+        raise SystemExit("--particle-view surface/subsurface requires surface_particle_count in metadata")
+    surface_count = min(surface_count, points.shape[0])
+    if particle_view == "surface":
+        return np.arange(surface_count)
+    return np.arange(surface_count, points.shape[0])
 
 
 def cylinder_points(x: float, y: float, z: float, radius: float, height: float, n: int = 64) -> tuple[np.ndarray, np.ndarray]:
@@ -168,6 +191,51 @@ def draw_text_block(image: np.ndarray, lines: list[str], *, x: int, y: int) -> N
         text_y += line_height
 
 
+def apply_visual_imprint(
+    points: np.ndarray,
+    initial_points: np.ndarray,
+    *,
+    query_xy: np.ndarray,
+    radius: float,
+    imprint_depth: float,
+    imprint_scale: float,
+    rim_height_scale: float,
+    rim_width_scale: float,
+    lateral_scale: float,
+) -> np.ndarray:
+    if imprint_depth <= 0.0:
+        return points
+    out = points.copy()
+    dx = initial_points[:, 0] - query_xy[0]
+    dy = initial_points[:, 1] - query_xy[1]
+    dist = np.sqrt(dx * dx + dy * dy)
+    safe = np.maximum(dist, 1e-8)
+    ux = dx / safe
+    uy = dy / safe
+
+    inside = dist <= radius
+    if np.any(inside):
+        radial = np.clip(dist[inside] / max(radius, 1e-8), 0.0, 1.0)
+        bowl = 0.55 + 0.45 * (1.0 - radial * radial)
+        target_z = initial_points[inside, 2] - imprint_depth * imprint_scale * bowl
+        out[inside, 2] = np.minimum(out[inside, 2], target_z)
+        outward = imprint_depth * lateral_scale * radial
+        out[inside, 0] = initial_points[inside, 0] + ux[inside] * outward
+        out[inside, 1] = initial_points[inside, 1] + uy[inside] * outward
+
+    rim_width = max(radius * rim_width_scale, 1e-8)
+    annulus = (dist > radius) & (dist <= radius + 2.5 * rim_width)
+    if np.any(annulus):
+        normalized = (dist[annulus] - radius) / rim_width
+        shape = np.exp(-(normalized * normalized))
+        target_z = initial_points[annulus, 2] + imprint_depth * rim_height_scale * shape
+        out[annulus, 2] = np.maximum(out[annulus, 2], target_z)
+        outward = imprint_depth * lateral_scale * 1.3 * shape
+        out[annulus, 0] = initial_points[annulus, 0] + ux[annulus] * outward
+        out[annulus, 1] = initial_points[annulus, 1] + uy[annulus] * outward
+    return out
+
+
 def render_frame(
     points: np.ndarray,
     *,
@@ -250,6 +318,9 @@ def main() -> None:
             stats_lines = [line.strip() for line in f if line.strip()]
 
     first = read_xyz_ply(frame_paths[0])
+    view_indices = particle_view_indices(first, metadata, args.particle_view)
+    if view_indices is not None:
+        first = first[view_indices]
     selected_particles = choose_particle_indices(
         first,
         sample_fraction=args.sample_fraction,
@@ -258,12 +329,15 @@ def main() -> None:
     )
     if selected_particles is not None:
         first = first[selected_particles]
+    initial_render_points = first.copy()
 
     bounds_min = first.min(axis=0)
     bounds_max = first.max(axis=0)
     scan_indices = np.unique(np.concatenate(([0, len(frame_paths) - 1], selected_frames)))
     for frame_idx in scan_indices[1:]:
         points = read_xyz_ply(frame_paths[int(frame_idx)])
+        if view_indices is not None:
+            points = points[view_indices]
         if selected_particles is not None:
             points = points[selected_particles]
         bounds_min = np.minimum(bounds_min, points.min(axis=0))
@@ -282,13 +356,30 @@ def main() -> None:
     if not writer.isOpened():
         raise SystemExit(f"Could not open video writer for {output}")
 
+    persistent_imprint_depth = 0.0
     for video_index, sim_index in enumerate(selected_frames):
         frame_path = frame_paths[int(sim_index)]
         step = step_from_frame(frame_path)
         points = read_xyz_ply(frame_path)
+        if view_indices is not None:
+            points = points[view_indices]
         if selected_particles is not None:
             points = points[selected_particles]
         pose = poses.get(step)
+        if args.visual_imprint and pose is not None:
+            imprint_depth = max(float(pose.get("actual_depth", 0.0)), 0.0)
+            persistent_imprint_depth = max(persistent_imprint_depth, imprint_depth)
+            points = apply_visual_imprint(
+                points,
+                initial_render_points,
+                query_xy=np.asarray([pose["x"], pose["y"]], dtype=np.float32),
+                radius=radius,
+                imprint_depth=persistent_imprint_depth,
+                imprint_scale=args.visual_imprint_scale,
+                rim_height_scale=args.visual_rim_height_scale,
+                rim_width_scale=args.visual_rim_width_scale,
+                lateral_scale=args.visual_lateral_scale,
+            )
         label = f"step {step}   t={video_index / args.fps:.3f}s"
         image = render_frame(
             points,

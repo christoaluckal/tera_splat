@@ -1,0 +1,107 @@
+{
+  "inputs": {
+    "before_points": 95074,
+    "after_points": 105127,
+    "cell_size_m": 0.01,
+    "bounds_xy_m": [
+      -0.75,
+      0.75,
+      -0.75,
+      0.75
+    ],
+    "min_visible_tags": 3
+  },
+  "plys": {
+    "before": "src/realsense_splat/episodes/real3_pre_metrics_offline/before_scene_roi_3tag/fused_points.ply",
+    "after": "src/realsense_splat/episodes/real3_post_metrics_offline/after_scene_roi_3tag/fused_points.ply",
+    "after_icp_aligned": "src/realsense_splat/episodes/real3_compare_metrics_3tag/after_fused_points_icp_aligned.ply"
+  },
+  "direct_dem": {
+    "overlap_cells": 22498,
+    "overlap_area_m2": 2.2498,
+    "median_change_m": -0.004533652836303314,
+    "mean_change_m": -0.005241170686061369,
+    "p05_m": -0.020956224004381584,
+    "p25_m": -0.011798881615897261,
+    "p75_m": 0.0009833525790055558,
+    "p95_m": 0.0100336982431061,
+    "net_volume_m3": -0.011791585809500868,
+    "cut_volume_m3": -0.015604724772013683,
+    "fill_volume_m3": 0.003813138962512814
+  },
+  "icp": {
+    "iterations": 5,
+    "final_rmse_m": 0.00880404521940305,
+    "fitness": 0.999256958866005,
+    "inlier_count": 104896,
+    "max_dist_m": 0.05,
+    "trim_quantile": 0.8,
+    "trace": [
+      {
+        "iter": 1,
+        "rmse_m": 0.0038705897457470798,
+        "fitness": 0.7993026844742508,
+        "pairs": 83906
+      },
+      {
+        "iter": 2,
+        "rmse_m": 0.0038234099722761566,
+        "fitness": 0.7993598414845581,
+        "pairs": 83912
+      },
+      {
+        "iter": 3,
+        "rmse_m": 0.003816605455772149,
+        "fitness": 0.7993884199897118,
+        "pairs": 83915
+      },
+      {
+        "iter": 4,
+        "rmse_m": 0.0038155859517601614,
+        "fitness": 0.7994074723264808,
+        "pairs": 83917
+      },
+      {
+        "iter": 5,
+        "rmse_m": 0.0038153588316708694,
+        "fitness": 0.7994074723264808,
+        "pairs": 83917
+      }
+    ],
+    "translation_m": [
+      -1.5505815444865788e-07,
+      2.6876475131349203e-06,
+      0.00047213040888380493
+    ],
+    "rotation_matrix": [
+      [
+        0.9999993692005011,
+        -1.287499851490669e-06,
+        -0.0011232083246566168
+      ],
+      [
+        2.0160396609849736e-08,
+        0.9999993634465546,
+        -0.0011283202054103998
+      ],
+      [
+        0.0011232090623865857,
+        0.00112831947102226,
+        0.9999987326474833
+      ]
+    ]
+  },
+  "icp_aligned_dem": {
+    "overlap_cells": 22498,
+    "overlap_area_m2": 2.2498,
+    "median_change_m": -0.003966818893742027,
+    "mean_change_m": -0.004770841552640385,
+    "p05_m": -0.020171034773506017,
+    "p25_m": -0.011031413008143197,
+    "p75_m": 0.0012720785271571385,
+    "p95_m": 0.00975672965119996,
+    "net_volume_m3": -0.010733439325130338,
+    "cut_volume_m3": -0.01459486115823346,
+    "fill_volume_m3": 0.003861421833103121
+  }
+}

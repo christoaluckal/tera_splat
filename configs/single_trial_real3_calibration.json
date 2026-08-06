@@ -1,0 +1,45 @@
+{
+  "experiment": {
+    "seed": 0,
+    "trial_dir": "data/single_trial_real3",
+    "output_dir": "outputs/single_trial_real3_calibration"
+  },
+  "surface": {
+    "primary_cell_size_m": 0.005,
+    "fine_cell_size_m": 0.0025,
+    "roi_bounds_xy_m": [-0.1524, 0.1524, -0.1524, 0.1524],
+    "height_statistic": "provided_by_realsense_splat_dem"
+  },
+  "fixed_physics": {
+    "poisson_ratio": 0.2,
+    "density_kg_m3": 200,
+    "contact_friction": null,
+    "particle_spacing_m": null,
+    "grid_resolution": null,
+    "bed_depth_m": null,
+    "gravity_settle_time_s": null,
+    "post_action_settle_time_s": null,
+    "base_state_dir": "assets/base_settled_stiff_mid",
+    "material_config": "configs/physgaussian_sand_stiff_mid.json"
+  },
+  "search": {
+    "log10_E_min": 4.0,
+    "log10_E_max": 7.0,
+    "phi_deg_min": 15.0,
+    "phi_deg_max": 45.0,
+    "coarse_log10_E_count": 8,
+    "coarse_phi_count": 8,
+    "refinement_budget": 25
+  },
+  "loss": {
+    "huber_delta_from_noise": true,
+    "weight_height": 0.5,
+    "weight_depth": 0.15,
+    "weight_radial": 0.2,
+    "weight_volume": 0.15
+  },
+  "uncertainty": {
+    "bootstrap_count": 100,
+    "plausible_delta_rule": "scan_noise"
+  }
+}

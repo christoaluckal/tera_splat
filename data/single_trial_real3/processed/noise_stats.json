@@ -1,0 +1,8 @@
+{
+  "source": "derived_from_existing_real3_reports_without_two_view_recompute",
+  "icp_final_rmse_m": 0.00880404521940305,
+  "full_direct_vs_icp_delta_abs_median_m": 0.0005970458175667695,
+  "full_direct_vs_icp_delta_abs_p95_m": 0.0016650399254333143,
+  "recommended_huber_delta_m": 0.00880404521940305,
+  "note": "This is a provisional scan/registration noise proxy. Replace with two-view disagreement and static-border residuals before final calibration."
+}
