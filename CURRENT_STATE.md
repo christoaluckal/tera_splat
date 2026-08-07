@@ -1,473 +1,434 @@
-# Current Experiment State
+# Tera Splat Current State
 
-Last updated: 2026-08-06
+Last reviewed: 2026-08-07
 
-This document is the concise handoff for the current experiment set after the
-mass-controlled amendment.
+This is the sole live engineering handoff for `tera_splat`. It replaces the
+older phase plans, bridge notes, duplicated state documents, and external
+instrumentation notes. Update this document whenever the experiment contract,
+implemented behavior, validation evidence, or readiness gates change.
 
-## Objective
+Generated reports in `reports/` are evidence for specific runs. They are not
+the current plan. External source data remains outside this repository; the
+paths below are the authoritative provenance records.
 
-Calibrate two effective Genesis MPM sand parameters from one RealSense
-before/action/after sand-bed experiment:
+## Mission
+
+Build a contact-conditioned terrain Gaussian-splat prototype that:
+
+1. Starts from a stable, volumetric, splat-derived MPM sand bed.
+2. Simulates a measured rigid-cylinder placement under gravity using Genesis
+   MPM and two-way rigid-MPM coupling.
+3. Compares the simulated terminal surface against RealSense pre/post DEMs.
+4. Estimates an effective sand parameter region, initially over `log10_E` and
+   `phi_deg` only.
+5. Later transfers validated MPM displacement back to the visible splat.
+
+This is effective-model calibration, not a claim of unique geotechnical
+properties. Do not tune parameters against an animation alone.
+
+## Repository And Runtime
 
 ```text
-log10_E = log10(E / Pa)
-phi_deg = friction angle in degrees
+repository: /home/moog-2/christo/splatting_stuff/physical/tera_splat
+environment: conda env tsplat
+GPU: NVIDIA GeForce RTX 3060 Ti when CUDA is exposed to the shell
 ```
 
-The real action was placement of a known cylinder on the sand bed, not an
-intentional push to a target depth. The valid forward model is therefore
-**mass-controlled gravitational loading**:
+CUDA can be hidden by a managed sandbox. Use a CUDA-capable shell for Genesis
+rollouts and record the backend/device in each output directory.
 
-1. Put the cylinder bottom face at first contact with the initial terrain.
-2. Release it with zero initial linear/angular velocity.
-3. Let gravity and coupled rigid-MPM contact determine penetration.
-4. Stop loaded settling by a fixed equilibrium criterion.
-5. Remove the cylinder with a fixed documented numerical lift protocol.
-6. Stop post-removal settling by a fixed equilibrium criterion.
-7. Compare the residual simulated surface to the real residual DEM.
-
-The output should be a loss landscape and plausible region for **effective
-Genesis parameters**, not unique physical soil properties. Gaussian-splat
-deformation is outside this milestone.
-
-## Environment
-
-Run from:
+## Source Repositories And Provenance
 
 ```text
-/home/moog-2/christo/splatting_stuff/physical/tera_splat
+EDGS splat:
+../EDGS/output/point_cloud/iteration_7000/point_cloud.ply
+
+PhysGaussian reference implementation:
+../PhysGaussian/
+
+RealSense capture and DEM processor:
+../lamp/ros2_ws/src/realsense_splat/
 ```
 
-Use:
+Do not modify `realsense_splat` while working in this repository unless the
+task explicitly requires source-data processing changes. New interpretation,
+trial-contract, and calibration decisions belong in this file.
+
+### Coordinate Convention
 
 ```text
-conda env: tsplat
-```
-
-CUDA is available on the host but may be hidden inside sandboxed commands. Use
-an unsandboxed execution path for CUDA Genesis jobs.
-
-## Source Inputs
-
-```text
-EDGS splat:        ../EDGS/output/point_cloud/iteration_7000/point_cloud.ply
-PhysGaussian:      ../PhysGaussian/
-RealSense package: ../lamp/ros2_ws/src/realsense_splat/
-real3 artifacts:   ../lamp/ros2_ws/src/realsense_splat/episodes/real3_compare_metrics_3tag/
-```
-
-RealSense convention used by normalized data:
-
-```text
-world frame: bed
+physical world frame: bed
 camera frame: camera_color_optical_frame
-depth_scale_m_per_unit: 0.001
+depth scale: 0.001 m per raw depth unit
+RealSense tag map: real3_tag_map.yaml
+nominal tag centers: (+/-0.3048, +/-0.3048) m
 ```
 
-## Normalized Real Trial
+Real3 and Real4/5/6 use the same approximate 24 x 24 inch tag-center map, so
+their nominal bed-frame XY coordinates are compatible. The map is not yet an
+independently validated absolute metrology reference. Never silently mix bed,
+splat, camera, and solver coordinates: record the transform and validate a
+surface/footprint overlay before any fit.
 
-Regenerate:
+## Terrain And Solver Baseline
 
-```bash
-conda run -n tsplat python scripts/preprocess_single_trial_real3.py --copy-plys
-conda run -n tsplat python scripts/make_single_trial_report.py \
-  --output reports/single_trial_real3_report.md
-```
-
-Normalized output:
+Use the settled splat-derived base, not a raw surface-only cloud:
 
 ```text
-data/single_trial_real3/
-  manifest.yaml
-  action.yaml
-  processed/
-    S0_fused.ply
-    S1_fused.ply
-    S1_fused_icp_aligned.ply
-    S0_height.npz
-    S1_height.npz
-    delta_h_real.npz
-    valid_mask.npz
-    noise_stats.json
-    preprocess_summary.json
-```
-
-Current report:
-
-```text
-reports/single_trial_real3_report.md
-```
-
-Real deformation summary:
-
-```text
-DEM: center 1 ft, 0.005 m/cell
-ROI: [-0.1524, 0.1524, -0.1524, 0.1524] m in bed frame
-shape: 61 x 61
-valid overlap cells: 1038
-valid area: 0.02595 m^2
-mean change: 0.00313604613 m
-median change: 0.00347291209 m
-p05: -0.00668277459 m
-p95: 0.012975668 m
-cut volume: -3.94610965e-05 m^3
-fill volume: 0.000120841494 m^3
-net volume: 8.13803971e-05 m^3
-```
-
-Noise estimate:
-
-```text
-provisional Huber delta: 0.00880404522 m
-source: ICP RMSE / direct-vs-ICP DEM delta proxy
-```
-
-This is provisional. Replace it with two-view disagreement and/or static-border
-residuals before final calibration.
-
-## Current Action Metadata
-
-Current file:
-
-```text
-data/single_trial_real3/action.yaml
-```
-
-Current schema:
-
-```yaml
-tool: cylinder
-geometry:
-  diameter_m: 0.14605
-  radius_m: 0.073025
-  height_m: 0.0508
-rigid_body:
-  mass_kg: 1.5
-  equivalent_uniform_density_kg_m3: 1762.522
-  inertia_model: uniform_solid_cylinder_approximation
-  inertia_diagonal_kg_m2: [0.002322324, 0.002322324, 0.003999488]
-contact_center_xy_world_m: [0.0, 0.0]
-placement:
-  mode: mass_controlled
-  initial_condition: first_contact
-  initial_linear_velocity_mps: [0.0, 0.0, 0.0]
-  initial_angular_velocity_radps: [0.0, 0.0, 0.0]
-  release_under_gravity: true
-  additional_applied_force_n: [0.0, 0.0, 0.0]
-first_contact:
-  surface_statistic: percentile
-  percentile: 99.0
-  nominal_clearance_m: 0.0
-loaded_settling:
-  max_time_s: 5.0
-  cylinder_speed_threshold_mps: 0.0005
-  local_particle_speed_percentile: 99
-  particle_speed_threshold_mps: 0.0005
-  required_duration_s: 0.25
-removal:
-  mode: kinematic_lift_after_loaded_equilibrium
-  upward_speed_mps: 0.005
-  clearance_above_surface_m: 0.010
-post_removal_settling:
-  max_time_s: 5.0
-  local_particle_speed_percentile: 99
-  particle_speed_threshold_mps: 0.0005
-  required_duration_s: 0.25
-calibration_ready: false
-```
-
-Completed bridge steps:
-
-- Static-border plane correction is implemented and saved in
-  `data/single_trial_real3/processed/delta_h_real_corrected.npz`.
-- Footprint/mask diagnostic is saved at
-  `data/single_trial_real3/processed/scan_correction_footprint_diagnostic.png`.
-- Raw median `delta_h` was `+0.00347291209 m`; plane-corrected median
-  `delta_h` is `+0.0000524610803 m`.
-- Plane-corrected net volume is `-2.30016048e-06 m^3`.
-- First-contact height using the 99th percentile inside the footprint is
-  `0.0464380514 m`; zero-clearance cylinder center z is `0.0718380514 m`.
-- Genesis free-fall/mass check passed on CPU:
-  `outputs/mass_controlled_bridge_checks/free_fall_report.json`.
-- Runtime mass after override is `1.5 kg`; fitted vertical acceleration is
-  `-9.80977783 m/s^2`; runtime inertia diagonal matches the expected uniform
-  solid-cylinder approximation.
-- Short terrain gravity smoke using the existing gravity control path completed
-  for `0.75`, `1.5`, and `3.0 kg`.
-- Short-run sinkage was monotonic over `0.04 s`:
-  `0.00132496872 m`, `0.00242455521 m`, `0.00399621048 m`.
-- `scripts/run_mass_controlled_terrain.py` implements the load, removal, and
-  post-removal phase machine for a released cylinder.
-- Capped CPU smoke output:
-  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_smoke_cpu_capped`.
-- Capped smoke loaded depth was `0.00160224953 m`; loaded and post-removal
-  phases timed out under deliberately short limits, and removal was capped.
-- Longer CUDA rollout with uncapped removal completed:
-  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_longer`.
-- Longer CUDA result: loaded phase timed out after `0.25 s` at
-  `0.00289781609 m` depth; removal completed uncapped in `5160` steps; post
-  removal reached equilibrium in `0.02 s`.
-- Extended CUDA loaded-settling output:
-  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_loaded1s`.
-  The loaded phase still timed out at `1.0 s`, but depth was stable at
-  `0.00289662399 m`. The cylinder speed was `0.292996793 mm/s` while local p99
-  particle speed was `0.672453374 mm/s`, exceeding the `0.5 mm/s` threshold.
-- The runner now writes a loaded-phase percentile diagnostic. For a second
-  `1.0 s` CUDA baseline, penetration drift was zero at stored float32 precision
-  over the last `0.1 s`; local p95 was `0.188-0.205 mm/s` and p99 was
-  `0.670-0.720 mm/s`. This motivates threshold sensitivity, not a protocol
-  change based on one material/mass case.
-
-Current blockers:
-
-1. Center footprint overlay has an artifact but is not independently visually
-   accepted. The current `[0.0, 0.0]` assumes the bed-frame origin is the
-   physical center.
-2. Static-border correction depends on an assumed undeformed border. Valid
-   static-border coverage is only `0.231`, so this assumption still needs review.
-3. Two localized views per surface are not exported separately for final
-   two-view noise estimation.
-4. Genesis mass-controlled terrain action mode has a runner and reproducible
-   uncapped CUDA removal, but not a calibration-ready loaded-equilibrium rule.
-5. Two-way rigid-MPM contact has only short smoke tests. It is not validated
-   through loaded equilibrium and removal.
-6. Settled/equilibrium mass monotonicity is not tested for `0.75`, `1.5`, and
-   `3.0 kg`.
-7. Loaded-settling termination logic is implemented but not validated: the
-   particle-speed criterion times out even after penetration stabilizes.
-8. Post-removal settling termination logic is implemented and has a CUDA smoke,
-   but is not yet validated across material and mass cases.
-9. Initial simulated `S0` projection/footprint match is not verified.
-10. Complete MPM state restore is not implemented or validated. A PLY with only
-    positions is not enough state for calibrated rollouts.
-11. No-cylinder drift is not characterized or subtracted.
-12. Synthetic `3 x 3` parameter recovery is not complete.
-13. Final scan-noise estimate is missing. The current Huber delta is only an ICP
-   RMSE / direct-vs-ICP proxy.
-
-Critical correction: `0.14605 m` is the cylinder diameter, not radius. The
-correct radius is `0.073025 m`. Using `radius_m: 0.14605` makes contact area
-four times too large and nominal pressure four times too small.
-
-Do not add `placement.target_depth_m`; no target depth was commanded or
-measured. Cylinder penetration is a simulation output.
-
-## Simulation Baseline
-
-Do not calibrate from raw surface-only splat particles. Use the settled
-volumetric/subsurface-supported base:
-
-```text
-assets/base_settled_stiff_mid/
-  particles_initial_mpm.ply
-  ground_plane_metadata.json
-
+assets/base_settled_stiff_mid/particles_initial_mpm.ply
+assets/base_settled_stiff_mid/ground_plane_metadata.json
 configs/physgaussian_sand_stiff_mid.json
 ```
 
-Every material candidate must restore or deterministically recreate the same
-settled base state.
+The accepted manual initializer is retained for provenance:
 
-Current indenter entry points:
-
-```bash
-conda run -n tsplat python scripts/run_genesis_indenter_test.py --help
-conda run -n tsplat python scripts/run_indenter_matrix_sweep.py --help
-conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
+```text
+outputs/splat_surface_regular_grid_subsurface_1x1_depth0p2_spacing0p025_layer0p0125_noise1p5/
 ```
 
-Important discrepancy: these scripts were originally built around prescribed
-indent depth. They may be reused only after adding a genuine `mass_controlled`
-mode that rejects target-depth, prescribed downward motion, and added downward
-force.
+Genesis sand currently uses the parameter/configuration surface established by
+the PhysGaussian reference. PhysGaussian remains a comparison implementation;
+the active calibration runner is Genesis. Do not change the constitutive law
+while establishing the first effective `log10_E` / `phi_deg` fit.
 
-## What Can Be Run Now
+The ground plane is a fixed rigid plane below the MPM particles. It prevents
+particles from falling out of the domain; it is not a substitute for matching
+the real pre-action bed geometry.
 
-Safe/current:
+## Physical Action Contract
+
+The real query is **mass-controlled gravitational loading**, never a prescribed
+target-depth indentation.
+
+For each trial:
+
+1. Put the cylinder bottom face at a documented first-contact surface height.
+2. Set initial linear and angular velocity to zero.
+3. Release the dynamic cylinder under gravity with no prescribed downward pose,
+   downward speed, target depth, or added downward force.
+4. Treat penetration as a simulation output.
+5. Detect loaded settling with a frozen, validated criterion.
+6. Apply a documented fixed numerical vertical lift for removal.
+7. Detect post-removal settling with a frozen criterion.
+8. Save particle frames, rigid pose/state, metrics, resolved config, and final
+   surface metrics.
+
+The cylinder dimensions are fixed for current real trials:
+
+```text
+diameter: 0.14605 m
+radius:   0.073025 m
+height:   0.0508 m
+```
+
+`0.14605 m` is the diameter, not the radius. Using it as a radius quadruples
+contact area and invalidates pressure/contact interpretation.
+
+### Real3 Action
+
+```text
+mass: 1.5 kg
+equivalent density: 1762.522 kg/m^3
+inertia diagonal: [0.002322324, 0.002322324, 0.003999488] kg m^2
+nominal center: [0.0, 0.0] m
+```
+
+The normalized contract is `data/single_trial_real3/action.yaml`.
+
+### Real6 Action
+
+```text
+mass: 3.0 kg
+equivalent density: 3525.044 kg/m^3
+inertia diagonal: [0.004644648, 0.004644648, 0.007998976] kg m^2
+nominal center: [0.0135730566, 0.0362158050] m
+```
+
+Real6 uses the same cylinder geometry and loading/unloading protocol as Real3,
+with mass changed to `3.0 kg`. The Real6 center is inferred from the Real5
+during-load feature, not directly measured, so it is a protocol-sensitivity
+input. Test the `[-0.10, 0.00, +0.10] m` XY grid separately from material
+fitting. Record the confirmed dwell, lift speed, and post-lift wait in the
+future Real6 action file.
+
+## RealSense Trial Inventory
+
+| Trial | Source pair | Intended use | Status |
+|---|---|---|---|
+| Real3 | `real3` center 1 ft pre/post DEM | Historical 1.5 kg calibration target | Normalized; not sweep-ready |
+| Real4 | `real4_pre -> real4_post` | Diagnostic only | Broad bias; do not calibrate |
+| Real5 | `real5_pre -> during -> after` | Locate contact and inspect loading object | During view is object-contaminated |
+| Real6 | `real6_pre -> real6_post` | Next 3 kg calibration target | Source analyzed; adapter not implemented |
+
+### Real3 Artifacts
+
+External source:
+
+```text
+../lamp/ros2_ws/src/realsense_splat/episodes/real3_compare_metrics_3tag/
+```
+
+Normalized products:
+
+```text
+data/single_trial_real3/manifest.yaml
+data/single_trial_real3/action.yaml
+data/single_trial_real3/processed/S0_height.npz
+data/single_trial_real3/processed/S1_height.npz
+data/single_trial_real3/processed/delta_h_real.npz
+data/single_trial_real3/processed/delta_h_real_corrected.npz
+data/single_trial_real3/processed/scan_correction.json
+data/single_trial_real3/processed/scan_correction_footprint_diagnostic.png
+reports/single_trial_real3_report.md
+```
+
+The Real3 static-border plane correction reduced the raw median change from
+`+3.473 mm` to `+0.052 mm`. This correction is necessary but remains
+provisional because static-border coverage is only `0.231` and final two-view
+noise is unavailable.
+
+### Real6 Artifacts
+
+External source:
+
+```text
+../lamp/ros2_ws/src/realsense_splat/episodes/real456_static_metrics/
+```
+
+Use native bed-frame sources, not ICP visualization products, for the future
+calibration target:
+
+```text
+real6_pre/dem_points_0.005m.ply
+real6_post/dem_points_0.005m.ply
+real6_pre/dem_0.005m.npy
+real6_post/dem_0.005m.npy
+comparisons/real6_post_minus_real6_pre_dem_0.005m.npy
+comparisons/real6_post_minus_real6_pre_report.json
+force_application_location_report.json
+```
+
+Initial read-only analysis used a force-centered 1 ft ROI, the Real6 nominal
+center, a `73.025 mm` footprint radius, and a Real3-style static-border plane
+fit: outer `25 mm` border, excluding the footprint plus `30 mm`.
+
+```text
+common pre/post cells:              57,295
+force-centered ROI common cells:     2,645
+footprint coverage:                  504 / about 670 cells (75.2%)
+corrected footprint median dz:      -1.044 mm
+corrected footprint mean dz:        -1.585 mm
+corrected footprint p05 / p95:      -5.345 / +1.529 mm
+covered-footprint net volume:       -1.997e-5 m^3
+corrected annulus p05 / p95:        -0.692 / +0.771 mm
+```
+
+The source Real6 ICP crop has fitness `1.0` and final RMSE `1.413 mm`, which is
+comparable to the measured signal. Never use an ICP transform fit through the
+changed footprint as the calibration registration. Freeze a stable-region
+registration/correction convention first.
+
+Real4/5/6 contain mostly three-tag frames and use the approximate tag map.
+They are useful static-view diagnostics, not independently validated absolute
+bed geometry.
+
+## Implemented Components
+
+### Inspection And Particle Preparation
+
+```text
+scripts/view_iteration_7000.py
+scripts/particle_io.py
+scripts/test_ply_to_particles.py
+scripts/view_particle_ply.py
+scripts/run_ground_plane_solver.py
+scripts/run_genesis_ground_plane_solver.py
+```
+
+### Genesis Contact And Visualization
+
+```text
+scripts/run_genesis_indenter_test.py
+scripts/run_mass_controlled_bridge_checks.py
+scripts/run_mass_controlled_terrain.py
+scripts/view_solver_animation.py
+scripts/render_solver_video.py
+scripts/render_indenter_animation.py
+scripts/transfer_mpm_to_gaussians.py
+```
+
+`run_mass_controlled_terrain.py` currently restores particle positions and
+zero velocities from the saved PLY. It does **not** restore full MPM state such
+as `C`, `F`, or `Jp`; a PLY alone is insufficient for deterministic calibrated
+candidate rollouts.
+
+### RealSense Processing
+
+```text
+scripts/preprocess_single_trial_real3.py
+scripts/make_single_trial_report.py
+```
+
+The Real3 preprocessor is intentionally source-specific: it loads named NPY
+products under `real3_compare_metrics_3tag/center_1ft_fine_dem/`. It cannot
+consume a Real6 PLY pair without a separate adapter.
+
+## Evidence Already Collected
+
+All paths below are historical test evidence, not clearance to start a sweep.
+
+### Rigid-Body Check
+
+```text
+outputs/mass_controlled_bridge_checks/free_fall_report.json
+```
+
+For the 1.5 kg Real3 cylinder, Genesis runtime mass/inertia matched the intended
+uniform-cylinder approximation and fitted vertical acceleration was
+`-9.80977783 m/s^2`.
+
+### Short Contact Smoke
+
+The existing gravity-contact path ran for `0.04 s` on CPU:
+
+```text
+0.75 kg -> 1.32497 mm sinkage
+1.50 kg -> 2.42456 mm sinkage
+3.00 kg -> 3.99621 mm sinkage
+```
+
+This demonstrates short-run mass-monotonic contact response only. It does not
+demonstrate equilibrium, removal, drift control, or repeatability.
+
+### Mass-Controlled Terrain Phase Machine
+
+Outputs:
+
+```text
+outputs/mass_controlled_bridge_checks/mass_controlled_terrain_smoke_cpu_capped
+outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_longer
+outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_loaded1s
+outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_settling_diagnostic_1s
+```
+
+The CUDA path completes an uncapped `5 mm/s` numerical lift and detects
+post-removal equilibrium. At 1.5 kg, penetration was about `2.897 mm` after
+both `0.25 s` and `1.0 s` loaded windows. The loaded phase still timed out:
+
+```text
+configured rule: cylinder speed <= 0.5 mm/s AND local p99 <= 0.5 mm/s
+final cylinder speed: about 0.293 mm/s
+final local p50 / p90 / p95 / p99:
+0.052 / 0.106 / 0.195 / 0.692 mm/s
+```
+
+Penetration was stable over the final `0.1 s` at stored float32 precision.
+P95 is a candidate settling diagnostic, but it is not an accepted replacement
+for p99 until fixed-window tests cover the required mass cases.
+
+## What Is Safe To Run Now
+
+Read-only inspection, visualization, source checks, and the existing smoke
+runners are safe. Useful entry points:
+
+```bash
+conda run -n tsplat python scripts/view_iteration_7000.py --align-ground-z
+conda run -n tsplat python scripts/view_particle_ply.py \
+  assets/base_settled_stiff_mid/particles_initial_mpm.ply --point-size 0.003
+conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
+conda run -n tsplat python scripts/run_mass_controlled_bridge_checks.py --help
+```
+
+The Real3 report can be regenerated with:
 
 ```bash
 conda run -n tsplat python scripts/preprocess_single_trial_real3.py --copy-plys
 conda run -n tsplat python scripts/make_single_trial_report.py \
   --output reports/single_trial_real3_report.md
-conda run -n tsplat python scripts/run_genesis_indenter_test.py --help
-conda run -n tsplat python scripts/run_indenter_matrix_sweep.py --help
 ```
 
-Allowed only as synthetic/debug work:
+Do not run a material sweep or call an output a calibrated result yet.
 
-- Add/test mass-controlled Genesis release mode.
-- One midrange synthetic candidate after contact center and first-contact
-  convention are fixed.
-- Synthetic recovery using generated observations.
+## Required Work Before The Real6 Sweep
 
-Not valid yet:
+Complete these in order. Do not skip a gate merely because the animation looks
+plausible.
 
-- Real `log10_E` / `phi_deg` calibration sweep.
-- Real `3 x 3` or `8 x 8` material search.
-- Any report claiming a real material fit.
+1. **Freeze Real6 metadata.** Create a Real6 action contract with 3 kg mass,
+   same cylinder dimensions, nominal center, confirmed dwell/removal/post-settle
+   timing, and the center-offset protocol.
+2. **Implement a Real6 source adapter.** Prefer companion `dem_0.005m.npy`
+   inputs, crop/rasterize a center-relative fixed grid, write the existing
+   `S0/S1/delta/valid-mask` contract, and produce scan diagnostics.
+3. **Freeze measurement registration and noise.** Use a documented stable
+   region outside the footprint. Estimate noise from independent frame subsets
+   or other defensible static data; annulus spread is only a proxy.
+4. **Match the simulation initial state.** Register or construct the MPM bed
+   from Real6 `S0`, project simulated `S0` onto the exact Real6 grid, and
+   verify the footprint overlay before comparing terminal surfaces.
+5. **Validate the 3 kg action.** Repeat mass/inertia/free-fall checks, then
+   run 3 kg coupled terrain release, uncapped removal, and post-removal settle.
+6. **Freeze settling logic.** Run the required fixed-window tests across
+   `0.75`, `1.5`, and `3.0 kg`; choose the speed percentile/threshold based on
+   evidence, not on the one 1.5 kg trace.
+7. **Establish reproducibility.** Implement complete MPM state persistence or
+   deterministic reconstruction, characterize no-cylinder drift, and repeat
+   identical rollouts.
+8. **Validate inference.** Project terminal surfaces to the Real6 DEM grid,
+   implement the noise-aware loss, and recover known parameters in synthetic
+   `3 x 3` experiments.
+9. **Run real candidates.** Run a small nominal-center smoke grid, then the
+   material grid. Run the `3 x 3` center grid as a separate protocol-sensitivity
+   experiment, not as an unconstrained material optimization variable.
 
-Reason: footprint/static-border review, final two-view noise estimation,
-Genesis mass-controlled terrain release, two-way rigid-MPM contact, settling
-termination, deterministic state restoration, no-cylinder drift, and synthetic
-recovery are not complete.
+## Intended Calibration And Reporting
 
-## Required Mass-Controlled Implementation
-
-The real forward-model path must:
-
-1. Instantiate a dynamic rigid cylinder with specified mass and inertia.
-2. Place its bottom face at documented first contact.
-3. Set initial linear/angular velocities to zero.
-4. Enable gravity and two-way rigid-MPM contact.
-5. Avoid prescribed downward pose, speed, target depth, or added force.
-6. Stop loaded settling by equilibrium thresholds or max duration.
-7. Log equilibrium cylinder pose and penetration as outputs.
-8. Apply the fixed removal protocol.
-9. Stop post-removal settling by equilibrium thresholds or max duration.
-10. Restore the same settled terrain base before every candidate.
-
-Suggested loader/runner boundary:
-
-```text
---action-mode mass_controlled
-```
-
-The runner must reject configs that combine `mass_controlled` with
-`target_depth_m`, prescribed downward trajectory, or added downward force.
-
-## Calibration Procedure Once Ready
-
-Only vary:
-
-```text
-log10_E
-phi_deg
-```
-
-Everything else is fixed and recorded.
-
-Execution order:
-
-1. Verify the `[0.0, 0.0]` center footprint overlay on `S0` and the observed
-   residual deformation.
-2. Correct static-border vertical/plane bias and estimate two-view noise.
-3. Add mass-controlled mode to the Genesis runner.
-4. Unit test first contact, mass/inertia, gravity release, and rejection of
-   incompatible displacement controls.
-5. Verify free-fall gravity, runtime mass, two-way contact, and mass
-   monotonicity.
-6. Verify real/sim axes, units, ROI, DEM grid, masks, and initial `S0`
-   projection/footprint overlay.
-7. Implement complete state restore and no-cylinder drift characterization.
-8. Run one midrange candidate: `(log10_E=5.5, phi_deg=30)`.
-9. Confirm nonzero gravitational settling, stable contact, plausible
-   penetration, cylinder equilibrium, removal, and post-removal settling.
-10. Repeat exact rollout twice and confirm determinism.
-11. Project simulated terminal surface to the exact real DEM grid.
-12. Implement or verify composite loss and candidate logging.
-13. Run synthetic `3 x 3` recovery using the mass-controlled runner.
-14. Run a real `3 x 3` smoke grid.
-15. Run full `8 x 8` grid:
+Initial material dimensions:
 
 ```text
 log10_E in [4, 7]
 phi_deg in [15, 45]
 ```
 
-16. Run protocol sensitivity and scan-noise perturbation experiments.
-17. Generate final report with loss landscape and plausible region.
+Keep density, Poisson ratio, particle/grid settings, friction, first-contact
+rule, removal rule, and center convention fixed while fitting the first
+material grid. Any alternative must be a named sensitivity experiment.
 
-Do not jump directly to the full sweep.
-
-## Loss
-
-Use shared-grid residual height fields:
+Each candidate must record:
 
 ```text
-delta_h_real = S1_height - S0_height
-delta_h_sim  = S1_sim_height - S0_sim_height
+trial ID and source data revision
+material config and resolved solver config
+initial-state identifier and restoration method
+rigid geometry, mass, density, inertia, and initial pose
+first-contact and settling criteria
+center offset and removal protocol
+surface projection convention and valid-mask coverage
+loss components, output metrics, runtime, backend/device, and seed
 ```
 
-Composite loss:
+The final result is a loss landscape and plausible effective-material region.
+It must state measurement noise, simulation uncertainty, action/registration
+assumptions, center sensitivity, and all unresolved limitations.
 
-```text
-L = 0.50 * L_height
-  + 0.15 * L_depth
-  + 0.20 * L_radial
-  + 0.15 * L_volume
-```
+## Guardrails
 
-Terms:
+- Never reintroduce target-depth indentation as the real calibration action.
+- Do not use a raw surface shell as a stable terrain base.
+- Do not use the Real5 during view as a terminal sand residual; it contains the
+  loading object.
+- Do not let ICP register through the changed contact patch.
+- Do not compare a terminal simulation surface to a real DEM before verifying
+  initial-surface grid, frame, and footprint alignment.
+- Do not claim equilibrium while the selected documented criterion times out.
+- Do not infer deterministic reset from a positions-only PLY.
+- Do not merge Real3 and Real6 as replicate observations.
+- Keep generated PLYs/videos under `outputs/`; do not commit large artifacts.
 
-- Huber height-field loss over common valid mask.
-- Robust depression depth from low percentile.
-- Radial median deformation profile around fixed cylinder center.
-- Cut/fill volume error.
+## Documentation Policy
 
-## Required Sensitivity Experiments
-
-Because placement/removal histories were not measured, report sensitivity to:
-
-- First-contact/initial-clearance convention, e.g. nominal, +1 mm, +2 mm.
-- Contact-center perturbations from localization/estimator uncertainty.
-- Removal speed: `0.5x`, `1x`, `2x`.
-- Equilibrium thresholds and max settling durations.
-- At least one fixed contact-friction alternative if contact friction is not
-  independently measured.
-
-These are sensitivity analyses, not extra calibration dimensions. Do not pick
-the protocol variant just because it minimizes real-data loss.
-
-There is no downward-speed sensitivity test because no downward speed is
-commanded in the corrected experiment.
-
-## Required Final Outputs
-
-```text
-resolved_config.yaml
-environment.json
-results.csv
-noise_stats.json
-initial_state_metadata.json
-action_resolved.yaml
-candidate diagnostics and terminal state references
-total/component loss heatmaps
-best real/sim delta_h comparison
-best difference map
-best radial-profile plot
-plausible-region plot
-synthetic-recovery results
-determinism results
-protocol-sensitivity results
-report.md
-```
-
-Also log:
-
-```text
-action_mode
-cylinder mass and inertia
-initial cylinder pose
-first-contact convention
-initial clearance
-loaded equilibrium cylinder pose
-equilibrium penetration depth
-loaded-settling termination reason
-removal protocol
-post-removal termination reason
-```
-
-## Prohibited Shortcuts
-
-- Do not prescribe target depth for this real trial.
-- Do not add a downward force beyond gravity.
-- Do not optimize contact center per material candidate.
-- Do not infer density, Poisson ratio, contact friction, cohesion, compaction,
-  or camera poses in the first calibration.
-- Do not use unconstrained ICP over the deforming terrain.
-- Do not replace the settled volumetric bed with surface-only splat particles.
-- Do not tune loss weights after seeing which candidate looks best.
-- Do not claim patch holdouts are independent validation.
-- Do not claim a unique physical `E` or `phi` from one residual scan.
-- Do not start MPM-to-Gaussian transfer before calibration diagnostics are done.
+`CURRENT_STATE.md` is the only live planning and handoff document. Keep
+generated measurements in `reports/` and outputs in `outputs/`. When a gate is
+closed or invalidated, update the relevant section above in the same change as
+the implementation or experiment result. Do not create parallel status, bridge,
+or phase-plan documents.
