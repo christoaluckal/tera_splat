@@ -395,6 +395,16 @@ Implemented:
 3. The normalized data includes height `.npz` files, `delta_h_real`, valid mask,
    provisional noise stats, copied center-ROI PLYs, manifest, action template,
    and source-report copies.
+4. Static-border plane correction, footprint coverage diagnostics, and
+   corrected `delta_h` are generated.
+5. `scripts/run_mass_controlled_bridge_checks.py` validates dynamic free fall,
+   runtime mass, and inertia for the corrected cylinder.
+6. Short terrain gravity smokes show monotonic sinkage for `0.75`, `1.5`, and
+   `3.0 kg` over `0.04 s`, but do not replace equilibrium/removal validation.
+7. `scripts/run_mass_controlled_terrain.py` implements the first load,
+   removal, and post-removal phase machine. The current CPU smoke is capped and
+   intentionally times out, so it proves artifact wiring but not calibration
+   readiness.
 
 Current generated report:
 
@@ -414,7 +424,7 @@ Still to implement before real calibration:
 
 1. Verify the `[0.0, 0.0]` center footprint overlay; do not optimize center from
    material-candidate loss.
-2. Add static-border scan bias correction and export corrected `delta_h`.
+2. Review the generated static-border scan correction and footprint diagnostic.
 3. Preserve/export separate localized views for `S0` and `S1`, then estimate
    final two-view noise.
 4. Add mass-controlled mode to the Genesis runner and action loader.

@@ -6,7 +6,9 @@ This folder contains only current, actionable docs for the prototype.
 
 1. [Current State](current_state.md)
 2. [Single-Trial Calibration](single_trial_calibration.md)
-3. [PhysGaussian Notes](00_physgaussian_notes.md)
+3. [RealSense Instrumentation And Real6 Trial](realsense_instrumentation_real6.md)
+4. [Mass-Controlled Bridge Findings](mass_controlled_bridge_findings.md)
+5. [PhysGaussian Notes](00_physgaussian_notes.md)
 
 Current generated calibration-readiness report:
 

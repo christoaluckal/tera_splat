@@ -1,0 +1,83 @@
+{
+  "method": "static_border_plane_fit",
+  "note": "Plane is fit only on valid cells in an assumed undeformed outer border, excluding the cylinder footprint plus 30 mm. Verify this static-border assumption visually.",
+  "cylinder_center_xy_world_m": [
+    0.0,
+    0.0
+  ],
+  "cylinder_radius_m": 0.073025,
+  "cylinder_diameter_m": 0.14605,
+  "static_border_width_m": 0.025,
+  "static_exclusion_radius_m": 0.103025,
+  "plane_bias_model": {
+    "delta_h_bias_m": "a*x + b*y + c",
+    "a": -0.017408326150627908,
+    "b": -0.012052351719083094,
+    "c": 0.00323462219279266,
+    "static_residual_median_m": 0.00010182799551105345,
+    "static_residual_mad_m": 0.002780523342743341
+  },
+  "offset_only_bias_m": 0.003920999427511949,
+  "coverage": {
+    "footprint_total_cells": 673,
+    "footprint_valid_cells": 185,
+    "footprint_valid_fraction": 0.274888558692422,
+    "radial_total_cells": 2026,
+    "radial_valid_cells": 602,
+    "radial_valid_fraction": 0.29713721618953604,
+    "static_candidate_cells": 1120,
+    "static_valid_cells": 259,
+    "static_valid_fraction": 0.23125
+  },
+  "first_contact": {
+    "surface_statistic": "percentile",
+    "percentile": 99.0,
+    "height_m": 0.04643805142769756,
+    "cylinder_center_z_m_for_zero_clearance": 0.07183805142769756
+  },
+  "raw_delta_stats": {
+    "valid_cells": 1038,
+    "valid_area_m2": 0.02595,
+    "mean_change_m": 0.003136046130942939,
+    "median_change_m": 0.0034729120890708734,
+    "p01_m": -0.030548387576609173,
+    "p05_m": -0.0066827745895625115,
+    "p25_m": -0.00037442224341585005,
+    "p75_m": 0.006466608833464392,
+    "p95_m": 0.01297566801084066,
+    "p99_m": 0.03141837584696347,
+    "net_volume_m3": 8.138039709796928e-05,
+    "cut_volume_m3": -3.946109645475526e-05,
+    "fill_volume_m3": 0.00012084149355272449
+  },
+  "plane_corrected_delta_stats": {
+    "valid_cells": 1038,
+    "valid_area_m2": 0.02595,
+    "mean_change_m": -8.86381689524264e-05,
+    "median_change_m": 5.246108029878559e-05,
+    "p01_m": -0.03271139912533426,
+    "p05_m": -0.009744013865490867,
+    "p25_m": -0.002993382230929247,
+    "p75_m": 0.002930145126175546,
+    "p95_m": 0.009142733640155538,
+    "p99_m": 0.028105165329379938,
+    "net_volume_m3": -2.3001604843154654e-06,
+    "cut_volume_m3": -6.48615665818e-05,
+    "fill_volume_m3": 6.256140609748454e-05
+  },
+  "offset_corrected_delta_stats": {
+    "valid_cells": 1038,
+    "valid_area_m2": 0.02595,
+    "mean_change_m": -0.0007849532965690106,
+    "median_change_m": -0.00044808733844107574,
+    "p01_m": -0.034469387004121124,
+    "p05_m": -0.01060377401707446,
+    "p25_m": -0.004295421670927799,
+    "p75_m": 0.002545609405952443,
+    "p95_m": 0.00905466858332871,
+    "p99_m": 0.02749737641945152,
+    "net_volume_m3": -2.0369538045965824e-05,
+    "cut_volume_m3": -7.964869054058834e-05,
+    "fill_volume_m3": 5.9279152494622527e-05
+  }
+}

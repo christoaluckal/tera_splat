@@ -177,28 +177,73 @@ post_removal_settling:
 calibration_ready: false
 ```
 
+Completed bridge steps:
+
+- Static-border plane correction is implemented and saved in
+  `data/single_trial_real3/processed/delta_h_real_corrected.npz`.
+- Footprint/mask diagnostic is saved at
+  `data/single_trial_real3/processed/scan_correction_footprint_diagnostic.png`.
+- Raw median `delta_h` was `+0.00347291209 m`; plane-corrected median
+  `delta_h` is `+0.0000524610803 m`.
+- Plane-corrected net volume is `-2.30016048e-06 m^3`.
+- First-contact height using the 99th percentile inside the footprint is
+  `0.0464380514 m`; zero-clearance cylinder center z is `0.0718380514 m`.
+- Genesis free-fall/mass check passed on CPU:
+  `outputs/mass_controlled_bridge_checks/free_fall_report.json`.
+- Runtime mass after override is `1.5 kg`; fitted vertical acceleration is
+  `-9.80977783 m/s^2`; runtime inertia diagonal matches the expected uniform
+  solid-cylinder approximation.
+- Short terrain gravity smoke using the existing gravity control path completed
+  for `0.75`, `1.5`, and `3.0 kg`.
+- Short-run sinkage was monotonic over `0.04 s`:
+  `0.00132496872 m`, `0.00242455521 m`, `0.00399621048 m`.
+- `scripts/run_mass_controlled_terrain.py` implements the load, removal, and
+  post-removal phase machine for a released cylinder.
+- Capped CPU smoke output:
+  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_smoke_cpu_capped`.
+- Capped smoke loaded depth was `0.00160224953 m`; loaded and post-removal
+  phases timed out under deliberately short limits, and removal was capped.
+- Longer CUDA rollout with uncapped removal completed:
+  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_longer`.
+- Longer CUDA result: loaded phase timed out after `0.25 s` at
+  `0.00289781609 m` depth; removal completed uncapped in `5160` steps; post
+  removal reached equilibrium in `0.02 s`.
+- Extended CUDA loaded-settling output:
+  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_loaded1s`.
+  The loaded phase still timed out at `1.0 s`, but depth was stable at
+  `0.00289662399 m`. The cylinder speed was `0.292996793 mm/s` while local p99
+  particle speed was `0.672453374 mm/s`, exceeding the `0.5 mm/s` threshold.
+- The runner now writes a loaded-phase percentile diagnostic. For a second
+  `1.0 s` CUDA baseline, penetration drift was zero at stored float32 precision
+  over the last `0.1 s`; local p95 was `0.188-0.205 mm/s` and p99 was
+  `0.670-0.720 mm/s`. This motivates threshold sensitivity, not a protocol
+  change based on one material/mass case.
+
 Current blockers:
 
-1. Center footprint overlay is not visually verified. The current `[0.0, 0.0]`
-   assumes the bed-frame origin is the physical center.
-2. Static-border scan bias correction is not implemented. Current median
-   `delta_h` is positive, which is suspicious for a removed cylinder.
+1. Center footprint overlay has an artifact but is not independently visually
+   accepted. The current `[0.0, 0.0]` assumes the bed-frame origin is the
+   physical center.
+2. Static-border correction depends on an assumed undeformed border. Valid
+   static-border coverage is only `0.231`, so this assumption still needs review.
 3. Two localized views per surface are not exported separately for final
    two-view noise estimation.
-4. Genesis mass-controlled action mode is not implemented. The current indenter
-   scripts were originally built around prescribed indentation depth.
-5. Cylinder mass/inertia application in Genesis is not verified.
-6. Free-fall gravity behavior is not tested.
-7. Two-way rigid-MPM contact for a released cylinder is not validated.
-8. Mass monotonicity is not tested for `0.75`, `1.5`, and `3.0 kg`.
-9. Loaded-settling termination logic is not implemented or validated.
-10. Post-removal settling termination logic is not implemented or validated.
-11. Initial simulated `S0` projection/footprint match is not verified.
-12. Complete MPM state restore is not implemented or validated. A PLY with only
+4. Genesis mass-controlled terrain action mode has a runner and reproducible
+   uncapped CUDA removal, but not a calibration-ready loaded-equilibrium rule.
+5. Two-way rigid-MPM contact has only short smoke tests. It is not validated
+   through loaded equilibrium and removal.
+6. Settled/equilibrium mass monotonicity is not tested for `0.75`, `1.5`, and
+   `3.0 kg`.
+7. Loaded-settling termination logic is implemented but not validated: the
+   particle-speed criterion times out even after penetration stabilizes.
+8. Post-removal settling termination logic is implemented and has a CUDA smoke,
+   but is not yet validated across material and mass cases.
+9. Initial simulated `S0` projection/footprint match is not verified.
+10. Complete MPM state restore is not implemented or validated. A PLY with only
     positions is not enough state for calibrated rollouts.
-13. No-cylinder drift is not characterized or subtracted.
-14. Synthetic `3 x 3` parameter recovery is not complete.
-15. Final scan-noise estimate is missing. The current Huber delta is only an ICP
+11. No-cylinder drift is not characterized or subtracted.
+12. Synthetic `3 x 3` parameter recovery is not complete.
+13. Final scan-noise estimate is missing. The current Huber delta is only an ICP
    RMSE / direct-vs-ICP proxy.
 
 Critical correction: `0.14605 m` is the cylinder diameter, not radius. The
@@ -229,6 +274,7 @@ Current indenter entry points:
 ```bash
 conda run -n tsplat python scripts/run_genesis_indenter_test.py --help
 conda run -n tsplat python scripts/run_indenter_matrix_sweep.py --help
+conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
 ```
 
 Important discrepancy: these scripts were originally built around prescribed
@@ -261,10 +307,10 @@ Not valid yet:
 - Real `3 x 3` or `8 x 8` material search.
 - Any report claiming a real material fit.
 
-Reason: footprint verification, scan correction/noise estimation, Genesis
-mass-controlled release, mass/inertia application, two-way rigid-MPM contact,
-settling termination, deterministic state restoration, no-cylinder drift, and
-synthetic recovery are not complete.
+Reason: footprint/static-border review, final two-view noise estimation,
+Genesis mass-controlled terrain release, two-way rigid-MPM contact, settling
+termination, deterministic state restoration, no-cylinder drift, and synthetic
+recovery are not complete.
 
 ## Required Mass-Controlled Implementation
 

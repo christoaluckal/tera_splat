@@ -44,6 +44,8 @@ For CUDA solver jobs, use an unsandboxed execution path when required.
 README.md
 docs/current_state.md
 docs/single_trial_calibration.md
+docs/realsense_instrumentation_real6.md
+docs/mass_controlled_bridge_findings.md
 docs/00_physgaussian_notes.md
 EXTERNAL.md
 ```
@@ -131,6 +133,7 @@ Explore indenter scripts:
 ```bash
 conda run -n tsplat python scripts/run_genesis_indenter_test.py --help
 conda run -n tsplat python scripts/run_indenter_matrix_sweep.py --help
+conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
 ```
 
 ## RealSense real3 Calibration Inputs
@@ -209,6 +212,28 @@ Required before running calibration:
 - Fixed mass-controlled placement/removal protocol and first-contact convention.
 - Choice of direct vs ICP-aligned real DEM target.
 
+Completed bridge artifacts:
+
+- Static-border plane correction and footprint diagnostic:
+  `data/single_trial_real3/processed/scan_correction.json`
+  `data/single_trial_real3/processed/scan_correction_footprint_diagnostic.png`
+- Corrected residual:
+  `data/single_trial_real3/processed/delta_h_real_corrected.npz`
+- Free-fall/mass/inertia check:
+  `outputs/mass_controlled_bridge_checks/free_fall_report.json`
+- Short gravity terrain smokes:
+  `outputs/mass_controlled_bridge_checks/gravity_terrain_smoke_m0p75`
+  `outputs/mass_controlled_bridge_checks/gravity_terrain_smoke`
+  `outputs/mass_controlled_bridge_checks/gravity_terrain_smoke_m3p0`
+- Capped mass-controlled terrain phase smoke:
+  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_smoke_cpu_capped`
+- Longer CUDA mass-controlled rollout:
+  `outputs/mass_controlled_bridge_checks/mass_controlled_terrain_cuda_longer`
+
+Those terrain smokes show monotonic sinkage over `0.04 s`, but they do not
+prove loaded equilibrium, complete removal, complete state restore, or
+no-cylinder drift.
+
 Action convention:
 
 - The calibration action is mass-controlled gravitational loading.
@@ -226,7 +251,7 @@ Action convention:
 Calibration execution order:
 
 1. Verify center `[0.0, 0.0]` by footprint overlay.
-2. Add static-border scan bias correction.
+2. Review the static-border scan correction and footprint diagnostic.
 3. Export separate localized views and replace provisional noise with two-view
    noise.
 4. Add mass-controlled mode to the Genesis runner.

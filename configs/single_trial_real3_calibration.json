@@ -8,7 +8,32 @@
     "primary_cell_size_m": 0.005,
     "fine_cell_size_m": 0.0025,
     "roi_bounds_xy_m": [-0.1524, 0.1524, -0.1524, 0.1524],
-    "height_statistic": "provided_by_realsense_splat_dem"
+    "height_statistic": "provided_by_realsense_splat_dem",
+    "real_delta_target_npz": "data/single_trial_real3/processed/delta_h_real_corrected.npz",
+    "raw_delta_diagnostic_npz": "data/single_trial_real3/processed/delta_h_real.npz",
+    "scan_correction_json": "data/single_trial_real3/processed/scan_correction.json",
+    "footprint_diagnostic_png": "data/single_trial_real3/processed/scan_correction_footprint_diagnostic.png"
+  },
+  "action": {
+    "mode": "mass_controlled",
+    "center_xy_world_m": [0.0, 0.0],
+    "center_sensitivity_offsets_m": [-0.1, 0.0, 0.1],
+    "center_sensitivity_policy": "run_as_protocol_sensitivity_not_joint_material_optimization",
+    "geometry": {
+      "diameter_m": 0.14605,
+      "radius_m": 0.073025,
+      "height_m": 0.0508
+    },
+    "rigid_body": {
+      "mass_kg": 1.5,
+      "equivalent_uniform_density_kg_m3": 1762.522,
+      "inertia_diagonal_kg_m2": [0.002322324, 0.002322324, 0.003999488]
+    },
+    "first_contact": {
+      "surface_statistic": "percentile",
+      "percentile": 99.0,
+      "nominal_clearance_m": 0.0
+    }
   },
   "fixed_physics": {
     "poisson_ratio": 0.2,
