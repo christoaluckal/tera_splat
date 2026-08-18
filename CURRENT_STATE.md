@@ -1,6 +1,6 @@
 # Tera Splat Current State
 
-Last reviewed: 2026-08-07
+Last reviewed: 2026-08-17
 
 This is the sole live engineering handoff for `tera_splat`. It replaces the
 older phase plans, bridge notes, duplicated state documents, and external
@@ -276,6 +276,253 @@ consume a Real6 PLY pair without a separate adapter.
 ## Evidence Already Collected
 
 All paths below are historical test evidence, not clearance to start a sweep.
+
+### Chrono SCM Bridge Plumbing (2026-08-17)
+
+The sibling `Chrono/tera_splat_sim` repository now exports a canonical
+stationary-cylinder SCM episode through `run_cylinder_episode.py`.  Its output
+contains initial/loaded/residual metric height maps, a one-cell boundary mask,
+action geometry/mass/pose, pose history, metrics, and a `bed`-frame manifest.
+`scripts/run_chrono_genesis_bridge.py` builds a new volumetric metre-frame MPM
+bed from that initial map, runs the existing gravity-cylinder phase machine,
+and projects Genesis initial/loaded/residual particle states back to the exact
+Chrono grid.
+
+The completed plumbing evidence is deliberately smoke-resolution only:
+
+```text
+Chrono source: Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_cal_smoke
+Genesis bridge: outputs/validity_experiment/A0_cal_smoke_genesis_fast_lift
+comparison figure: ../Chrono/tera_splat_sim/validity_experiment/visualizations/A0_cal_smoke_chrono_genesis_states.png
+grid: 31 x 31 at 40 mm; common valid cells: 841
+Genesis bed: 3,844 particles, 0.10 m depth, 40 mm spacing, CUDA RTX 3060 Ti
+shared maps: finite on every common valid cell
+Chrono repeat: initial/loaded/residual maps and mask bitwise identical
+loaded deformation RMSE: 34.859 mm
+```
+
+The `34.859 mm` value is a pre-fit plumbing measurement, **not** a calibration
+result.  The smoke Chrono and Genesis loaded settle phases timed out, and the
+bridge used a documented 0.1 m/s numerical lift to complete within the smoke
+budget.  Reported validity results must instead use the configured 10 mm
+Chrono grid, independently reviewed settling rules, and the normal uncapped
+removal protocol.
+
+The next initial-state gate was implemented in
+`run_mass_controlled_terrain.py`: fixed rigid side walls plus a no-cylinder
+pre-settle-only phase, with all-bed p99 speed and particle-state outputs.  It
+failed for the raw 40 mm metric lattice, so no fitting was started:
+
+```text
+output: outputs/validity_experiment/A0_cal_smoke_genesis_presettle_only_1s
+containment: 0.20 m walls, 0.02 m thickness
+pre-settle window: 1.0 s, no cylinder contact
+required / final all-bed p99 speed: 0.0005 / 0.08189 m/s
+surface vertical drift RMS / maximum: 33.35 / 33.96 mm
+```
+
+The raw heightmap-to-particle initializer therefore compacts substantially
+under gravity even with lateral containment.  Stop before material fitting.
+
+### Complete-State Prepared-Bed Gate (2026-08-17)
+
+`scripts/mpm_state_io.py` now persists and restores the complete single-bed
+Genesis MPM state (`pos`, `vel`, `C`, `F`, `Jp`, and `active`).
+`scripts/build_chrono_settled_bed.py` constructs a metric bed, assigns an
+analytic depth-varying geostatic stress through `F` without moving the Chrono
+`H0` surface, gravity-settles it in the contained tray, and writes an accepted
+artifact only if both the all-bed p99-speed and frozen surface gates pass.
+`scripts/run_chrono_genesis_bridge.py` now requires that accepted artifact and
+restores its full MPM state; it refuses a rejected bed.
+
+The first bounded smoke calibration sweep produced only rejected artifacts;
+this is evidence, not material fitting:
+
+```text
+frozen surface gate: RMSE <= 5 mm and maximum absolute error <= 10 mm
+equilibrium gate: all-bed p99 <= 0.0005 m/s for 0.02 s
+
+scale 1, 0.25 s:  p99 0.34704 m/s; RMS / max 29.97 / 30.53 mm; rejected
+scale 10, 0.25 s: p99 0.01058 m/s; RMS / max 12.22 / 12.86 mm; rejected
+scale 14, 0.50 s: p99 0.003387 m/s; RMS / max 8.66 / 9.63 mm; rejected
+artifact: outputs/validity_experiment/A0_cal_smoke_prepared_geostatic_scale14_050s
+```
+
+A short rebuild-and-restore round trip from the saved scale-1 MPM artifact
+completed a further `0.01 s` step with the full state intact
+(`outputs/validity_experiment/A0_cal_smoke_prepared_geostatic_restore_roundtrip`).
+The bridge also rejects the known failed prepared-bed manifest before creating
+any cylinder-run output.
+
+At this point the complete-state restoration blocker was removed, but the
+initial-state gate was still open.  The accepted preparation recorded below
+supersedes this status.  Do not shift the settled particles vertically, loosen
+the thresholds, or fit material parameters to compensate for a failed
+settling-state gate.
+
+### Settling Stage And BayesOpt Boundary (2026-08-17)
+
+The frozen settling contract is now recorded in the sibling
+`Chrono/tera_splat_sim/SIM_ONLY_VALIDITY_PLAN.md`.  It requires complete-state
+restoration and, at smoke resolution, all-bed p99 `<= 0.0005 m/s` continuously
+for `0.02 s`, initial-surface RMSE `<= 5 mm`, and initial-surface maximum error
+`<= 10 mm` on the Chrono-valid mask.  Geostatic preparation, particle/grid
+resolution, `dt`, bed geometry, constraints, contact settings, action, mask,
+and surface extraction are frozen for a single optimization campaign.
+
+The first accepted smoke prepared bed is:
+
+```text
+outputs/validity_experiment/A0_cal_smoke_prepared_geostatic_scale18_dt1ms_4s
+Genesis dt: 1 ms
+geostatic stress scale: 18
+equilibrium reached: 1.741 s; final p99: 0.0004342 m/s
+H0 RMSE / maximum error: 2.695 / 4.748 mm over 841 valid cells
+complete state: prepared_bed/mpm_state.npz (pos, vel, C, F, Jp, active)
+```
+
+It was accepted without a post-settle height offset or added damping.  The
+bridge restores this state and propagates its recorded `dt` into the cylinder
+run.  A capped smoke bridge from this state completed end-to-end, but is only
+a diagnostic: its `0.25 s` loaded and post-removal phases timed out and the
+cylinder penetrated `170.5 mm`.  It is **not** a BayesOpt evaluation and must
+not be used as a calibration loss observation.
+
+BayesOpt may optimize only `log10_E` in `[4, 6]` and `phi_deg` in `[15, 45]`
+against `A0_cal`, after the normal uncapped cylinder protocol, loaded/post
+settling criteria, and loss components have been run once from the accepted
+bed.  Start with 10 deterministic low-discrepancy points and then expected
+improvement to 30 valid runs.  Invalid/partial/capped runs are recorded and
+penalized explicitly but excluded from the GP fit.  `A1_mass` and `A2_offset`
+remain sealed until the selected pair, prepared-bed digest, and frozen solver
+configuration are recorded.
+
+### Loaded Contact Diagnostic (2026-08-17)
+
+An uncapped, loaded-only `A0_cal` diagnostic was run from the accepted
+prepared bed for `2.0 s` with the same `1.5 kg` cylinder, geometry, gravity,
+clearance, containment, complete-state restoration, and `dt=1 ms`:
+
+```text
+output: outputs/validity_experiment/A0_cal_smoke_loaded_contact_diagnostic_2s
+loaded termination: timeout after 2.0 s
+initial / final cylinder-center z: +0.023960 / -0.134615 m
+reported sinkage: 158.575 mm
+ground plane: -0.160000 m; cylinder half-height: 25.4 mm
+loaded local particle p99: 0.00558 m/s
+```
+
+The final center is the ground-plane height plus the cylinder half-height,
+showing that the rigid floor, rather than the MPM bed, caught the cylinder.
+This is a rigid--MPM coupling/contact failure.  Do **not** start BayesOpt over
+`E` and `phi` yet: those parameters cannot repair a floor-supported contact.
+First validate and fix rigid--MPM coupling with a minimal flat-bed contact
+test that measures a nonzero MPM-supported load before repeating the normal
+uncapped A0 baseline.
+
+### Volume-Consistent Flat-Bed Contact Test (2026-08-17)
+
+The immediate floor-catch cause was an under-massed smoke lattice: `3,844`
+particles at `40 mm` spacing were assigned `12.5 mm` particle volume, implying
+only about `7.5 kg` of MPM material.  CPIC alone did not alter that result.
+
+The isolated replacement test uses `22,326` particles at `20 mm` lattice
+spacing with `particle_size=20 mm`, CPIC enabled, the same `1.5 kg` cylinder,
+gravity, floor, and lateral containment.  It passed the loaded-contact gate:
+
+```text
+output: outputs/validity_experiment/A0_cal_smoke_loaded_contact_density_20mm_cpic
+loaded equilibrium: 0.227 s
+sinkage: 2.328 mm
+final local particle p99: 0.000233 m/s
+minimum clearance above floor-supported center: 156.9 mm
+```
+
+The MPM bed, not the rigid floor, supports the cylinder in this test.  Future
+prepared beds must record and replay `particle_spacing`, `particle_size`,
+implied mass/volume check, and CPIC status.  Rebuild and settle this denser
+bed under the frozen H0 gate before reopening the uncapped A0 baseline; only
+then may the BayesOpt campaign begin.
+
+### Accepted 20 mm Chrono-Terrain State (2026-08-18)
+
+The volume-consistent (`20 mm` spacing and `particle_size=20 mm`), CPIC-enabled
+Chrono terrain was rebuilt and accepted as a complete Genesis state:
+
+```text
+prepared bed: outputs/validity_experiment/A0_cal_smoke_prepared_20mm_cpic_scale1_1s
+particles: 22,326; CPIC: enabled; dt: 1 ms; geostatic scale: 1
+equilibrium: 0.274 s; all-bed p99: 0.0004288 m/s
+H0 RMS / maximum error: 0.614 / 0.647 mm on 841 Chrono-valid cells
+```
+
+An uncapped loaded-only A0 release restored that state and reached Genesis
+equilibrium at `0.106 s` with `0.763 mm` sinkage and p99 `0.000265 m/s`
+(`outputs/validity_experiment/A0_cal_smoke_loaded_20mm_cpic_accepted`).
+The cylinder is MPM-supported.  The Chrono smoke reference reports
+`20.165 mm` sinkage, so the remaining loaded-response mismatch is now a
+calibration target.  Before recording a BayesOpt observation, implement the
+same removal semantics as Chrono (`remove_body`, not a numerical lift) and
+produce the normal initial/loaded/residual A0 baseline from this state.
+
+The normal smoke A0 baseline has now completed with `remove_body` semantics:
+
+```text
+bridge: outputs/validity_experiment/A0_cal_smoke_genesis_20mm_cpic_remove_body
+loaded / post window: 0.25 / 0.25 s; both timeout (no cap used)
+loaded sinkage: 6.078 mm; loaded local p99: 0.00223 m/s
+shared H0 RMS / maximum: 0.614 / 0.647 mm
+shared loaded / residual deformation RMS: 0.352 / 0.397 mm
+```
+
+This is a mechanically valid plumbing baseline, but not a BayesOpt datum: the
+smoke Chrono pose metric reports `20.165 mm` sinkage while its 40 mm sampled
+heightmap contains less than a millimetre of resolved deformation.  Generate a
+deterministic full-resolution (`10 mm`) Chrono A0 episode and its matching
+volume-consistent Genesis prepared bed before defining the BayesOpt loss.
+
+### Full-Resolution Chrono-to-Genesis A0 (2026-08-18)
+
+The required production-resolution A0 plumbing run is now complete.  The
+Chrono SCM source is
+`../tera_splat_sim/validity_experiment/chrono_episodes/A0_cal_full10mm`:
+
+```text
+SCM grid / timestep: 10 mm, 121 x 121 / 0.5 ms (not smoke)
+loaded termination: equilibrium
+Chrono pose sinkage: 19.232 mm
+loaded linear / angular speed: 0.237 mm/s / 0.00343 rad/s
+```
+
+The matching Genesis source state is accepted at
+`outputs/validity_experiment/A0_cal_full10mm_prepared_20mm_cpic_scale1_1s`.
+It is a 22,326-particle, 20 mm particle-size, CPIC-enabled volumetric bed,
+restored as a complete MPM state.  Its pre-action settling reached equilibrium
+at `0.274 s` with p99 particle speed `0.427 mm/s`; on the 10 mm Chrono grid
+the initial-surface RMSE / maximum error is `0.615 / 0.654 mm`.
+
+The corresponding bridge rollout is
+`outputs/validity_experiment/A0_cal_full10mm_genesis_20mm_cpic_remove_body`.
+It used the Chrono `remove_body` action (zero lift steps) and reached Genesis
+equilibrium in both phases (693 loaded and 72 post-removal steps).  The
+shared-grid H0 reconstruction is therefore acceptable, but loaded response is
+not yet calibrated:
+
+```text
+common valid cells: 14,161
+loaded deformation difference (Genesis - Chrono): 0.269 mm RMSE, 5.662 mm max
+residual deformation difference:                 0.272 mm RMSE, 5.711 mm max
+most-negative loaded deformation: Chrono -5.556 mm; Genesis -0.086 mm
+```
+
+Thus the integration, complete-state restoration, CPIC configuration, and
+Chrono removal semantics all work on the production SCM grid.  Do **not**
+start BayesOpt from this single point: Genesis is materially too stiff/weakly
+deforming for the resolved Chrono map, and the source's pose-sinkage versus
+heightmap convention must be fixed as part of the loss definition.  The next
+valid calibration step is a small, fixed-protocol `(log10_E, phi)` bracket that
+increases Genesis deformation while retaining this exact prepared state,
+particle/grid resolution, action, and common 10 mm grid.
 
 ### Rigid-Body Check
 

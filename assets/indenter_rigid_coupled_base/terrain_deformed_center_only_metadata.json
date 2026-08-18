@@ -1,0 +1,52 @@
+{
+  "method": "center_only_surface_particle_transfer",
+  "physgaussian_stage": "center_update_before_covariance_update",
+  "transfer_mode": "final-position",
+  "source_ply": "/home/moog-2/christo/splatting_stuff/physical/EDGS/output/point_cloud/iteration_7000/point_cloud.ply",
+  "output_ply": "assets/indenter_rigid_coupled_base/terrain_deformed_center_only.ply",
+  "run_dir": "assets/indenter_rigid_coupled_base",
+  "axis_transform": "opencv-to-zup",
+  "align_ground_z": true,
+  "opacity_threshold": 0.02,
+  "max_gaussians": 300000,
+  "selected_splat_count": 21536,
+  "source_vertex_count": 813451,
+  "surface_particle_count": 21536,
+  "match_tolerance": 1e-05,
+  "surface_match_max": 0.3249896466732025,
+  "surface_match_mean": 0.2180393934249878,
+  "initial_relaxation_min": [
+    -0.0698404610157013,
+    -0.0120314359664917,
+    -0.32259702682495117
+  ],
+  "initial_relaxation_max": [
+    0.027004599571228027,
+    0.05505064129829407,
+    -0.13853979110717773
+  ],
+  "initial_relaxation_mean": [
+    -0.008410394191741943,
+    0.013714363798499107,
+    -0.2163810133934021
+  ],
+  "displacement_min": [
+    -0.012360930442810059,
+    -0.011870503425598145,
+    -0.04941821098327637
+  ],
+  "displacement_max": [
+    0.014333166182041168,
+    0.013341434299945831,
+    0.0038225650787353516
+  ],
+  "displacement_mean": [
+    0.00018936391279567033,
+    0.00025381240993738174,
+    -0.001559270080178976
+  ],
+  "displacement_norm_max": 0.04965317249298096,
+  "displacement_norm_mean": 0.003044421086087823,
+  "covariance_update": "not_applied",
+  "unchanged_attributes": "all non-position PLY vertex properties preserved"
+}

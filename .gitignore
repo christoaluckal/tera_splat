@@ -1,17 +1,19 @@
-assets
-*.zip
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
-
+*.pyc
+*.dae
+*.mp4
+outputs
+*.ply
+*.pcd
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
 build/
-outputs/
 develop-eggs/
 dist/
 downloads/
@@ -50,6 +52,7 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py.cover
+*.lcov
 .hypothesis/
 .pytest_cache/
 cover/
@@ -78,7 +81,6 @@ docs/_build/
 .pybuilder/
 target/
 
-EXTERNAL.md
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -126,13 +128,14 @@ ipython_config.py
 # pixi.lock
 #   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
 #   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
+.pixi/*
+!.pixi/config.toml
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
 # Celery stuff
-celerybeat-schedule
+celerybeat-schedule*
 celerybeat.pid
 
 # Redis
@@ -220,3 +223,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+*.mp4
+quick_support_demo/outputs/splat_datasets/

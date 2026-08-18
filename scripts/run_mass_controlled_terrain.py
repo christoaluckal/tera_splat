@@ -21,6 +21,7 @@ os.environ.setdefault("NUMBA_CACHE_DIR", str(WRITABLE_CACHE / "numba"))
 os.environ.setdefault("MPLCONFIGDIR", str(WRITABLE_CACHE / "matplotlib"))
 
 from particle_io import load_material_config, read_particle_ply, write_particle_ply
+from mpm_state_io import geostatic_state_from_points, load_mpm_state, restore_mpm_state, save_mpm_state
 from run_genesis_ground_plane_solver import cuda_device_name, directory_size_bytes, make_bounds, tensor_to_numpy
 from run_genesis_indenter_test import (
     DEFAULT_BASE,
@@ -43,6 +44,23 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--initial-particles-ply", type=Path, default=DEFAULT_BASE / "particles_initial_mpm.ply")
     parser.add_argument("--initial-metadata-json", type=Path, default=DEFAULT_BASE / "ground_plane_metadata.json")
+    parser.add_argument(
+        "--initial-mpm-state-npz",
+        type=Path,
+        default=None,
+        help="Complete Genesis MPM state to restore after building the identical bed scene.",
+    )
+    parser.add_argument(
+        "--initialize-geostatic-stress",
+        action="store_true",
+        help="Initialize depth-varying in-situ stress through F before gravity settling; does not move particles.",
+    )
+    parser.add_argument(
+        "--geostatic-stress-scale",
+        type=float,
+        default=1.0,
+        help="Multiplier for the analytic rho*g*depth geostatic pressure field.",
+    )
     parser.add_argument("--config", type=Path, default=REPO_ROOT / "configs" / "physgaussian_sand_stiff_mid.json")
     parser.add_argument("--output-dir", type=Path, default=REPO_ROOT / "outputs" / "mass_controlled_terrain")
     parser.add_argument("--query-xy", type=float, nargs=2, default=(0.0, 0.0))
@@ -53,6 +71,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--first-contact-quantile", type=float, default=0.99)
     parser.add_argument("--start-clearance", type=float, default=0.0)
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
+    parser.add_argument(
+        "--loaded-only",
+        action="store_true",
+        help="End after the released-cylinder loaded settle phase; diagnostic mode with no removal or residual claim.",
+    )
     parser.add_argument("--post-max-time", type=float, default=0.25)
     parser.add_argument("--required-duration", type=float, default=0.02)
     parser.add_argument("--cylinder-speed-threshold", type=float, default=5.0e-4)
@@ -75,11 +98,52 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--removal-speed", type=float, default=0.005)
     parser.add_argument("--removal-clearance", type=float, default=0.010)
     parser.add_argument(
+        "--removal-mode",
+        choices=("lift", "remove_body"),
+        default="lift",
+        help="Use Chrono-compatible instantaneous body removal or the legacy explicit lift.",
+    )
+    parser.add_argument(
         "--max-removal-steps",
         type=int,
         default=0,
         help="Optional safety cap for smoke tests. 0 uses the physically implied lift duration.",
     )
+    parser.add_argument(
+        "--pre-settle-max-time",
+        type=float,
+        default=0.0,
+        help="Gravity-settle the MPM bed for this duration before releasing the cylinder. 0 disables pre-settling.",
+    )
+    parser.add_argument(
+        "--pre-settle-required-duration",
+        type=float,
+        default=0.02,
+        help="Continuous low-speed duration required to label the pre-settled bed as equilibrium.",
+    )
+    parser.add_argument(
+        "--pre-settle-particle-speed-threshold",
+        type=float,
+        default=5.0e-4,
+        help="All-bed p99 particle-speed threshold for pre-settling, in m/s.",
+    )
+    parser.add_argument(
+        "--require-pre-settle",
+        action="store_true",
+        help="Abort before cylinder loading if the requested pre-settle phase does not reach equilibrium.",
+    )
+    parser.add_argument(
+        "--pre-settle-only",
+        action="store_true",
+        help="Write the contained no-cylinder settled state and exit before loading.",
+    )
+    parser.add_argument(
+        "--containment-wall-height",
+        type=float,
+        default=0.0,
+        help="Fixed rigid lateral-wall height above the ground plane. 0 disables lateral containment.",
+    )
+    parser.add_argument("--containment-wall-thickness", type=float, default=0.02)
     parser.add_argument("--backend", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--dt", type=float, default=0.0005)
     parser.add_argument("--substeps", type=int, default=10)
@@ -87,6 +151,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-grid", type=int, default=64)
     parser.add_argument("--grid-lim", type=float, default=None)
     parser.add_argument("--particle-size", type=float, default=0.0125)
+    parser.add_argument(
+        "--enable-cpic",
+        action="store_true",
+        help="Enable Genesis CPIC rigid--MPM coupling; recorded as a frozen solver setting.",
+    )
     parser.add_argument("--indenter-friction", type=float, default=0.4)
     parser.add_argument("--indenter-softness", type=float, default=0.0)
     parser.add_argument("--indenter-restitution", type=float, default=0.0)
@@ -142,8 +211,36 @@ def trailing_loaded_diagnostics(rows: list[dict], window_s: float) -> dict[str, 
     return diagnostics
 
 
+def add_lateral_containment(scene, gs, points: np.ndarray, ground_z: float, height_m: float, thickness_m: float, friction: float) -> None:
+    if height_m <= 0.0:
+        return
+    if thickness_m <= 0.0:
+        raise ValueError("containment wall thickness must be positive")
+    xmin, ymin = (float(value) for value in points[:, :2].min(axis=0))
+    xmax, ymax = (float(value) for value in points[:, :2].max(axis=0))
+    zmax = float(points[:, 2].max())
+    bottom = min(float(ground_z), float(points[:, 2].min()))
+    height = max(float(height_m), zmax - bottom + float(height_m))
+    zcenter = bottom + 0.5 * height
+    material = gs.materials.Rigid(needs_coup=True, coup_friction=friction, coup_softness=0.0, coup_restitution=0.0)
+    bounds = (
+        ((xmin - 0.5 * thickness_m, 0.5 * (ymin + ymax), zcenter), (thickness_m, (ymax - ymin) + 2.0 * thickness_m, height)),
+        ((xmax + 0.5 * thickness_m, 0.5 * (ymin + ymax), zcenter), (thickness_m, (ymax - ymin) + 2.0 * thickness_m, height)),
+        ((0.5 * (xmin + xmax), ymin - 0.5 * thickness_m, zcenter), ((xmax - xmin) + 2.0 * thickness_m, thickness_m, height)),
+        ((0.5 * (xmin + xmax), ymax + 0.5 * thickness_m, zcenter), ((xmax - xmin) + 2.0 * thickness_m, thickness_m, height)),
+    )
+    for index, (position, size) in enumerate(bounds):
+        scene.add_entity(
+            gs.morphs.Box(pos=position, size=size, fixed=True, visualization=False),
+            material=material,
+            name=f"containment_wall_{index}",
+        )
+
+
 def main() -> None:
     args = parse_args()
+    if args.initial_mpm_state_npz is not None and args.initialize_geostatic_stress:
+        raise ValueError("Use either --initial-mpm-state-npz or --initialize-geostatic-stress, not both")
     total_start = time.perf_counter()
     import genesis as gs
 
@@ -155,13 +252,6 @@ def main() -> None:
     sim_dir = args.output_dir / "simulation_ply"
     surface_count = int(metadata.get("surface_particle_count", 0))
     query_xy = np.asarray(args.query_xy, dtype=np.float32)
-    surface_z = estimate_surface_z(points, query_xy, args.indenter_radius)
-    distance = np.linalg.norm(points[:, :2] - query_xy[None, :], axis=1)
-    footprint = points[distance <= max(args.indenter_radius, 1.0e-6)]
-    if footprint.shape[0] > 0:
-        surface_z = float(np.quantile(footprint[:, 2], args.first_contact_quantile))
-    initial_center_z = surface_z + args.start_clearance + args.indenter_height * 0.5
-
     backend = gs.cuda if args.backend == "cuda" else gs.cpu
     gs.init(backend=backend, precision="32", seed=0, logging_level="warning")
     grid_lim = float(args.grid_lim if args.grid_lim is not None else config.get("grid_lim", 2.0))
@@ -175,6 +265,7 @@ def main() -> None:
             gravity=gravity,
             grid_density=int(args.n_grid) / grid_lim,
             particle_size=args.particle_size,
+            enable_CPIC=args.enable_cpic,
             lower_bound=lower_bound,
             upper_bound=upper_bound,
         ),
@@ -191,9 +282,19 @@ def main() -> None:
         ),
         name="ground_plane",
     )
+    add_lateral_containment(
+        scene,
+        gs,
+        points,
+        ground_z,
+        args.containment_wall_height,
+        args.containment_wall_thickness,
+        args.ground_coup_friction,
+    )
+    pre_settle_hold_z = float(points[:, 2].max()) + max(args.containment_wall_height, 0.0) + args.indenter_height + args.start_clearance + 0.05
     cylinder = scene.add_entity(
         gs.morphs.Cylinder(
-            pos=(float(query_xy[0]), float(query_xy[1]), initial_center_z),
+            pos=(float(query_xy[0]), float(query_xy[1]), pre_settle_hold_z),
             radius=args.indenter_radius,
             height=args.indenter_height,
             fixed=False,
@@ -222,6 +323,90 @@ def main() -> None:
     sand.set_particles_pos(torch.as_tensor(points, dtype=torch.float32, device=gs.device))
     sand.set_particles_vel(torch.zeros((points.shape[0], 3), dtype=torch.float32, device=gs.device))
     sand.set_particles_active(torch.ones((points.shape[0],), dtype=torch.bool, device=gs.device))
+    state_source = "positions_only"
+    if args.initial_mpm_state_npz is not None:
+        restore_mpm_state(sand, load_mpm_state(args.initial_mpm_state_npz), gs.device)
+        state_source = f"complete_restore:{args.initial_mpm_state_npz.resolve()}"
+    elif args.initialize_geostatic_stress:
+        gravity_magnitude = float(np.linalg.norm(gravity))
+        restore_mpm_state(
+            sand,
+            geostatic_state_from_points(
+                sand,
+                points,
+                surface_count,
+                density_kg_m3=float(config.get("density", config.get("rho", 1000.0))),
+                gravity_mps2=gravity_magnitude,
+                youngs_modulus_pa=float(config.get("E", 1e5)),
+                poisson_ratio=float(config.get("nu", 0.2)),
+                stress_scale=args.geostatic_stress_scale,
+            ),
+            gs.device,
+        )
+        state_source = "analytic_geostatic_F"
+    source_points = tensor_to_numpy(sand.get_particles_pos())
+    write_particle_ply(source_points, args.output_dir / "particles_unsettled_mpm.ply")
+
+    pre_settle_reason = "disabled"
+    pre_settle_steps = 0
+    pre_settle_final_p99 = 0.0
+    if args.pre_settle_max_time > 0.0:
+        max_pre_settle_steps = max(1, int(np.ceil(args.pre_settle_max_time / args.dt)))
+        required_pre_settle_steps = max(1, int(np.ceil(args.pre_settle_required_duration / args.dt)))
+        stable_steps = 0
+        pre_settle_reason = "timeout"
+        for pre_settle_steps in range(1, max_pre_settle_steps + 1):
+            cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), pre_settle_hold_z), zero_velocity=True)
+            scene.step(update_visualizer=False, refresh_visualizer=False)
+            speeds = np.linalg.norm(tensor_to_numpy(sand.get_particles_vel()), axis=1)
+            pre_settle_final_p99 = float(np.percentile(speeds, 99.0))
+            if pre_settle_final_p99 <= args.pre_settle_particle_speed_threshold:
+                stable_steps += 1
+                if stable_steps >= required_pre_settle_steps:
+                    pre_settle_reason = "equilibrium"
+                    break
+            else:
+                stable_steps = 0
+        if args.require_pre_settle and pre_settle_reason != "equilibrium":
+            raise RuntimeError("Pre-settle phase timed out before cylinder loading")
+
+    baseline_points = tensor_to_numpy(sand.get_particles_pos())
+    if args.pre_settle_only:
+        write_particle_ply(baseline_points, args.output_dir / "particles_initial_mpm.ply")
+        write_particle_ply(baseline_points, args.output_dir / "particles_final_mpm.ply")
+        state_info = save_mpm_state(sand, args.output_dir / "mpm_state.npz")
+        write_metrics_csv(
+            args.output_dir / "run_metrics.csv",
+            [
+                ("status", "pre_settle_only", ""),
+                ("backend", args.backend, ""),
+                ("cuda_device", cuda_device_name(), ""),
+                ("particles", points.shape[0], "count"),
+                ("pre_settle_termination_reason", pre_settle_reason, ""),
+                ("pre_settle_steps", pre_settle_steps, "count"),
+                ("pre_settle_duration", pre_settle_steps * args.dt, "seconds"),
+                ("pre_settle_particle_speed_threshold", args.pre_settle_particle_speed_threshold, "meters/second"),
+                ("pre_settle_final_particle_speed_p99", pre_settle_final_p99, "meters/second"),
+                ("containment_wall_height", args.containment_wall_height, "meters"),
+                ("containment_wall_thickness", args.containment_wall_thickness, "meters"),
+                ("complete_state_restore", True, ""),
+                ("state_source", state_source, ""),
+                ("saved_state_particles", state_info["particles"], "count"),
+                ("total_wall_seconds", time.perf_counter() - total_start, "seconds"),
+            ],
+        )
+        with (args.output_dir / "resolved_config.json").open("w", encoding="utf-8") as file:
+            json.dump({"args": vars(args), "material_config": config, "source_metadata": metadata}, file, indent=2, default=str)
+        print(f"output: {args.output_dir}")
+        print(f"pre_settle_termination_reason: {pre_settle_reason}")
+        return
+    surface_z = estimate_surface_z(baseline_points, query_xy, args.indenter_radius)
+    distance = np.linalg.norm(baseline_points[:, :2] - query_xy[None, :], axis=1)
+    footprint = baseline_points[distance <= max(args.indenter_radius, 1.0e-6)]
+    if footprint.shape[0] > 0:
+        surface_z = float(np.quantile(footprint[:, 2], args.first_contact_quantile))
+    initial_center_z = surface_z + args.start_clearance + args.indenter_height * 0.5
+    cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), initial_center_z), zero_velocity=True)
     mass_before = float(cylinder.get_mass())
     cylinder.set_mass(float(args.indenter_mass))
     mass_after = float(cylinder.get_mass())
@@ -229,9 +414,9 @@ def main() -> None:
     if mass_error > 1.0e-3:
         raise RuntimeError(f"Cylinder mass mismatch: requested={args.indenter_mass} actual={mass_after}")
 
-    baseline_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(baseline_points, sim_dir / "sim_000000.ply")
-    write_particle_ply(points, args.output_dir / "particles_initial_mpm.ply")
+    write_particle_ply(baseline_points, args.output_dir / "particles_initial_mpm.ply")
+    save_mpm_state(sand, args.output_dir / "mpm_state_initial.npz")
     pose_rows: list[dict] = []
     phase_rows: list[dict] = []
     local_speed_radius = args.indenter_radius * args.local_speed_radius_scale
@@ -294,29 +479,88 @@ def main() -> None:
 
     record("initial")
     loaded_reason, loaded_steps = run_until_settled("loaded", args.loaded_max_time, require_cylinder=True)
+    loaded_points = tensor_to_numpy(sand.get_particles_pos())
+    write_particle_ply(loaded_points, args.output_dir / "particles_loaded_mpm.ply")
+    save_mpm_state(sand, args.output_dir / "mpm_state_loaded.npz")
+    if args.loaded_only:
+        maybe_save("loaded_final", force=True)
+        write_particle_ply(loaded_points, args.output_dir / "particles_final_mpm.ply")
+        save_mpm_state(sand, args.output_dir / "mpm_state_final.npz")
+        write_pose_csv(args.output_dir / "cylinder_pose.csv", pose_rows)
+        write_phase_csv(args.output_dir / "loaded_settling_diagnostic.csv", [row for row in pose_rows if row["phase"] == "loaded"])
+        write_phase_csv(
+            args.output_dir / "phase_summary.csv",
+            [{"phase": "loaded", "termination_reason": loaded_reason, "steps": loaded_steps}],
+        )
+        loaded_diagnostics = trailing_loaded_diagnostics(pose_rows, args.settling_depth_window)
+        rows = [
+            ("status", "loaded_only", ""),
+            ("backend", args.backend, ""),
+            ("cuda_device", cuda_device_name(), ""),
+            ("particles", points.shape[0], "count"),
+            ("dt", args.dt, "seconds"),
+            ("enable_cpic", args.enable_cpic, ""),
+            ("loaded_termination_reason", loaded_reason, ""),
+            ("loaded_steps", loaded_steps, "count"),
+            ("loaded_duration", loaded_steps * args.dt, "seconds"),
+            ("loaded_depth", initial_center_z - float(pose_rows[-1]["z"]), "meters"),
+            ("complete_state_restore", args.initial_mpm_state_npz is not None, ""),
+            ("state_source", state_source, ""),
+            ("removal_executed", False, ""),
+            ("total_wall_seconds", time.perf_counter() - total_start, "seconds"),
+        ]
+        for name, value in loaded_diagnostics.items():
+            rows.append((name, value, "meters" if "depth_" in name else "meters/second"))
+        rows.extend(
+            surface_displacement_metric_rows(
+                prefix="loaded",
+                baseline_points=baseline_points,
+                current_points=loaded_points,
+                query_xy=query_xy,
+                radius=args.indenter_radius,
+                surface_count=surface_count,
+            )
+        )
+        write_metrics_csv(args.output_dir / "run_metrics.csv", rows)
+        with (args.output_dir / "resolved_config.json").open("w", encoding="utf-8") as f:
+            json.dump({"args": vars(args), "material_config": config, "source_metadata": metadata}, f, indent=2, default=str)
+        print(f"output: {args.output_dir}")
+        print(f"loaded_termination_reason: {loaded_reason}")
+        print(f"loaded_depth_m: {initial_center_z - float(pose_rows[-1]['z']):.9g}")
+        return
     loaded_center_z = float(pose_rows[-1]["z"])
     peak_depth = max(float(row["actual_depth"]) for row in pose_rows)
-    lift_distance = max(args.removal_clearance, 0.0) + max(0.0, initial_center_z - loaded_center_z)
-    lift_steps = max(1, int(np.ceil(lift_distance / max(args.removal_speed * args.dt, 1.0e-12))))
     removal_capped = False
-    if args.max_removal_steps > 0 and lift_steps > args.max_removal_steps:
-        lift_steps = args.max_removal_steps
-        removal_capped = True
-    for _ in range(lift_steps):
-        target_z = min(initial_center_z + args.removal_clearance, loaded_center_z + args.removal_speed * args.dt)
-        loaded_center_z = target_z
-        cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), target_z), zero_velocity=True)
-        scene.step(update_visualizer=False, refresh_visualizer=False)
-        step += 1
-        record("removal", target_z)
-        maybe_save("removal")
-        if target_z >= initial_center_z + args.removal_clearance - 1.0e-9:
-            break
-    removed_center_z = float(pose_rows[-1]["z"])
+    if args.removal_mode == "remove_body":
+        # Chrono removes the body rather than sweeping it through the material.
+        # Moving it outside the MPM domain before post-settle reproduces that
+        # collision-free state without imparting a lift impulse to the bed.
+        removed_center_z = pre_settle_hold_z
+        cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), removed_center_z), zero_velocity=True)
+        lift_steps = 0
+        phase_rows.append({"phase": "removal", "termination_reason": "remove_body", "steps": 0})
+    else:
+        lift_distance = max(args.removal_clearance, 0.0) + max(0.0, initial_center_z - loaded_center_z)
+        lift_steps = max(1, int(np.ceil(lift_distance / max(args.removal_speed * args.dt, 1.0e-12))))
+        if args.max_removal_steps > 0 and lift_steps > args.max_removal_steps:
+            lift_steps = args.max_removal_steps
+            removal_capped = True
+        for _ in range(lift_steps):
+            target_z = min(initial_center_z + args.removal_clearance, loaded_center_z + args.removal_speed * args.dt)
+            loaded_center_z = target_z
+            cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), target_z), zero_velocity=True)
+            scene.step(update_visualizer=False, refresh_visualizer=False)
+            step += 1
+            record("removal", target_z)
+            maybe_save("removal")
+            if target_z >= initial_center_z + args.removal_clearance - 1.0e-9:
+                break
+        removed_center_z = float(pose_rows[-1]["z"])
     post_reason, post_steps = run_until_settled("post_removal", args.post_max_time, require_cylinder=False, hold_cylinder_z=removed_center_z)
     maybe_save("final", force=True)
     final_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(final_points, args.output_dir / "particles_final_mpm.ply")
+    save_mpm_state(sand, args.output_dir / "mpm_state_final.npz")
     write_pose_csv(args.output_dir / "cylinder_pose.csv", pose_rows)
     loaded_pose_rows = [row for row in pose_rows if row["phase"] == "loaded"]
     write_phase_csv(args.output_dir / "loaded_settling_diagnostic.csv", loaded_pose_rows)
@@ -324,7 +568,7 @@ def main() -> None:
     phase_rows.extend(
         [
             {"phase": "loaded", "termination_reason": loaded_reason, "steps": loaded_steps},
-            {"phase": "removal", "termination_reason": "capped" if removal_capped else "completed", "steps": lift_steps},
+            *([] if args.removal_mode == "remove_body" else [{"phase": "removal", "termination_reason": "capped" if removal_capped else "completed", "steps": lift_steps}]),
             {"phase": "post_removal", "termination_reason": post_reason, "steps": post_steps},
         ]
     )
@@ -339,11 +583,19 @@ def main() -> None:
         ("dt", args.dt, "seconds"),
         ("substeps", args.substeps, "count"),
         ("particle_size", args.particle_size, "meters"),
+        ("enable_cpic", args.enable_cpic, ""),
         ("local_speed_radius", local_speed_radius, "meters"),
         ("settling_depth_window", args.settling_depth_window, "seconds"),
         ("query_x", float(query_xy[0]), "meters"),
         ("query_y", float(query_xy[1]), "meters"),
         ("first_contact_quantile", args.first_contact_quantile, ""),
+        ("pre_settle_termination_reason", pre_settle_reason, ""),
+        ("pre_settle_steps", pre_settle_steps, "count"),
+        ("pre_settle_duration", pre_settle_steps * args.dt, "seconds"),
+        ("pre_settle_particle_speed_threshold", args.pre_settle_particle_speed_threshold, "meters/second"),
+        ("pre_settle_final_particle_speed_p99", pre_settle_final_p99, "meters/second"),
+        ("containment_wall_height", args.containment_wall_height, "meters"),
+        ("containment_wall_thickness", args.containment_wall_thickness, "meters"),
         ("first_contact_z", surface_z, "meters"),
         ("initial_center_z", initial_center_z, "meters"),
         ("indenter_radius", args.indenter_radius, "meters"),
@@ -356,15 +608,17 @@ def main() -> None:
         ("loaded_depth", initial_center_z - float([r for r in pose_rows if r["phase"] == "loaded"][-1]["z"]), "meters"),
         ("peak_loaded_depth", peak_depth, "meters"),
         ("removal_speed", args.removal_speed, "meters/second"),
+        ("removal_mode", args.removal_mode, ""),
         ("removal_clearance", args.removal_clearance, "meters"),
         ("max_removal_steps", args.max_removal_steps, "count"),
         ("removal_capped", removal_capped, ""),
         ("post_removal_termination_reason", post_reason, ""),
         ("post_removal_steps", post_steps, "count"),
         ("post_removal_duration", post_steps * args.dt, "seconds"),
-        ("final_depth", initial_center_z - float(pose_rows[-1]["z"]), "meters"),
-        ("complete_state_restore", False, ""),
-        ("state_restore_note", "This runner restores positions/zero velocities only; C/F/Jp restore remains a blocker.", ""),
+        ("final_depth", "" if args.removal_mode == "remove_body" else initial_center_z - float(pose_rows[-1]["z"]), "meters"),
+        ("final_depth_meaningful", args.removal_mode != "remove_body", ""),
+        ("complete_state_restore", args.initial_mpm_state_npz is not None, ""),
+        ("state_source", state_source, ""),
         ("total_wall_seconds", time.perf_counter() - total_start, "seconds"),
         ("output_dir_bytes", directory_size_bytes(args.output_dir), "bytes"),
     ]
