@@ -6,7 +6,7 @@ splat-derived sand bed, then compares the result against RealSense terrain DEMs.
 
 ## Start Here
 
-Read [CURRENT_STATE.md](CURRENT_STATE.md). It is the sole live description of
+Read [Current state](current-state.md). It is the sole live description of
 the experiment, source data, implementation status, validation evidence, and
 next required work.
 

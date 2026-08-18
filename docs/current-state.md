@@ -363,7 +363,7 @@ settling-state gate.
 ### Settling Stage And BayesOpt Boundary (2026-08-17)
 
 The frozen settling contract is now recorded in the sibling
-`Chrono/tera_splat_sim/SIM_ONLY_VALIDITY_PLAN.md`.  It requires complete-state
+`../../tera_splat_sim/docs/archive/sim-only-validity-plan-2026-08-17.md`.  It requires complete-state
 restoration and, at smoke resolution, all-bed p99 `<= 0.0005 m/s` continuously
 for `0.02 s`, initial-surface RMSE `<= 5 mm`, and initial-surface maximum error
 `<= 10 mm` on the Chrono-valid mask.  Geostatic preparation, particle/grid
@@ -674,7 +674,7 @@ assumptions, center sensitivity, and all unresolved limitations.
 
 ## Documentation Policy
 
-`CURRENT_STATE.md` is the only live planning and handoff document. Keep
+`docs/current-state.md` is the only live planning and handoff document. Keep
 generated measurements in `reports/` and outputs in `outputs/`. When a gate is
 closed or invalidated, update the relevant section above in the same change as
 the implementation or experiment result. Do not create parallel status, bridge,

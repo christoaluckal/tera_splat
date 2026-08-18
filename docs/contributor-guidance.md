@@ -1,18 +1,18 @@
 # Agent Handoff
 
-`CURRENT_STATE.md` is the sole live handoff and planning document. Read it
+[`current-state.md`](current-state.md) is the sole live handoff and planning document. Read it
 before editing code, data contracts, configurations, or reports.
 
 ## Working Rules
 
-- Work from `/home/moog-2/christo/splatting_stuff/physical/tera_splat`.
+- Work from `/home/moog-2/christo/splatting_stuff/physical/Chrono/tera_splat`.
 - Use the `tsplat` conda environment.
 - Preserve user changes and generated evidence. Do not reset or delete outputs
   unless explicitly asked.
 - Keep manual source edits scoped and use `apply_patch`.
 - Use `rg` for code/document discovery.
 - Run focused verification after code changes and record material validation
-  results in `CURRENT_STATE.md` in the same change.
+  results in `docs/current-state.md` in the same change.
 
 ## Source Boundaries
 
@@ -45,5 +45,5 @@ conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
 conda run -n tsplat python scripts/run_mass_controlled_bridge_checks.py --help
 ```
 
-Do not create parallel status documents. Update `CURRENT_STATE.md`; retain
+Do not create parallel status documents. Update `docs/current-state.md`; retain
 specific generated-run evidence under `reports/` or `outputs/`.
