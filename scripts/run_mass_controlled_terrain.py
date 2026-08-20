@@ -56,6 +56,14 @@ def parse_args() -> argparse.Namespace:
         help="Initialize depth-varying in-situ stress through F before gravity settling; does not move particles.",
     )
     parser.add_argument(
+        "--reinitialize-geostatic-stress-from-state",
+        action="store_true",
+        help=(
+            "Restore the saved particle geometry/active mask, then replace velocity, C, F, and Jp "
+            "with an analytic geostatic state for the current material config."
+        ),
+    )
+    parser.add_argument(
         "--geostatic-stress-scale",
         type=float,
         default=1.0,
@@ -239,8 +247,10 @@ def add_lateral_containment(scene, gs, points: np.ndarray, ground_z: float, heig
 
 def main() -> None:
     args = parse_args()
+    if args.reinitialize_geostatic_stress_from_state and args.initial_mpm_state_npz is None:
+        raise ValueError("--reinitialize-geostatic-stress-from-state requires --initial-mpm-state-npz")
     if args.initial_mpm_state_npz is not None and args.initialize_geostatic_stress:
-        raise ValueError("Use either --initial-mpm-state-npz or --initialize-geostatic-stress, not both")
+        raise ValueError("Use --reinitialize-geostatic-stress-from-state with a saved state")
     total_start = time.perf_counter()
     import genesis as gs
 
@@ -325,8 +335,25 @@ def main() -> None:
     sand.set_particles_active(torch.ones((points.shape[0],), dtype=torch.bool, device=gs.device))
     state_source = "positions_only"
     if args.initial_mpm_state_npz is not None:
-        restore_mpm_state(sand, load_mpm_state(args.initial_mpm_state_npz), gs.device)
+        restored = load_mpm_state(args.initial_mpm_state_npz)
+        restore_mpm_state(sand, restored, gs.device)
         state_source = f"complete_restore:{args.initial_mpm_state_npz.resolve()}"
+        if args.reinitialize_geostatic_stress_from_state:
+            frozen_points = restored["pos"][0]
+            candidate_state = geostatic_state_from_points(
+                sand,
+                frozen_points,
+                surface_count,
+                density_kg_m3=float(config.get("density", config.get("rho", 1000.0))),
+                gravity_mps2=float(np.linalg.norm(gravity)),
+                youngs_modulus_pa=float(config.get("E", 1e5)),
+                poisson_ratio=float(config.get("nu", 0.2)),
+                stress_scale=args.geostatic_stress_scale,
+            )
+            candidate_state["pos"] = restored["pos"].copy()
+            candidate_state["active"] = restored["active"].copy()
+            restore_mpm_state(sand, candidate_state, gs.device)
+            state_source = f"candidate_geostatic_from_frozen_geometry:{args.initial_mpm_state_npz.resolve()}"
     elif args.initialize_geostatic_stress:
         gravity_magnitude = float(np.linalg.norm(gravity))
         restore_mpm_state(

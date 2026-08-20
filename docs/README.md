@@ -13,7 +13,7 @@ next required work.
 ## Environment
 
 ```text
-conda env: tsplat
+conda env: chrono_splat
 ```
 
 CUDA Genesis runs require a shell where the host GPU is visible.
@@ -33,9 +33,9 @@ explicitly changes it.
 ## Key Commands
 
 ```bash
-conda run -n tsplat python scripts/view_iteration_7000.py --align-ground-z
-conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
-conda run -n tsplat python scripts/run_mass_controlled_bridge_checks.py --help
+conda run -n chrono_splat python scripts/view_iteration_7000.py --align-ground-z
+conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
+conda run -n chrono_splat python scripts/run_mass_controlled_bridge_checks.py --help
 ```
 
 Generated run evidence belongs in `outputs/`; generated human-readable evidence

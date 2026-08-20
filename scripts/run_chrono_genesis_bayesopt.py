@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Run a validity-gated four-parameter Chrono-to-Genesis W&B BayesOpt campaign.
+"""Run a validity-gated contact-parameter Chrono-to-Genesis W&B BayesOpt campaign.
 
-Each particle-spacing candidate builds and accepts its own complete Genesis
-state before the cylinder rollout.  This makes spacing and particle size honest
-optimization variables rather than changing them after a prepared state has
-already been created.  Lower-layer random XY perturbation is deliberately not
+Every candidate restores the same accepted complete Genesis state. Particle
+spacing and size are frozen by that artifact, so material proposals cannot alter
+H0 before the cylinder rollout.  Lower-layer random XY perturbation is deliberately not
 implemented: it remains a future, separately versioned model variant.
 """
 
@@ -26,7 +25,7 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CHRONO_EPISODE = REPO_ROOT.parent / "tera_splat_sim" / "validity_experiment" / "chrono_episodes" / "A0_cal_full10mm"
-DEFAULT_OUTPUT_ROOT = REPO_ROOT / "outputs" / "validity_experiment" / "bayesopt" / "A0_cal_full10mm_4d"
+DEFAULT_OUTPUT_ROOT = REPO_ROOT / "outputs" / "validity_experiment" / "bayesopt" / "A0_cal_full10mm_frozen_2d"
 SPACING_CHOICES_M = (0.0125, 0.020)
 SIZE_RATIO_CHOICES = (0.75, 0.85, 1.00)
 PARTICLE_CHOICES = (
@@ -42,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chrono-episode", type=Path, default=DEFAULT_CHRONO_EPISODE)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--base-config", type=Path, default=REPO_ROOT / "configs" / "physgaussian_sand_stiff_mid.json")
+    parser.add_argument("--prepared-bed", type=Path, required=True, help="Accepted frozen prepared_bed reused by every contact candidate.")
     parser.add_argument("--backend", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--project", default="chrono-genesis-bayesopt")
     parser.add_argument("--entity", default=None, help="Optional W&B entity; otherwise use the authenticated default.")
@@ -86,7 +86,7 @@ def wandb_module() -> Any:
     except ImportError as error:
         raise SystemExit(
             "W&B is unavailable in this environment. Install its missing runtime dependency "
-            "in the tsplat environment, then retry."
+            "in the chrono_splat environment, then retry."
         ) from error
     return wandb
 
@@ -145,7 +145,7 @@ def define_history(run: Any) -> None:
     run.define_metric("iteration")
     for metric in (
         "params/*", "loss/*", "dem/*", "diagnostic/*", "objective/m", "valid", "stage",
-        "settling/*", "surface_match/*", "bridge/*", "time/elapsed_s",
+        "settling/*", "surface_match/*", "candidate_init/*", "bridge/*", "time/elapsed_s",
     ):
         run.define_metric(metric, step_metric="iteration")
 
@@ -232,47 +232,29 @@ def evaluate_candidate(
         (trial_dir / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
         log_stage(run, started, iteration, "candidate", candidate)
 
-        prepared_root = trial_dir / "prepared"
-        build_command = [
-            sys.executable, str(REPO_ROOT / "scripts" / "build_chrono_settled_bed.py"),
-            "--chrono-episode", str(args.chrono_episode.resolve()),
-            "--output-dir", str(prepared_root),
-            "--config", str(material_config_path),
-            "--backend", args.backend,
-            "--bed-depth-m", str(args.bed_depth_m),
-            "--particle-spacing-m", str(candidate["particle_spacing_m"]),
-            "--particle-size", str(candidate["particle_size_m"]),
-            "--pre-settle-max-time", str(args.pre_settle_max_time),
-            "--pre-settle-required-duration", str(args.pre_settle_required_duration),
-            "--pre-settle-particle-speed-threshold", str(args.pre_settle_particle_speed_threshold),
-            "--n-grid", str(args.n_grid),
-            "--dt", str(args.dt),
-        ]
-        if args.enable_cpic:
-            build_command.append("--enable-cpic")
-        run_command(build_command)
-        prepared_manifest = json.loads((prepared_root / "prepared_bed_manifest.json").read_text(encoding="utf-8"))
+        prepared_dir = args.prepared_bed.resolve()
+        prepared_manifest_path = prepared_dir.parent / "prepared_bed_manifest.json"
+        prepared_manifest = json.loads(prepared_manifest_path.read_text(encoding="utf-8"))
         if not prepared_manifest.get("accepted", False):
-            raise RuntimeError("builder returned a rejected prepared bed")
-        log_stage(
-            run,
-            started,
-            iteration,
-            "prepared",
-            candidate,
-            **{
-                "settling/duration_s": prepared_manifest["settling"]["duration_s"],
-                "settling/final_particle_speed_p99_mps": prepared_manifest["settling"]["final_particle_speed_p99_mps"],
-                "surface_match/rmse_m": prepared_manifest["surface_match"]["rmse_m"],
-                "surface_match/max_abs_m": prepared_manifest["surface_match"]["max_abs_m"],
-            },
-        )
+            raise RuntimeError("refusing rejected prepared bed")
+        if Path(prepared_manifest["source_chrono_episode"]).resolve() != args.chrono_episode.resolve():
+            raise RuntimeError("prepared bed belongs to a different Chrono episode")
+        prepared_spacing = float(prepared_manifest["metric_bed"]["particle_spacing_m"])
+        prepared_size = float(prepared_manifest["settling"]["particle_size_m"])
+        if not np.isclose(candidate["particle_spacing_m"], prepared_spacing) or not np.isclose(candidate["particle_size_m"], prepared_size):
+            raise RuntimeError("candidate particle geometry does not match frozen prepared bed")
+        log_stage(run, started, iteration, "prepared", candidate, **{
+            "settling/duration_s": prepared_manifest["settling"]["duration_s"],
+            "settling/final_particle_speed_p99_mps": prepared_manifest["settling"]["final_particle_speed_p99_mps"],
+            "surface_match/rmse_m": prepared_manifest["surface_match"]["rmse_m"],
+            "surface_match/max_abs_m": prepared_manifest["surface_match"]["max_abs_m"],
+        })
 
         bridge_dir = trial_dir / "bridge"
         bridge_command = [
             sys.executable, str(REPO_ROOT / "scripts" / "run_chrono_genesis_bridge.py"),
             "--chrono-episode", str(args.chrono_episode.resolve()),
-            "--prepared-bed", str(prepared_root / "prepared_bed"),
+            "--prepared-bed", str(prepared_dir),
             "--output-dir", str(bridge_dir),
             "--config", str(material_config_path),
             "--backend", args.backend,
@@ -280,8 +262,19 @@ def evaluate_candidate(
             "--loaded-max-time", str(args.loaded_max_time),
             "--post-max-time", str(args.post_max_time),
             "--required-duration", str(args.required_duration),
+            "--candidate-pre-settle-max-time", str(args.pre_settle_max_time),
+            "--candidate-pre-settle-required-duration", str(args.pre_settle_required_duration),
+            "--candidate-pre-settle-speed-threshold", str(args.pre_settle_particle_speed_threshold),
         ]
         run_command(bridge_command)
+        bridge_manifest = json.loads((bridge_dir / "manifest.json").read_text(encoding="utf-8"))
+        candidate_initialization = bridge_manifest["candidate_initialization"]
+        candidate_init_metrics = {
+            "candidate_init/h0_rmse_m": candidate_initialization["h0_rmse_m"],
+            "candidate_init/h0_max_abs_m": candidate_initialization["h0_max_abs_m"],
+            "candidate_init/h0_valid_cells": candidate_initialization["h0_valid_cells"],
+            "candidate_init/speed_threshold_mps": candidate_initialization["speed_threshold_mps"],
+        }
         reasons = phase_reasons(bridge_dir / "genesis_raw" / "phase_summary.csv")
         loss = compute_loss(args.chrono_episode.resolve(), bridge_dir, args.minimum_common_valid_fraction, args.residual_weight)
         dem_payload = {f"dem/{name}": value for name, value in loss.items() if name != "objective_m"}
@@ -292,6 +285,7 @@ def evaluate_candidate(
                 "failure": f"bridge did not settle: {reasons}",
                 "candidate": candidate,
                 "phase_reasons": reasons,
+                "candidate_initialization": candidate_initialization,
                 **loss,
             }
             log_stage(
@@ -305,9 +299,11 @@ def evaluate_candidate(
                     "bridge/loaded_reason": reasons.get("loaded"),
                     "bridge/post_reason": reasons.get("post_removal"),
                     "diagnostic/objective_m": loss["objective_m"],
+                    **candidate_init_metrics,
                     **dem_payload,
                 },
             )
+            (trial_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             return result
         log_stage(
             run,
@@ -315,10 +311,10 @@ def evaluate_candidate(
             iteration,
             "bridge",
             candidate,
-            **{"bridge/loaded_reason": reasons["loaded"], "bridge/post_reason": reasons["post_removal"]},
+            **{"bridge/loaded_reason": reasons["loaded"], "bridge/post_reason": reasons["post_removal"], **candidate_init_metrics},
         )
 
-        result = {"valid": True, "candidate": candidate, "phase_reasons": reasons, **loss}
+        result = {"valid": True, "candidate": candidate, "phase_reasons": reasons, "candidate_initialization": candidate_initialization, **loss}
         log_stage(
             run,
             started,
@@ -545,8 +541,22 @@ def main() -> None:
         raise SystemExit("Choose exactly one mode: --wandb-init-only, --run-one, or --count N.")
     if not args.chrono_episode.is_dir():
         raise SystemExit(f"Chrono episode not found: {args.chrono_episode}")
+    if not args.prepared_bed.is_dir():
+        raise SystemExit(f"Prepared bed not found: {args.prepared_bed}")
     if not args.base_config.is_file():
         raise SystemExit(f"Material config not found: {args.base_config}")
+    prepared_manifest_path = args.prepared_bed.resolve().parent / "prepared_bed_manifest.json"
+    if not prepared_manifest_path.is_file():
+        raise SystemExit(f"Prepared-bed manifest not found: {prepared_manifest_path}")
+    prepared_manifest = json.loads(prepared_manifest_path.read_text(encoding="utf-8"))
+    if not prepared_manifest.get("accepted", False):
+        raise SystemExit("BayesOpt requires an accepted frozen prepared bed")
+    spacing = float(prepared_manifest["metric_bed"]["particle_spacing_m"])
+    size_ratio = float(prepared_manifest["settling"]["particle_size_m"]) / spacing
+    global SPACING_CHOICES_M, SIZE_RATIO_CHOICES, PARTICLE_CHOICES
+    SPACING_CHOICES_M = (spacing,)
+    SIZE_RATIO_CHOICES = (size_ratio,)
+    PARTICLE_CHOICES = ((spacing, size_ratio),)
     wandb = wandb_module()
     if args.wandb_init_only:
         init_only(args, wandb)

@@ -30,7 +30,7 @@ properties. Do not tune parameters against an animation alone.
 
 ```text
 repository: /home/moog-2/christo/splatting_stuff/physical/tera_splat
-environment: conda env tsplat
+environment: conda env chrono_splat
 GPU: NVIDIA GeForce RTX 3060 Ti when CUDA is exposed to the shell
 ```
 
@@ -534,7 +534,7 @@ resolution.  Use the native SCM `loaded` and `residual` PCD/mesh or the source
 heightmaps as the objective data; the Genesis files in the same bundle are the
 current pre-fit baseline for visual comparison only.
 
-### Four-Parameter W&B BayesOpt Runner (2026-08-18)
+### Frozen-State W&B BayesOpt Runner (updated 2026-08-20)
 
 Stage-1 prepared-bed failures, their evidence, and the corrective plan are
 maintained in [Experiment Problems And Corrective Plan](experiment_problems.md).
@@ -542,29 +542,28 @@ Resolve that document's mass/volume and surface-support diagnostics before
 spending another response-optimization budget.
 
 `scripts/run_chrono_genesis_bayesopt.py` implements a validity-gated W&B
-Bayesian campaign for the canonical 1.5 kg, 10 mm A0 Chrono target.  It does
+Bayesian campaign for the canonical 1.5 kg, 10 mm A0 Chrono target. It now
+requires one accepted `--prepared-bed` and restores that identical complete MPM
+state for every material candidate.  It does
 not run a campaign merely by being added; evaluating a study remains an
 explicit command.  The dimensions are:
 
 ```text
 log10_E:                continuous [4, 6]
 phi_deg:                continuous [15, 45]
-particle_spacing_m:     categorical [0.0125, 0.015, 0.020, 0.025]
-particle_size_ratio:    categorical [0.75, 0.85, 1.00]
-particle_size_m:        derived as spacing * ratio
+particle_spacing_m:     fixed by --prepared-bed
+particle_size_ratio:    fixed by --prepared-bed
 ```
 
-The broad spacing proposal was experimentally narrowed after the first
-50-attempt continuation: every 15 mm or 25 mm candidate failed the
-prepared-bed acceptance gate.  The active optimization family is therefore
-the accepted conditional set `{12.5 mm, ratio 1.0}` and `{20 mm, ratio
-0.75/0.85/1.0}`.  This still varies separation and size, but does not spend
-the objective budget on demonstrated-invalid lattice pairs.
+Particle geometry is no longer proposed inside a material-response study. Each
+spacing/size family must first produce its own accepted, volume-consistent
+prepared artifact; run a separate two-parameter study for each accepted family.
+This prevents `E` and `phi` from changing H0 during objective evaluation.
 
-For each candidate the runner writes a resolved material config, rebuilds a
-new metric bed at the proposed spacing/size, requires its existing complete
-state and H0 acceptance gate, restores that state for the bridge rollout, and
-requires loaded and post-removal equilibrium.  It then minimizes the masked
+For each candidate the runner writes a resolved material config, verifies the
+frozen artifact belongs to the target Chrono episode and matches the recorded
+particle geometry, restores its complete state, and requires loaded and
+post-removal equilibrium.  It then minimizes the masked
 deformation loss
 `loaded_RMSE + 0.5 * residual_RMSE` on the common Chrono/Genesis grid.  A
 rejected bed, non-equilibrium phase, missing support, or exception is logged as
@@ -579,8 +578,7 @@ the sampled/derived parameters and metrics at that iteration.  After three
 valid observations, a fixed-kernel Gaussian-process expected-improvement
 proposal selects the next candidate; the first samples are deterministic and
 start with the known accepted 20 mm baseline.  The study additionally records
-pre-settle speed/surface-match gates,
-phase reasons, common-mask fraction, and per-phase DEM difference RMSE, MAE,
+frozen prepared-state speed/surface-match gates, phase reasons, common-mask fraction, and per-phase DEM difference RMSE, MAE,
 signed mean, signed extrema, and p05/p95.  Every completed bridge persists
 masked `loaded_dem_difference_m.npy`, `residual_dem_difference_m.npy`, and
 `common_valid_mask.npy` beside its result; a non-equilibrium bridge logs those
@@ -590,19 +588,20 @@ authenticated shell.
 
 The requested heterogeneous lower-layer random XY noise is intentionally
 excluded.  It would change the model family and must be introduced later as a
-versioned, seeded fifth parameter with a separate baseline.
+versioned, seeded additional parameter with a separate baseline.
 
 Initialize the W&B connection only (no candidate and no sweep) with:
 
 ```bash
-PYTHONNOUSERSITE=1 conda run -n tsplat python scripts/run_chrono_genesis_bayesopt.py \
+PYTHONNOUSERSITE=1 conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py \
+  --prepared-bed outputs/validity_experiment/A0_cal_full10mm_prepared_20mm_cpic_frozen/prepared_bed \
   --wandb-init-only --project chrono-genesis-bayesopt
 ```
 
 After reviewing that connection, create and run one sequential Bayesian study
-with `--count N`; use `--run-one` with the four parameter flags for a single
+with `--count N`; use `--run-one` with explicit material and matching frozen-geometry flags for a single
 reproducible bracket point.  Outputs are isolated under
-`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d/study_<wandb-run-id>`.
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_frozen_2d/study_<wandb-run-id>`.
 
 The first diagnostic-enabled campaign was launched on 2026-08-18.  Its first
 completed bridge (`hehgf7cn`) used `log10_E=4.93262`, `phi=33.329 deg`,
@@ -741,18 +740,18 @@ Read-only inspection, visualization, source checks, and the existing smoke
 runners are safe. Useful entry points:
 
 ```bash
-conda run -n tsplat python scripts/view_iteration_7000.py --align-ground-z
-conda run -n tsplat python scripts/view_particle_ply.py \
+conda run -n chrono_splat python scripts/view_iteration_7000.py --align-ground-z
+conda run -n chrono_splat python scripts/view_particle_ply.py \
   assets/base_settled_stiff_mid/particles_initial_mpm.ply --point-size 0.003
-conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
-conda run -n tsplat python scripts/run_mass_controlled_bridge_checks.py --help
+conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
+conda run -n chrono_splat python scripts/run_mass_controlled_bridge_checks.py --help
 ```
 
 The Real3 report can be regenerated with:
 
 ```bash
-conda run -n tsplat python scripts/preprocess_single_trial_real3.py --copy-plys
-conda run -n tsplat python scripts/make_single_trial_report.py \
+conda run -n chrono_splat python scripts/preprocess_single_trial_real3.py --copy-plys
+conda run -n chrono_splat python scripts/make_single_trial_report.py \
   --output reports/single_trial_real3_report.md
 ```
 
@@ -841,3 +840,148 @@ generated measurements in `reports/` and outputs in `outputs/`. When a gate is
 closed or invalidated, update the relevant section above in the same change as
 the implementation or experiment result. Do not create parallel status, bridge,
 or phase-plan documents.
+
+
+### Frozen-Initialization BayesOpt Boundary (2026-08-20)
+
+The runner now requires `--prepared-bed` and reuses that accepted complete MPM
+state for every candidate. Its manifest fixes particle spacing and size for the
+study; proposals vary only `log10_E` and `phi_deg`. This prevents candidate
+materials from rebuilding or corrupting H0. Run separate preparation studies
+for particle families, then start one BayesOpt study per accepted artifact. All
+instrumentation and commands use the `chrono_splat` Conda environment.
+
+
+#### Verified Frozen-State Loop (2026-08-20)
+
+Runtime: `chrono_splat` at `/data/christoa/conda/envs/chrono_splat`, Python
+3.10, PyTorch 2.13.0+cu130, Genesis 1.3.3, CUDA visible. A fresh accepted state
+was generated at
+`outputs/validity_experiment/A0_cal_full10mm_prepared_20mm_cpic_frozen`:
+equilibrium at 0.274 s, p99 speed 0.424 mm/s, H0 RMSE 0.615 mm, maximum
+error 0.654 mm, and all 14,161 target-valid cells supported.
+
+The offline study `outputs/validity_experiment/bayesopt/A0_cal_full10mm_frozen_loop/study_9656sgoj`
+completed four attempts from that same state: three valid objectives and one
+properly excluded post-removal timeout. The baseline objective was 0.406 mm.
+A seeded continuation proposed the first GP expected-improvement candidate
+(`log10_E=5.6202`, `phi=44.518 deg`); its loaded phase timed out and was
+correctly excluded. This verifies proposal, restore, rollout, gating, DEM loss,
+and W&B instrumentation without candidate-dependent H0 reconstruction.
+
+
+#### Online Frozen-State Sweep (2026-08-20)
+
+W&B run `christo12aluckal/chrono-genesis-bayesopt/61sldco9`
+(`bright-mountain-20`) finished and synced online. It restored the same accepted
+20 mm complete MPM state for every trial, so this campaign does not exhibit the
+earlier candidate-dependent H0 initialization failure.
+
+The study imported three valid seed observations and attempted 45 new candidates.
+Only one new candidate was valid; 44 were excluded because a required response
+phase did not reach equilibrium. The study therefore finished with four total
+valid observations and did not reach its target of 30. Expected improvement
+repeatedly proposed near `log10_E ~= 5.6`, `phi_deg ~= 44`, where the loaded
+phase timed out. Invalid trials were correctly logged without `objective/m`, but
+the objective-only GP cannot learn that this region is infeasible and repeatedly
+returns to it.
+
+Interpretation: frozen initialization is working, but this is not a calibrated
+result. The next optimizer change must model response feasibility separately and
+rank candidates using an acquisition such as expected improvement multiplied by
+the predicted probability of equilibrium. A longer phase timeout may diagnose
+borderline cases, but it does not replace feasibility-aware acquisition.
+
+Remote run: <https://wandb.ai/christo12aluckal/chrono-genesis-bayesopt/runs/61sldco9>
+Local evidence: `outputs/validity_experiment/bayesopt/A0_cal_full10mm_frozen_online/study_61sldco9`.
+
+
+#### Candidate-Consistent Stress Initialization (2026-08-20)
+
+The frozen-state campaign exposed a constitutive initialization error: it
+restored `F` and `Jp` prepared at the reference `E=100 kPa`, then changed `E`
+for contact. Because stress is computed from both the constitutive state and
+material parameters, the same saved `F` implies a different initial stress at a
+different `E`. The high-`E` timeout cluster in online run `61sldco9` must
+therefore not be interpreted as a learned response-infeasible region.
+
+The corrected bridge uses two initialization layers. The accepted prepared bed
+still freezes particle count, positions, active mask, mass/discretization, H0,
+solver settings, and containment. For each candidate it then preserves those
+positions and active flags, zeros velocity and `C`, resets `Jp`, computes an
+analytic depth-dependent geostatic `F` using the candidate `E`, density, and
+`nu`, and runs a cylinder-free relaxation. Contact begins only after that state
+passes the original all-bed p99 speed threshold and frozen H0 RMSE/maximum gates.
+The candidate-specific complete state is persisted under
+`bridge/candidate_prepare_raw/mpm_state.npz`; the bridge manifest and W&B history
+record its H0 metrics.
+
+This changes initialization preparation as follows:
+
+1. Build and accept the geometric/discretization reference bed once.
+2. Reconstruct candidate-consistent stress from its frozen geometry for every
+   `E`/`phi` evaluation.
+3. Allow only the small unconstrained relaxation admitted by the existing H0
+   tolerances; do not vertically shift or otherwise repair the result.
+4. Reject a candidate before cylinder contact if speed or H0 fails.
+
+CUDA bracket validation passed for both the reference material and the formerly
+failing high-`E` region. At `100 kPa, 45 deg`, candidate H0 RMSE/max were
+`1.182/1.259 mm`; loaded and post-removal phases equilibrated and objective was
+`0.456 mm`. At `log10_E=5.6360, phi=44.415 deg`, H0 RMSE/max were
+`0.748/0.798 mm`; both phases equilibrated, cylinder depth was `1.217 mm`, and
+objective was `0.419 mm`. The prior negative-depth rebound disappeared. Run a
+new sweep with this corrected initialization; do not seed its objective model
+with response outcomes from pre-fix campaigns.
+
+
+#### Corrected Quick Online Sweep (2026-08-20)
+
+Online W&B run `h2il8dg0` (`dainty-water-21`) evaluated 12 fresh candidates
+without pre-fix seeds using candidate-consistent stress initialization. All 12
+candidates passed cylinder-free preparation and all 12 loaded phases reached
+equilibrium. Three also reached post-removal equilibrium, for a strict valid
+objective rate of `3/12 = 25%`; the other nine were post-removal timeouts. This
+is higher than the pre-fix campaign rate, while confirming that the remaining
+invalidity is no longer H0 initialization or loaded rebound. The objective-only
+GP clustered near `log10_E ~= 4.23`, `phi_deg ~= 30`, where post-removal did not
+settle within 1 s. The best valid quick-sweep candidate was `log10_E=4.5`,
+`phi_deg=35` with objective `0.372 mm`. Remote run:
+<https://wandb.ai/christo12aluckal/chrono-genesis-bayesopt/runs/h2il8dg0>.
+
+
+#### Post-Removal Settling Diagnostic Plan (2026-08-20)
+
+The corrected quick sweep does not currently show a removal-mechanism failure.
+Genesis uses the Chrono-matched `remove_body` semantics, all 12 candidate
+preparations passed, all 12 loaded phases equilibrated, and three candidates
+reached post-removal equilibrium with the same removal implementation. The nine
+timeouts were borderline: their final local particle p99 speeds were
+`0.557--0.587 mm/s` versus the frozen `0.500 mm/s` threshold, while one valid
+candidate required `0.992 s` of the available `1.000 s`. The current evidence
+therefore points first to an underspecified/borderline residual settling window,
+not a demonstrated removal impulse or collision error.
+
+Before another sweep, run a controlled post-removal-duration diagnostic at
+`1.0, 1.5, 2.0, and 3.0 s` for: (1) one fast-settling valid candidate, (2) the
+best valid `log10_E=4.5, phi_deg=35` candidate, and (3) two timed-out candidates
+near `log10_E ~= 4.23, phi_deg ~= 30`. Record the first time local p99 remains
+below `0.5 mm/s` for 20 ms, p99 at every observation time, residual DEM change
+between observation times, and objective sensitivity to the selected time.
+
+Freeze the protocol using these decision rules:
+
+- If timed-out cases settle shortly after 1 s and residual DEM changes become
+  negligible, extend the production post-removal limit, provisionally to 2 s.
+- If they remain active through 3 s, classify that material region as genuinely
+  non-equilibrating under the frozen action.
+- If the residual DEM is stable while p99 remains slightly above threshold,
+  review whether the p99 gate is overly conservative for the observable target;
+  do not relax it without recording the DEM-based evidence.
+- If removal produces a sudden spatially broad velocity spike, investigate the
+  `remove_body` implementation before further optimization.
+
+Chrono residual semantics must also be made explicit: compare at the same fixed
+post-removal observation time if the oracle residual is time-defined, or require
+matched equilibrium if it is settle-defined. Do not launch another calibration
+sweep until this convention and the production post-removal window are frozen.

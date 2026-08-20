@@ -39,6 +39,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
     parser.add_argument("--post-max-time", type=float, default=0.25)
     parser.add_argument("--required-duration", type=float, default=0.02)
+    parser.add_argument("--candidate-pre-settle-max-time", type=float, default=1.0)
+    parser.add_argument("--candidate-pre-settle-required-duration", type=float, default=0.02)
+    parser.add_argument("--candidate-pre-settle-speed-threshold", type=float, default=5.0e-4)
     parser.add_argument("--containment-wall-height", type=float, default=None)
     parser.add_argument("--containment-wall-thickness", type=float, default=None)
     parser.add_argument("--removal-speed", type=float, default=0.005)
@@ -80,15 +83,58 @@ def main() -> None:
         prepared["settling"]["containment_wall_thickness_m"]
         if args.containment_wall_thickness is None else args.containment_wall_thickness
     )
-    raw_dir = output_dir / "genesis_raw"
     runner = REPO_ROOT / "scripts" / "run_mass_controlled_terrain.py"
-    command = [
-        sys.executable,
-        str(runner),
+    common_solver_args = [
         "--initial-particles-ply", str(particle_path),
         "--initial-metadata-json", str(metadata_path),
-        "--initial-mpm-state-npz", str(state_path),
         "--config", str(args.config.resolve()),
+        "--containment-wall-height", str(containment_height),
+        "--containment-wall-thickness", str(containment_thickness),
+        "--backend", args.backend,
+        "--n-grid", str(prepared["settling"].get("n_grid", args.n_grid)),
+        "--particle-size", str(prepared["settling"].get("particle_size_m", args.particle_size or 0.0125)),
+        "--dt", str(prepared["settling"].get("dt_s", 0.0005)),
+    ]
+    if prepared["settling"].get("enable_cpic", False):
+        common_solver_args.append("--enable-cpic")
+
+    candidate_prepare_dir = output_dir / "candidate_prepare_raw"
+    prepare_command = [
+        sys.executable, str(runner),
+        *common_solver_args,
+        "--initial-mpm-state-npz", str(state_path),
+        "--reinitialize-geostatic-stress-from-state",
+        "--geostatic-stress-scale", str(prepared["settling"].get("geostatic_stress_scale", 1.0)),
+        "--output-dir", str(candidate_prepare_dir),
+        "--pre-settle-only",
+        "--pre-settle-max-time", str(args.candidate_pre_settle_max_time),
+        "--pre-settle-required-duration", str(args.candidate_pre_settle_required_duration),
+        "--pre-settle-particle-speed-threshold", str(args.candidate_pre_settle_speed_threshold),
+        "--require-pre-settle",
+    ]
+    subprocess.run(prepare_command, check=True, cwd=REPO_ROOT)
+
+    candidate_points = read_particle_ply(candidate_prepare_dir / "particles_initial_mpm.ply")
+    candidate_h0, candidate_supported = project_surface_to_chrono_grid(candidate_points, manifest, 1.51 * spacing)
+    candidate_valid = chrono_valid_mask & candidate_supported
+    if not np.any(candidate_valid):
+        raise RuntimeError("Candidate stress initialization supports no Chrono-valid H0 cells")
+    candidate_h0_error = candidate_h0[candidate_valid] - initial[candidate_valid]
+    candidate_h0_rmse = float(np.sqrt(np.mean(candidate_h0_error**2)))
+    candidate_h0_max_abs = float(np.max(np.abs(candidate_h0_error)))
+    rmse_tolerance = float(prepared["surface_match"]["rmse_tolerance_m"])
+    max_abs_tolerance = float(prepared["surface_match"]["max_abs_tolerance_m"])
+    if candidate_h0_rmse > rmse_tolerance or candidate_h0_max_abs > max_abs_tolerance:
+        raise RuntimeError(
+            "Candidate stress initialization failed frozen H0 gate: "
+            f"rmse={candidate_h0_rmse:.6g}, max={candidate_h0_max_abs:.6g}"
+        )
+
+    raw_dir = output_dir / "genesis_raw"
+    command = [
+        sys.executable, str(runner),
+        *common_solver_args,
+        "--initial-mpm-state-npz", str(candidate_prepare_dir / "mpm_state.npz"),
         "--output-dir", str(raw_dir),
         "--query-xy", str(action["center_xy_m"][0]), str(action["center_xy_m"][1]),
         "--indenter-radius", str(action["radius_m"]),
@@ -99,17 +145,9 @@ def main() -> None:
         "--post-max-time", str(args.post_max_time),
         "--required-duration", str(args.required_duration),
         "--removal-mode", str(action.get("removal", "lift")),
-        "--containment-wall-height", str(containment_height),
-        "--containment-wall-thickness", str(containment_thickness),
         "--removal-speed", str(args.removal_speed),
         "--max-removal-steps", str(args.max_removal_steps),
-        "--backend", args.backend,
-        "--n-grid", str(prepared["settling"].get("n_grid", args.n_grid)),
-        "--particle-size", str(prepared["settling"].get("particle_size_m", args.particle_size or 0.0125)),
-        "--dt", str(prepared["settling"].get("dt_s", 0.0005)),
     ]
-    if prepared["settling"].get("enable_cpic", False):
-        command.append("--enable-cpic")
     subprocess.run(command, check=True, cwd=REPO_ROOT)
 
     unsettled_points = read_particle_ply(raw_dir / "particles_unsettled_mpm.ply")
@@ -146,7 +184,15 @@ def main() -> None:
             "valid_cells": int(np.count_nonzero(valid_mask)),
             "total_cells": int(valid_mask.size),
         },
-        "state_restore": "fresh Genesis process rebuilt from the accepted metric bed and restored full MPM state",
+        "state_restore": "frozen geometry with candidate-material geostatic stress reconstruction",
+        "candidate_initialization": {
+            "method": "analytic geostatic F from frozen positions, then cylinder-free settling",
+            "prepared_state": str(candidate_prepare_dir / "mpm_state.npz"),
+            "h0_rmse_m": candidate_h0_rmse,
+            "h0_max_abs_m": candidate_h0_max_abs,
+            "h0_valid_cells": int(np.count_nonzero(candidate_valid)),
+            "speed_threshold_mps": args.candidate_pre_settle_speed_threshold,
+        },
         "removal": {
             "mode": action.get("removal", "lift"),
             "speed_mps": args.removal_speed,

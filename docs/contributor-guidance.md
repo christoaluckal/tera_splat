@@ -6,7 +6,7 @@ before editing code, data contracts, configurations, or reports.
 ## Working Rules
 
 - Work from `/home/moog-2/christo/splatting_stuff/physical/Chrono/tera_splat`.
-- Use the `tsplat` conda environment.
+- Use the `chrono_splat` conda environment.
 - Preserve user changes and generated evidence. Do not reset or delete outputs
   unless explicitly asked.
 - Keep manual source edits scoped and use `apply_patch`.
@@ -38,11 +38,11 @@ RealSense trial contracts, and simulation status belong in this repository.
 ## Current Entry Points
 
 ```bash
-conda run -n tsplat python scripts/view_iteration_7000.py --align-ground-z
-conda run -n tsplat python scripts/view_particle_ply.py \
+conda run -n chrono_splat python scripts/view_iteration_7000.py --align-ground-z
+conda run -n chrono_splat python scripts/view_particle_ply.py \
   assets/base_settled_stiff_mid/particles_initial_mpm.ply --point-size 0.003
-conda run -n tsplat python scripts/run_mass_controlled_terrain.py --help
-conda run -n tsplat python scripts/run_mass_controlled_bridge_checks.py --help
+conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
+conda run -n chrono_splat python scripts/run_mass_controlled_bridge_checks.py --help
 ```
 
 Do not create parallel status documents. Update `docs/current-state.md`; retain
