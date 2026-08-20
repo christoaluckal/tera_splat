@@ -1,6 +1,6 @@
 # Tera Splat Current State
 
-Last reviewed: 2026-08-17
+Last reviewed: 2026-08-18
 
 This is the sole live engineering handoff for `tera_splat`. It replaces the
 older phase plans, bridge notes, duplicated state documents, and external
@@ -19,8 +19,8 @@ Build a contact-conditioned terrain Gaussian-splat prototype that:
 2. Simulates a measured rigid-cylinder placement under gravity using Genesis
    MPM and two-way rigid-MPM coupling.
 3. Compares the simulated terminal surface against RealSense pre/post DEMs.
-4. Estimates an effective sand parameter region, initially over `log10_E` and
-   `phi_deg` only.
+4. Estimates an effective sand/particle parameter region over `log10_E`,
+   `phi_deg`, particle spacing, and particle size.
 5. Later transfers validated MPM displacement back to the visible splat.
 
 This is effective-model calibration, not a claim of unique geotechnical
@@ -251,6 +251,7 @@ scripts/run_genesis_ground_plane_solver.py
 scripts/run_genesis_indenter_test.py
 scripts/run_mass_controlled_bridge_checks.py
 scripts/run_mass_controlled_terrain.py
+scripts/run_chrono_genesis_bayesopt.py
 scripts/view_solver_animation.py
 scripts/render_solver_video.py
 scripts/render_indenter_animation.py
@@ -388,14 +389,9 @@ a diagnostic: its `0.25 s` loaded and post-removal phases timed out and the
 cylinder penetrated `170.5 mm`.  It is **not** a BayesOpt evaluation and must
 not be used as a calibration loss observation.
 
-BayesOpt may optimize only `log10_E` in `[4, 6]` and `phi_deg` in `[15, 45]`
-against `A0_cal`, after the normal uncapped cylinder protocol, loaded/post
-settling criteria, and loss components have been run once from the accepted
-bed.  Start with 10 deterministic low-discrepancy points and then expected
-improvement to 30 valid runs.  Invalid/partial/capped runs are recorded and
-penalized explicitly but excluded from the GP fit.  `A1_mass` and `A2_offset`
-remain sealed until the selected pair, prepared-bed digest, and frozen solver
-configuration are recorded.
+This was the historical two-parameter boundary.  It is superseded below by the
+implemented four-parameter campaign runner; its fixed settling and validity
+gates remain mandatory.
 
 ### Loaded Contact Diagnostic (2026-08-17)
 
@@ -490,7 +486,7 @@ Chrono SCM source is
 ```text
 SCM grid / timestep: 10 mm, 121 x 121 / 0.5 ms (not smoke)
 loaded termination: equilibrium
-Chrono pose sinkage: 19.232 mm
+Chrono body descent from its 20 mm starting clearance: 19.232 mm
 loaded linear / angular speed: 0.237 mm/s / 0.00343 rad/s
 ```
 
@@ -516,13 +512,179 @@ most-negative loaded deformation: Chrono -5.556 mm; Genesis -0.086 mm
 ```
 
 Thus the integration, complete-state restoration, CPIC configuration, and
-Chrono removal semantics all work on the production SCM grid.  Do **not**
-start BayesOpt from this single point: Genesis is materially too stiff/weakly
-deforming for the resolved Chrono map, and the source's pose-sinkage versus
-heightmap convention must be fixed as part of the loss definition.  The next
-valid calibration step is a small, fixed-protocol `(log10_E, phi)` bracket that
-increases Genesis deformation while retaining this exact prepared state,
-particle/grid resolution, action, and common 10 mm grid.
+Chrono removal semantics all work on the production SCM grid.  The fixed
+20 mm state is a pre-fit reference, not an optimization result: Genesis is
+materially too stiff/weakly deforming for the resolved Chrono map.  The
+implemented four-parameter runner below uses heightmap deformation rather than
+the pose-descent convention as its loss.
+
+In particular, the `19.232 mm` pose descent must not be called surface
+sinkage: the action starts the cylinder bottom `20 mm` above the bed, so this
+quantity mostly measures clearance closure.  The BayesOpt target is the masked
+heightmap deformation (currently up to `5.556 mm` downward on the common
+grid), not this pose-derived value.
+
+The canonical visualization/export bundle for that fixed BayesOpt target is
+`../tera_splat_sim/validity_experiment/bayesopt_target/A0_cal_full10mm`.
+It contains a viridis initial/loaded/residual Chrono DEM (absolute elevation
+and depression from initial), 14,161-point common-grid SCM and Genesis PCDs,
+raw Genesis MPM-particle PCDs, and native 10 mm surface meshes.  The paired
+5 mm meshes are display-only cubic interpolation, not additional simulation
+resolution.  Use the native SCM `loaded` and `residual` PCD/mesh or the source
+heightmaps as the objective data; the Genesis files in the same bundle are the
+current pre-fit baseline for visual comparison only.
+
+### Four-Parameter W&B BayesOpt Runner (2026-08-18)
+
+Stage-1 prepared-bed failures, their evidence, and the corrective plan are
+maintained in [Experiment Problems And Corrective Plan](experiment_problems.md).
+Resolve that document's mass/volume and surface-support diagnostics before
+spending another response-optimization budget.
+
+`scripts/run_chrono_genesis_bayesopt.py` implements a validity-gated W&B
+Bayesian campaign for the canonical 1.5 kg, 10 mm A0 Chrono target.  It does
+not run a campaign merely by being added; evaluating a study remains an
+explicit command.  The dimensions are:
+
+```text
+log10_E:                continuous [4, 6]
+phi_deg:                continuous [15, 45]
+particle_spacing_m:     categorical [0.0125, 0.015, 0.020, 0.025]
+particle_size_ratio:    categorical [0.75, 0.85, 1.00]
+particle_size_m:        derived as spacing * ratio
+```
+
+The broad spacing proposal was experimentally narrowed after the first
+50-attempt continuation: every 15 mm or 25 mm candidate failed the
+prepared-bed acceptance gate.  The active optimization family is therefore
+the accepted conditional set `{12.5 mm, ratio 1.0}` and `{20 mm, ratio
+0.75/0.85/1.0}`.  This still varies separation and size, but does not spend
+the objective budget on demonstrated-invalid lattice pairs.
+
+For each candidate the runner writes a resolved material config, rebuilds a
+new metric bed at the proposed spacing/size, requires its existing complete
+state and H0 acceptance gate, restores that state for the bridge rollout, and
+requires loaded and post-removal equilibrium.  It then minimizes the masked
+deformation loss
+`loaded_RMSE + 0.5 * residual_RMSE` on the common Chrono/Genesis grid.  A
+rejected bed, non-equilibrium phase, missing support, or exception is logged as
+`valid=0` and deliberately does **not** report `objective/m`, so W&B does not
+treat it as a Bayesian observation.  The default loaded/post windows are
+`1.0 / 1.0 s`: the earlier `0.25 s` smoke-oriented window is insufficient for
+the established full-resolution loaded baseline (which settled at `0.693 s`).
+
+Each `--count N` invocation creates **one** W&B study run, not W&B's native
+agent/sweep child runs.  Its history uses `iteration` as the x-axis and logs
+the sampled/derived parameters and metrics at that iteration.  After three
+valid observations, a fixed-kernel Gaussian-process expected-improvement
+proposal selects the next candidate; the first samples are deterministic and
+start with the known accepted 20 mm baseline.  The study additionally records
+pre-settle speed/surface-match gates,
+phase reasons, common-mask fraction, and per-phase DEM difference RMSE, MAE,
+signed mean, signed extrema, and p05/p95.  Every completed bridge persists
+masked `loaded_dem_difference_m.npy`, `residual_dem_difference_m.npy`, and
+`common_valid_mask.npy` beside its result; a non-equilibrium bridge logs those
+diagnostics but has `valid=0` and no objective.  The runner never reads an API
+key; `wandb.init()` uses the normal W&B environment lookup when launched in an
+authenticated shell.
+
+The requested heterogeneous lower-layer random XY noise is intentionally
+excluded.  It would change the model family and must be introduced later as a
+versioned, seeded fifth parameter with a separate baseline.
+
+Initialize the W&B connection only (no candidate and no sweep) with:
+
+```bash
+PYTHONNOUSERSITE=1 conda run -n tsplat python scripts/run_chrono_genesis_bayesopt.py \
+  --wandb-init-only --project chrono-genesis-bayesopt
+```
+
+After reviewing that connection, create and run one sequential Bayesian study
+with `--count N`; use `--run-one` with the four parameter flags for a single
+reproducible bracket point.  Outputs are isolated under
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d/study_<wandb-run-id>`.
+
+The first diagnostic-enabled campaign was launched on 2026-08-18.  Its first
+completed bridge (`hehgf7cn`) used `log10_E=4.93262`, `phi=33.329 deg`,
+`20 mm` spacing, and a `0.85` particle-size ratio (`17 mm`).  It had full
+common-mask support (14,161 cells) and logged loaded/residual DEM RMSE of
+`0.174 / 0.267 mm`, respectively, but the post-removal phase timed out.  It is
+therefore a `valid=0` DEM diagnostic, not a Bayesian objective observation.
+
+After the W&B credential was refreshed, a clean known-baseline verification
+(`tspto9v2`) synced successfully.  The earlier native W&B agent sweep was
+stopped and superseded because it created one remote run per candidate rather
+than the required one-study iteration history.
+It used the accepted 20 mm, `E=100 kPa`, `phi=45 deg` state, reached
+equilibrium in loaded and post-removal phases, had all 14,161 common cells,
+and reported `objective/m = 0.405 mm` (loaded/residual RMSE `0.269 / 0.272
+mm`).  Its W&B run history contains the requested `dem/*` metrics and the
+masked difference arrays live under
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d_clean/trials/tspto9v2/bridge`.
+
+The replacement single W&B study `dooqrbdl` completed its eight iterations,
+with its candidate directories under
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d_clean/study_dooqrbdl`.
+Its one W&B run uses `iteration` as the history step; it does not create a
+candidate-level W&B run for each directory.
+
+Five of the eight candidates were fully valid.  The current best is iteration
+2: `log10_E=5.5` (`316.228 kPa`), `phi=18.333 deg`, `20 mm` spacing, and a
+`0.85` size ratio (`17 mm`).  Its objective is `0.2607 mm`, composed of
+loaded/residual DEM RMSE `0.1496 / 0.2223 mm`; this improves on the accepted
+baseline's `0.4055 mm` objective.  This is **not convergence**: three trials
+were invalid and only two expected-improvement proposals followed the three
+valid bootstrap observations.  Treat it as the incumbent for a longer
+single-study continuation, not a final calibrated parameter estimate.
+
+The study runner prints a flushed line at study start, every iteration start,
+and every iteration completion (valid objective or invalid reason).  The live
+study also has a `bayesopt:status` tmux window that refreshes the completed
+iteration count every five seconds without reading credentials.
+
+The first proper-continuation attempt, single W&B study `ulik6isa`, imported
+the five pilot valid observations but exhausted its 50-new-attempt safety cap
+with only three new valid candidates.  Its unconstrained proposal repeatedly
+selected the 15 mm and 25 mm lattice pairs that fail the prepared-bed gate, so
+it is feasibility evidence rather than the final calibration study.  Its data
+is under
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d_proper/study_ulik6isa`.
+The active replacement proper study is single W&B run `899hahhc` under
+`outputs/validity_experiment/bayesopt/A0_cal_full10mm_4d_proper_feasible/study_899hahhc`.
+It imports all eight valid pilot/feasibility results and targets 30 valid
+objectives using only the accepted particle family, with a 35-new-attempt cap.
+It completed that cap with only two new valid candidates (10 valid total), so
+it **stopped without convergence**.  The accepted particle pair alone is not
+a sufficient feasibility constraint across all sampled `E`/`phi` values;
+future work needs an explicit feasibility model or a separately validated
+material--particle feasible region before spending another objective budget.
+The incumbent remains the prior `0.25765 mm` objective at `E=361.942 kPa`,
+`phi=17.787 deg`, 20 mm spacing, and 0.85 size ratio.
+
+### Oracle-Only Drop Visualization (2026-08-18)
+
+`../tera_splat_sim/validity_experiment/visualizations/A0_oracle_6kg_2mm_smoke_drop_dem.mp4`
+is an 11.25 s side-by-side render of a 6 kg cylinder released from a 2 mm
+clearance: captured Chrono cylinder motion/cross-section at left and the
+measured SCM `current - initial` deformation at right.  It uses 45 actual SCM
+heightmap captures from the associated episode, not interpolated DEM frames.
+
+This is explicitly an **oracle visualization only**: it uses the 40 mm smoke
+grid, and its 0.6 s loaded phase timed out rather than satisfying the
+equilibrium gate.  Its masked loaded deformation reaches `13.634 mm` downward.
+It is useful for communicating the altered synthetic action, but is not a
+BayesOpt target or a physical-realism claim.
+
+The completed production counterpart is
+`../tera_splat_sim/validity_experiment/visualizations/A0_oracle_6kg_2mm_full10mm_drop_dem.mp4`.
+It uses a 6 kg cylinder, 2 mm clearance, 10 mm SCM grid, 0.5 ms timestep, and
+34 actual terrain captures.  Chrono reached loaded equilibrium at `0.300 s`
+with linear / angular speed `0.080 mm/s / 0.00266 rad/s`; the video is 8.5 s
+and its masked loaded deformation reaches `9.897 mm` downward.  Unlike the
+smoke visualization, this is a candidate synthetic-oracle BayesOpt target,
+but it still requires a deterministic repeat and a separately frozen oracle
+action contract before it enters any optimization campaign.  It must remain
+separate from the 1.5 kg real-protocol target.
 
 ### Rigid-Body Check
 
