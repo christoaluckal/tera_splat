@@ -985,3 +985,192 @@ Chrono residual semantics must also be made explicit: compare at the same fixed
 post-removal observation time if the oracle residual is time-defined, or require
 matched equilibrium if it is settle-defined. Do not launch another calibration
 sweep until this convention and the production post-removal window are frozen.
+
+
+#### Post-Removal Settling Diagnostic Results (2026-08-24)
+
+Implemented the fixed-time checkpoint path in
+`run_mass_controlled_terrain.py` and threaded it through
+`run_chrono_genesis_bridge.py`. When `--post-observation-times` is supplied,
+the runner no longer exits at the first equilibrium window: it runs the full
+requested horizon and writes particle checkpoints, p50/p90/p95/p99 speeds,
+first equilibrium time, projected residual heightmaps, residual DEM changes,
+and the BayesOpt-consistent objective at each observation time.
+
+A CUDA diagnostic used the frozen 20 mm CPIC prepared bed, candidate-consistent
+stress reconstruction, `remove_body`, 1 s loaded settling, and fixed
+post-removal observations at 1.0, 1.5, 2.0, and 3.0 s. All four cases completed:
+
+| candidate | first 20 ms equilibrium | p99 at 1.0 s | p99 at 2.0 s |
+| --- | ---: | ---: | ---: |
+| `log10_E=5.0, phi=45` | 0.091 s | 0.083 mm/s | 0.074 mm/s |
+| `log10_E=4.5, phi=35` | 0.994 s | 0.475 mm/s | 0.111 mm/s |
+| `log10_E=4.2223, phi=30.537` | 1.122 s | 0.583 mm/s | 0.167 mm/s |
+| `log10_E=4.2436, phi=30.096` | 1.118 s | 0.591 mm/s | 0.150 mm/s |
+
+The two former 1 s timeouts cross the original 0.5 mm/s p99 gate only about
+0.12 s later. This rules out the removal mechanism as the explanation for
+those failures: there was no broad velocity spike, all loaded phases had
+already equilibrated, and both cases decay smoothly below the same gate. A
+post-removal cap of at least 1.5 s admits all four representatives; 2 s is a
+conservative **Genesis feasibility cap**, not yet an oracle-matching sample
+time.
+
+The residual is not perfectly time-invariant after the speed gate. Across the
+1.5--2.0 s and 2.0--3.0 s intervals, residual DEM RMSE changes were about
+23--63 micrometres for the three slower cases, and their objective changed by
+roughly 12--23 micrometres between 2 and 3 s. Therefore do **not** mix residuals
+sampled at arbitrary first-equilibrium times with a fixed-time Chrono oracle.
+
+Inspection of the Chrono exporter confirms that it samples the residual after
+a fixed `residual_settle_s` recovery loop following `system.Remove(cylinder)`;
+it is not a first-equilibrium target. The `A0_cal_full10mm` manifest fails to
+record that duration or post-removal snapshots. The exporter default is 0.5 s,
+but this artifact may have been generated with an override, so the correct
+oracle time cannot be inferred retrospectively. Before the next BayesOpt sweep,
+re-export the canonical Chrono episode with `residual_settle_s` and the
+post-removal sampling times stored in its manifest (and preferably snapshots at
+those times), then evaluate every Genesis candidate at that same fixed time.
+Do not use a 2 s Genesis residual against the present oracle merely because it
+passes the Genesis speed gate.
+
+
+A direct deterministic re-export probe was attempted in the mandated
+`chrono_splat` environment to recover the current A0 oracle time. The
+environment initially lacked PyChrono; installing Conda-forge `pychrono` 10.0
+provided `pychrono.core` but not `pychrono.vehicle`, which this SCM exporter
+imports. The probe is therefore blocked until a PyChrono build with vehicle
+bindings is installed in `chrono_splat`; do not substitute a different
+environment for this instrumentation.
+
+
+#### Action-Footprint Residual Mismatch and Objective Correction (2026-08-24)
+
+A fresh online W&B study (`9mo0cztm`) evaluated 45 candidates with the frozen
+prepared bed, candidate-consistent stress initialization, no imported
+pre-fix/1 s observations, and a 2 s post-removal cap. Nine candidates produced
+strict valid objectives. This removes the old artificial 1 s post-removal
+cutoff as the dominant invalidation path, but it does **not** establish a
+physically correct residual surface.
+
+The study-best valid candidate was iteration 007:
+`E=53.424 kPa`, `phi=37.919 deg`, objective `0.330 mm`; it reached loaded and
+post-removal equilibrium at `0.602 s` and `0.655 s`, respectively. Its
+isometric comparison is at
+`outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_post2s_online/study_9mo0cztm/trials/iteration_007/bridge/chrono_genesis_residual_isometric.png`.
+
+That comparison exposed a localized wrong-sign residual beneath the known
+cylinder footprint: Chrono has a mean residual vertical displacement of
+`-1.754 mm` (depression; minimum `-5.556 mm`) over 177 valid 10 mm cells,
+whereas the actual Genesis residual surface-particle cloud has a mean
+`+0.479 mm` (elevation; range `+0.150` to `+1.241 mm`) over its 45 footprint
+particles. This is not a colormap reversal. The current objective nevertheless
+ranked it best because it averages residual error over all 14,161 valid cells,
+most of which are nearly unchanged and dilute the localized sign error.
+
+Do not add a feasibility classifier or a new physical search parameter for
+this. Correct the measurement definition first. For the residual objective,
+compare deformation rather than absolute height, restricted to the action
+footprint whose radius is already specified by `action.json`:
+
+```text
+DeltaH = H_residual - H0
+L_residual = RMSE_{distance_to_action_center <= action_radius}(
+    DeltaH_Genesis - DeltaH_Chrono
+)
+```
+
+The radius is a fixed property of the prescribed Chrono action, not a new
+hyperparameter. Retain whole-bed RMSE only as a diagnostic. First re-score the
+45 completed candidates using this footprint loss. If any valid candidate
+already creates a Chrono-signed depression, seed a new 2D (`E`, `phi`) BayesOpt
+study with this corrected residual loss. If none does, the issue is not a
+search initialization or a GP classifier: the current Genesis sand/contact
+response cannot create the required permanent compaction, and the next change
+must be to that physical response. A future time-matched Chrono residual is
+still needed for formal calibration, but the unknown oracle time does not
+justify accepting the opposite localized residual sign.
+
+
+The nine valid results from the preceding 45-candidate study were re-scored
+without rerunning physics. The action-footprint score selected iteration 003
+(`E=16.685 kPa`, `phi=30.537 deg`) at `1.473 mm`, versus `1.610 mm` for the
+prior global-RMSE best. Crucially, iteration 003 has a negative Genesis mean
+residual deformation under the action footprint (`-0.164 mm`), so the frozen
+2D material range can at least produce the required depression sign even though
+it remains much shallower than Chrono. A fresh unseeded 45-candidate W&B study
+`lmdf5fqe` now optimizes the action-footprint residual term with the same
+frozen initialization and 2 s post-removal cap. Historical global-loss
+observations are deliberately not imported.
+
+
+The footprint-loss study completed all 45 attempts with 30 strict valid
+objectives. Its best candidate was iteration 042,
+`E=91.096 kPa`, `phi=15.053 deg`, with footprint-loss objective `0.867 mm`,
+footprint residual RMSE `1.292 mm`, and whole-grid residual RMSE `0.157 mm`.
+The isometric residual comparison is at
+`outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_footprint_online/study_lmdf5fqe/trials/iteration_042/bridge/chrono_genesis_residual_isometric.png`.
+
+Most importantly, its actual Genesis surface-particle cloud now has a mean
+residual displacement of `-1.426 mm` under the cylinder footprint (range
+`-2.150` to `-0.668 mm`), compared with Chrono’s `-1.754 mm` mean and
+`-5.556 mm` minimum. The corrected measurement therefore fixed the prior
+wrong-sign selection: the 2D Genesis range can create a residual depression,
+so a classifier or immediate constitutive-model expansion is not required.
+
+The optimum lies at the lower friction boundary (`15 deg`) across the leading
+candidates. Treat this as a boundary diagnostic, not proof that 15 degrees is
+the calibrated value. The next decision is whether a lower friction range is
+physically defensible for this Genesis representation; if so, extend only that
+existing bound and repeat the footprint-loss study. Otherwise, freeze the
+current bound and investigate the remaining spatial-shape/depth error at a
+Chrono-matched residual time.
+
+
+An expanded unseeded 45-candidate study (`zwz8qbj6`) then used friction
+`5--45 deg` and added Poisson ratio `nu=0.10--0.35`; geometry, frozen H0,
+stress preparation, footprint loss, and the 2 s cap were unchanged. It yielded
+7 valid objectives. Its best candidate was iteration 002:
+`E=316.228 kPa`, `phi=9.444 deg`, `nu=0.250`, objective `0.775 mm`, footprint
+residual RMSE `1.178 mm`, and whole-grid residual RMSE `0.176 mm`. Relative to
+the preceding 2D best, the footprint objective improved from `0.867` to
+`0.775 mm` (about 11%) and footprint RMSE from `1.292` to `1.178 mm` (about
+9%).
+
+The improvement is physically meaningful, not only metric movement: the
+Genesis surface-particle footprint mean is now `-1.681 mm`, within `0.073 mm`
+of Chrono’s `-1.754 mm` mean. Its deepest point remains too shallow
+(`-2.845 mm` versus Chrono `-5.556 mm`), so the remaining problem is the
+localized shape/depth rather than residual sign or mean level. The leading
+friction (`9.444 deg`) is no longer at the expanded lower bound, while `nu=0.25`
+is interior; neither bound alone currently justifies another expansion. The
+broader space sharply reduced strict validity (7/45 versus 30/45), mostly by
+introducing material combinations that fail loaded settling. Treat the current
+best as the evidence-backed starting point; before broadening again, inspect
+its localized deformation profile and enforce the Chrono residual-time match.
+
+### Candidate Initial-State Stability Gate (2026-08-25)
+
+Every future Genesis bridge candidate now receives a separate no-action
+initial-state test after its candidate-consistent geostatic preparation and
+before cylinder placement. The test restores that prepared candidate state,
+holds it under gravity for a fixed 0.25 s with the cylinder held away from the
+bed, and compares projected start/end surfaces on the Chrono-valid 10 mm grid.
+It records signed change (positive means upward rebound) plus RMSE and maximum
+absolute change. Candidates are rejected if the drift exceeds 0.5 mm RMSE or
+1.0 mm at any common cell. These are fixed validity gates, not BayesOpt
+parameters. The raw hold-state PLYs and values are retained under
+bridge/candidate_initial_hold_raw and bridge/manifest.json, and are logged
+to W&B as candidate_init/no_action_stability_*.
+
+The current expanded-study best (iteration 002, E=316.228 kPa, phi=9.444 deg,
+nu=0.25) was checked with this exact 0.25 s no-action hold. It reached the
+equilibrium speed condition and changed by 0.020 mm surface RMSE, 0.052 mm
+maximum absolute change, and +0.020 mm mean signed change over all 14,161
+Chrono-valid cells. Thus it has a very small upward drift, not a meaningful
+initial-state rebound; it passes the 0.5 mm RMSE and 1.0 mm maximum gates.
+The reproducible raw PLYs, projected difference, and metrics are at
+outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_footprint_phi5_nu_online/study_zwz8qbj6/trials/iteration_002/bridge/candidate_initial_hold_check_0p25s/.
+
+Diagnostic artifacts are under
+`outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_postremoval_diagnostic/`.

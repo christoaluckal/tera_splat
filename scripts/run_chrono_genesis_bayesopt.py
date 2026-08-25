@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +35,10 @@ PARTICLE_CHOICES = (
     (0.020, 0.85),
     (0.020, 1.00),
 )
+PHI_MIN_DEG = 5.0
+PHI_MAX_DEG = 45.0
+NU_MIN = 0.10
+NU_MAX = 0.35
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,14 +68,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--wandb-init-only", action="store_true", help="Authenticate through wandb.init(), log no trial, and exit.")
     parser.add_argument("--log10-e", type=float, default=5.0, help="Used only with --run-one.")
     parser.add_argument("--phi-deg", type=float, default=30.0, help="Used only with --run-one.")
+    parser.add_argument("--nu", type=float, default=0.20, help="Poisson ratio; used only with --run-one.")
+    parser.add_argument("--phi-min-deg", type=float, default=5.0, help="Lower friction-angle bound for sweep proposals.")
+    parser.add_argument("--phi-max-deg", type=float, default=45.0, help="Upper friction-angle bound for sweep proposals.")
+    parser.add_argument("--nu-min", type=float, default=0.10, help="Lower Poisson-ratio bound for sweep proposals.")
+    parser.add_argument("--nu-max", type=float, default=0.35, help="Upper Poisson-ratio bound for sweep proposals.")
     parser.add_argument("--particle-spacing-m", type=float, default=0.020, help="Used only with --run-one.")
     parser.add_argument("--particle-size-ratio", type=float, default=1.0, help="Particle size / spacing; used only with --run-one.")
     parser.add_argument("--bed-depth-m", type=float, default=0.10)
     parser.add_argument("--pre-settle-max-time", type=float, default=2.0)
     parser.add_argument("--pre-settle-required-duration", type=float, default=0.02)
     parser.add_argument("--pre-settle-particle-speed-threshold", type=float, default=5.0e-4)
+    parser.add_argument("--candidate-initial-hold-time", type=float, default=0.25, help="No-action Genesis initial-state stability hold before each cylinder rollout.")
+    parser.add_argument("--candidate-initial-hold-rmse-tolerance", type=float, default=5.0e-4)
+    parser.add_argument("--candidate-initial-hold-max-abs-tolerance", type=float, default=1.0e-3)
     parser.add_argument("--loaded-max-time", type=float, default=1.0)
-    parser.add_argument("--post-max-time", type=float, default=1.0)
+    parser.add_argument("--post-max-time", type=float, default=2.0, help="Post-removal equilibrium cap; 2 s avoids the verified 1 s borderline timeout region.")
     parser.add_argument("--required-duration", type=float, default=0.02)
     parser.add_argument("--residual-weight", type=float, default=0.5)
     parser.add_argument("--minimum-common-valid-fraction", type=float, default=0.95)
@@ -100,13 +113,16 @@ def candidate_from_mapping(values: dict[str, Any]) -> dict[str, float]:
     candidate = {
         "log10_E": float(values["log10_E"]),
         "phi_deg": float(values["phi_deg"]),
+        "nu": float(values.get("nu", 0.20)),
         "particle_spacing_m": float(values["particle_spacing_m"]),
         "particle_size_ratio": float(values["particle_size_ratio"]),
     }
     if not 4.0 <= candidate["log10_E"] <= 6.0:
         raise ValueError("log10_E must lie in [4, 6]")
-    if not 15.0 <= candidate["phi_deg"] <= 45.0:
-        raise ValueError("phi_deg must lie in [15, 45]")
+    if not PHI_MIN_DEG <= candidate["phi_deg"] <= PHI_MAX_DEG:
+        raise ValueError(f"phi_deg must lie in [{PHI_MIN_DEG}, {PHI_MAX_DEG}]")
+    if not NU_MIN <= candidate["nu"] <= NU_MAX:
+        raise ValueError(f"nu must lie in [{NU_MIN}, {NU_MAX}]")
     if candidate["particle_spacing_m"] <= 0.0 or candidate["particle_size_ratio"] <= 0.0:
         raise ValueError("particle spacing and size ratio must be positive")
     candidate["E_pa"] = 10.0 ** candidate["log10_E"]
@@ -133,6 +149,7 @@ def log_stage(
         "params/log10_E": candidate["log10_E"],
         "params/E_pa": candidate["E_pa"],
         "params/phi_deg": candidate["phi_deg"],
+        "params/nu": candidate["nu"],
         "params/particle_spacing_m": candidate["particle_spacing_m"],
         "params/particle_size_ratio": candidate["particle_size_ratio"],
         "params/particle_size_m": candidate["particle_size_m"],
@@ -158,6 +175,25 @@ def load_target(episode_dir: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, 
     if initial.shape != loaded.shape or initial.shape != residual.shape or initial.shape != valid.shape:
         raise ValueError("Chrono target heightmaps and valid mask have inconsistent shapes")
     return initial, loaded, residual, valid
+
+
+def action_footprint_mask(episode_dir: Path, shape: tuple[int, ...]) -> np.ndarray:
+    """Grid cells beneath the prescribed Chrono action; not an optimized parameter."""
+    with (episode_dir / "manifest.yaml").open(encoding="utf-8") as file:
+        manifest = yaml.safe_load(file)
+    with (episode_dir / "action.json").open(encoding="utf-8") as file:
+        action = json.load(file)
+    heightmap = manifest["heightmap"]
+    if tuple(heightmap["shape"]) != shape:
+        raise ValueError("Chrono action footprint does not match target grid")
+    spacing = float(heightmap["spacing_m"])
+    origin_x, origin_y = (float(value) for value in heightmap["origin_xy_m"])
+    rows, cols = shape
+    xs = origin_x + np.arange(cols) * spacing
+    ys = origin_y + np.arange(rows) * spacing
+    grid_x, grid_y = np.meshgrid(xs, ys, indexing="xy")
+    center_x, center_y = (float(value) for value in action["center_xy_m"])
+    return (grid_x - center_x) ** 2 + (grid_y - center_y) ** 2 <= float(action["radius_m"]) ** 2
 
 
 def dem_error_metrics(error_map: np.ndarray, valid: np.ndarray, phase: str, output_dir: Path) -> dict[str, float]:
@@ -196,12 +232,19 @@ def compute_loss(episode_dir: Path, bridge_dir: Path, minimum_fraction: float, r
     np.save(bridge_dir / "common_valid_mask.npy", valid)
     loaded_metrics = dem_error_metrics(loaded_error, valid, "loaded", bridge_dir)
     residual_metrics = dem_error_metrics(residual_error, valid, "residual", bridge_dir)
+    footprint_valid = valid & action_footprint_mask(episode_dir, chrono_initial.shape)
+    footprint_cells = int(np.count_nonzero(footprint_valid))
+    if footprint_cells == 0:
+        raise ValueError("no common valid cells fall under the Chrono action footprint")
+    footprint_metrics = dem_error_metrics(residual_error, footprint_valid, "residual_footprint", bridge_dir)
     return {
-        "objective_m": loaded_metrics["loaded_rmse_m"] + residual_weight * residual_metrics["residual_rmse_m"],
+        "objective_m": loaded_metrics["loaded_rmse_m"] + residual_weight * footprint_metrics["residual_footprint_rmse_m"],
         "common_valid_cells": common_cells,
         "common_valid_fraction": fraction,
+        "residual_footprint_cells": footprint_cells,
         **loaded_metrics,
         **residual_metrics,
+        **footprint_metrics,
     }
 
 
@@ -227,6 +270,7 @@ def evaluate_candidate(
         material_config = json.loads(args.base_config.read_text(encoding="utf-8"))
         material_config["E"] = candidate["E_pa"]
         material_config["friction_angle"] = candidate["phi_deg"]
+        material_config["nu"] = candidate["nu"]
         material_config_path = trial_dir / "material_config.json"
         material_config_path.write_text(json.dumps(material_config, indent=2) + "\n", encoding="utf-8")
         (trial_dir / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
@@ -265,6 +309,9 @@ def evaluate_candidate(
             "--candidate-pre-settle-max-time", str(args.pre_settle_max_time),
             "--candidate-pre-settle-required-duration", str(args.pre_settle_required_duration),
             "--candidate-pre-settle-speed-threshold", str(args.pre_settle_particle_speed_threshold),
+            "--candidate-initial-hold-time", str(args.candidate_initial_hold_time),
+            "--candidate-initial-hold-rmse-tolerance", str(args.candidate_initial_hold_rmse_tolerance),
+            "--candidate-initial-hold-max-abs-tolerance", str(args.candidate_initial_hold_max_abs_tolerance),
         ]
         run_command(bridge_command)
         bridge_manifest = json.loads((bridge_dir / "manifest.json").read_text(encoding="utf-8"))
@@ -274,6 +321,9 @@ def evaluate_candidate(
             "candidate_init/h0_max_abs_m": candidate_initialization["h0_max_abs_m"],
             "candidate_init/h0_valid_cells": candidate_initialization["h0_valid_cells"],
             "candidate_init/speed_threshold_mps": candidate_initialization["speed_threshold_mps"],
+            "candidate_init/no_action_hold_time_s": candidate_initialization["no_action_stability"]["hold_time_s"],
+            "candidate_init/no_action_stability_rmse_m": candidate_initialization["no_action_stability"].get("surface_change_rmse_m", float("nan")),
+            "candidate_init/no_action_stability_max_abs_m": candidate_initialization["no_action_stability"].get("surface_change_max_abs_m", float("nan")),
         }
         reasons = phase_reasons(bridge_dir / "genesis_raw" / "phase_summary.csv")
         loss = compute_loss(args.chrono_episode.resolve(), bridge_dir, args.minimum_common_valid_fraction, args.residual_weight)
@@ -327,6 +377,8 @@ def evaluate_candidate(
                 "diagnostic/objective_m": loss["objective_m"],
                 "loss/loaded_rmse_m": loss["loaded_rmse_m"],
                 "loss/residual_rmse_m": loss["residual_rmse_m"],
+                "loss/residual_footprint_rmse_m": loss["residual_footprint_rmse_m"],
+                "loss/residual_footprint_cells": loss["residual_footprint_cells"],
                 "loss/common_valid_fraction": loss["common_valid_fraction"],
                 "loss/common_valid_cells": loss["common_valid_cells"],
                 **dem_payload,
@@ -357,12 +409,13 @@ def halton(index: int, base: int) -> float:
 def bootstrap_candidate(iteration: int) -> dict[str, float]:
     """A deterministic, space-filling start that begins at the known valid point."""
     if iteration == 0:
-        return {"log10_E": 5.0, "phi_deg": 45.0, "particle_spacing_m": 0.020, "particle_size_ratio": 1.0}
+        return {"log10_E": 5.0, "phi_deg": PHI_MAX_DEG, "nu": 0.20, "particle_spacing_m": 0.020, "particle_size_ratio": 1.0}
     index = iteration + 1
     return {
         "log10_E": 4.0 + 2.0 * halton(index, 2),
-        "phi_deg": 15.0 + 30.0 * halton(index, 3),
-        "particle_spacing_m": PARTICLE_CHOICES[min(int(halton(index, 5) * len(PARTICLE_CHOICES)), len(PARTICLE_CHOICES) - 1)][0],
+        "phi_deg": PHI_MIN_DEG + (PHI_MAX_DEG - PHI_MIN_DEG) * halton(index, 3),
+        "nu": NU_MIN + (NU_MAX - NU_MIN) * halton(index, 5),
+        "particle_spacing_m": PARTICLE_CHOICES[min(int(halton(index, 7) * len(PARTICLE_CHOICES)), len(PARTICLE_CHOICES) - 1)][0],
         "particle_size_ratio": PARTICLE_CHOICES[min(int(halton(index, 5) * len(PARTICLE_CHOICES)), len(PARTICLE_CHOICES) - 1)][1],
     }
 
@@ -371,7 +424,8 @@ def candidate_vector(candidate: dict[str, float]) -> np.ndarray:
     return np.asarray(
         [
             (candidate["log10_E"] - 4.0) / 2.0,
-            (candidate["phi_deg"] - 15.0) / 30.0,
+            (candidate["phi_deg"] - PHI_MIN_DEG) / (PHI_MAX_DEG - PHI_MIN_DEG),
+            (candidate["nu"] - NU_MIN) / (NU_MAX - NU_MIN),
             SPACING_CHOICES_M.index(candidate["particle_spacing_m"]) / max(len(SPACING_CHOICES_M) - 1, 1),
             SIZE_RATIO_CHOICES.index(candidate["particle_size_ratio"]) / max(len(SIZE_RATIO_CHOICES) - 1, 1),
         ],
@@ -389,7 +443,8 @@ def propose_candidate(iteration: int, observations: list[tuple[dict[str, float],
         pool.append(
             {
                 "log10_E": float(rng.uniform(4.0, 6.0)),
-                "phi_deg": float(rng.uniform(15.0, 45.0)),
+                "phi_deg": float(rng.uniform(PHI_MIN_DEG, PHI_MAX_DEG)),
+                "nu": float(rng.uniform(NU_MIN, NU_MAX)),
                 "particle_spacing_m": spacing,
                 "particle_size_ratio": size_ratio,
             }
@@ -444,6 +499,7 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
             "target_valid_count": target_valid_count,
             "seed_valid_count": len(seed_results),
             "seed_study_dirs": [str(seed_dir.resolve()) for seed_dir in args.seed_study_dir],
+            "search_space": {"log10_E": [4.0, 6.0], "phi_deg": [PHI_MIN_DEG, PHI_MAX_DEG], "nu": [NU_MIN, NU_MAX]},
         },
         allow_val_change=True,
     )
@@ -512,6 +568,7 @@ def run_one(args: argparse.Namespace, wandb: Any) -> None:
     candidate = {
         "log10_E": args.log10_e,
         "phi_deg": args.phi_deg,
+        "nu": args.nu,
         "particle_spacing_m": args.particle_spacing_m,
         "particle_size_ratio": args.particle_size_ratio,
     }
@@ -553,7 +610,13 @@ def main() -> None:
         raise SystemExit("BayesOpt requires an accepted frozen prepared bed")
     spacing = float(prepared_manifest["metric_bed"]["particle_spacing_m"])
     size_ratio = float(prepared_manifest["settling"]["particle_size_m"]) / spacing
-    global SPACING_CHOICES_M, SIZE_RATIO_CHOICES, PARTICLE_CHOICES
+    if not 0.0 < args.phi_min_deg < args.phi_max_deg <= 90.0:
+        raise SystemExit("friction-angle bounds must satisfy 0 < min < max <= 90")
+    if not 0.0 < args.nu_min < args.nu_max < 0.5:
+        raise SystemExit("Poisson-ratio bounds must satisfy 0 < min < max < 0.5")
+    global SPACING_CHOICES_M, SIZE_RATIO_CHOICES, PARTICLE_CHOICES, PHI_MIN_DEG, PHI_MAX_DEG, NU_MIN, NU_MAX
+    PHI_MIN_DEG, PHI_MAX_DEG = args.phi_min_deg, args.phi_max_deg
+    NU_MIN, NU_MAX = args.nu_min, args.nu_max
     SPACING_CHOICES_M = (spacing,)
     SIZE_RATIO_CHOICES = (size_ratio,)
     PARTICLE_CHOICES = ((spacing, size_ratio),)

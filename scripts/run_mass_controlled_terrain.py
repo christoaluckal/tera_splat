@@ -85,6 +85,17 @@ def parse_args() -> argparse.Namespace:
         help="End after the released-cylinder loaded settle phase; diagnostic mode with no removal or residual claim.",
     )
     parser.add_argument("--post-max-time", type=float, default=0.25)
+    parser.add_argument(
+        "--post-observation-times",
+        type=float,
+        nargs="+",
+        default=None,
+        help=(
+            "Post-removal elapsed times at which to save particle checkpoints and diagnostics. "
+            "When supplied, the post-removal phase always runs through --post-max-time instead "
+            "of stopping at its first equilibrium window."
+        ),
+    )
     parser.add_argument("--required-duration", type=float, default=0.02)
     parser.add_argument("--cylinder-speed-threshold", type=float, default=5.0e-4)
     parser.add_argument("--particle-speed-threshold", type=float, default=5.0e-4)
@@ -139,6 +150,14 @@ def parse_args() -> argparse.Namespace:
         "--require-pre-settle",
         action="store_true",
         help="Abort before cylinder loading if the requested pre-settle phase does not reach equilibrium.",
+    )
+    parser.add_argument(
+        "--pre-settle-run-full-duration",
+        action="store_true",
+        help=(
+            "Continue the cylinder-free pre-settle phase through --pre-settle-max-time after "
+            "its first equilibrium window. This is used to test a restored initial state for drift or rebound."
+        ),
     )
     parser.add_argument(
         "--pre-settle-only",
@@ -391,7 +410,8 @@ def main() -> None:
                 stable_steps += 1
                 if stable_steps >= required_pre_settle_steps:
                     pre_settle_reason = "equilibrium"
-                    break
+                    if not args.pre_settle_run_full_duration:
+                        break
             else:
                 stable_steps = 0
         if args.require_pre_settle and pre_settle_reason != "equilibrium":
@@ -504,6 +524,53 @@ def main() -> None:
                 return "equilibrium", local_step + 1
         return "timeout", max_steps
 
+    def run_post_removal_diagnostic(max_time: float, hold_cylinder_z: float) -> tuple[str, int, float | None, list[dict]]:
+        """Run the complete requested post-removal horizon and save fixed-time observations."""
+        nonlocal step
+        requested_times = sorted({float(value) for value in (args.post_observation_times or ())})
+        if any(value <= 0.0 for value in requested_times):
+            raise ValueError("--post-observation-times must contain only positive times")
+        if requested_times and requested_times[-1] > max_time + 0.5 * args.dt:
+            raise ValueError("--post-max-time must cover every --post-observation-times value")
+
+        required_steps = max(1, int(np.ceil(args.required_duration / args.dt)))
+        max_steps = max(1, int(np.ceil(max_time / args.dt)))
+        post_start_step = step
+        stable_steps = 0
+        first_equilibrium_time: float | None = None
+        observations: list[dict] = []
+        next_observation = 0
+        for _ in range(max_steps):
+            cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), hold_cylinder_z), zero_velocity=True)
+            scene.step(update_visualizer=False, refresh_visualizer=False)
+            step += 1
+            record("post_removal", hold_cylinder_z)
+            maybe_save("post_removal")
+            latest = pose_rows[-1]
+            particle_ok = float(latest["particle_speed_pctl"]) <= args.particle_speed_threshold
+            stable_steps = stable_steps + 1 if particle_ok else 0
+            elapsed = (step - post_start_step) * args.dt
+            if first_equilibrium_time is None and stable_steps >= required_steps:
+                first_equilibrium_time = elapsed
+            while next_observation < len(requested_times) and elapsed + 1.0e-12 >= requested_times[next_observation]:
+                requested = requested_times[next_observation]
+                tag = f"{requested:.3f}s".replace(".", "p")
+                checkpoint_points = tensor_to_numpy(sand.get_particles_pos())
+                write_particle_ply(checkpoint_points, args.output_dir / f"particles_post_removal_{tag}_mpm.ply")
+                snapshot = {
+                    "requested_time_s": requested,
+                    "actual_time_s": elapsed,
+                    "step": step,
+                    "first_equilibrium_time_s": "" if first_equilibrium_time is None else first_equilibrium_time,
+                }
+                for percentile in diagnostic_percentiles:
+                    snapshot[f"particle_speed_p{percentile:g}"] = latest[f"particle_speed_p{percentile:g}"]
+                observations.append(snapshot)
+                next_observation += 1
+        if next_observation != len(requested_times):
+            raise RuntimeError("Post-removal diagnostic did not reach every requested observation time")
+        return ("equilibrium" if first_equilibrium_time is not None else "timeout"), max_steps, first_equilibrium_time, observations
+
     record("initial")
     loaded_reason, loaded_steps = run_until_settled("loaded", args.loaded_max_time, require_cylinder=True)
     loaded_points = tensor_to_numpy(sand.get_particles_pos())
@@ -583,7 +650,20 @@ def main() -> None:
             if target_z >= initial_center_z + args.removal_clearance - 1.0e-9:
                 break
         removed_center_z = float(pose_rows[-1]["z"])
-    post_reason, post_steps = run_until_settled("post_removal", args.post_max_time, require_cylinder=False, hold_cylinder_z=removed_center_z)
+    if args.post_observation_times:
+        post_reason, post_steps, post_first_equilibrium_time, post_observations = run_post_removal_diagnostic(
+            args.post_max_time,
+            removed_center_z,
+        )
+    else:
+        post_reason, post_steps = run_until_settled(
+            "post_removal",
+            args.post_max_time,
+            require_cylinder=False,
+            hold_cylinder_z=removed_center_z,
+        )
+        post_first_equilibrium_time = post_steps * args.dt if post_reason == "equilibrium" else None
+        post_observations = []
     maybe_save("final", force=True)
     final_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(final_points, args.output_dir / "particles_final_mpm.ply")
@@ -600,6 +680,7 @@ def main() -> None:
         ]
     )
     write_phase_csv(args.output_dir / "phase_summary.csv", phase_rows)
+    write_phase_csv(args.output_dir / "post_removal_observations.csv", post_observations)
 
     rows = [
         ("status", "completed", ""),
@@ -642,6 +723,8 @@ def main() -> None:
         ("post_removal_termination_reason", post_reason, ""),
         ("post_removal_steps", post_steps, "count"),
         ("post_removal_duration", post_steps * args.dt, "seconds"),
+        ("post_removal_first_equilibrium_time", "" if post_first_equilibrium_time is None else post_first_equilibrium_time, "seconds"),
+        ("post_removal_observation_times", "" if not args.post_observation_times else ";".join(str(value) for value in args.post_observation_times), "seconds"),
         ("final_depth", "" if args.removal_mode == "remove_body" else initial_center_z - float(pose_rows[-1]["z"]), "meters"),
         ("final_depth_meaningful", args.removal_mode != "remove_body", ""),
         ("complete_state_restore", args.initial_mpm_state_npz is not None, ""),

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import shutil
 import subprocess
@@ -38,10 +39,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--particle-spacing-m", type=float, default=None)
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
     parser.add_argument("--post-max-time", type=float, default=0.25)
+    parser.add_argument(
+        "--post-observation-times",
+        type=float,
+        nargs="+",
+        default=None,
+        help="Fixed post-removal times to export as surface checkpoints; requires --post-max-time to cover the final time.",
+    )
     parser.add_argument("--required-duration", type=float, default=0.02)
+    parser.add_argument("--residual-weight", type=float, default=0.5)
     parser.add_argument("--candidate-pre-settle-max-time", type=float, default=1.0)
     parser.add_argument("--candidate-pre-settle-required-duration", type=float, default=0.02)
     parser.add_argument("--candidate-pre-settle-speed-threshold", type=float, default=5.0e-4)
+    parser.add_argument(
+        "--candidate-initial-hold-time",
+        type=float,
+        default=0.25,
+        help="Fixed no-action hold after candidate preparation used to measure restored Genesis-state surface drift.",
+    )
+    parser.add_argument(
+        "--candidate-initial-hold-rmse-tolerance",
+        type=float,
+        default=5.0e-4,
+        help="Maximum projected-surface RMSE permitted over the no-action initial-state hold, in meters.",
+    )
+    parser.add_argument(
+        "--candidate-initial-hold-max-abs-tolerance",
+        type=float,
+        default=1.0e-3,
+        help="Maximum absolute projected-surface change permitted over the no-action initial-state hold, in meters.",
+    )
     parser.add_argument("--containment-wall-height", type=float, default=None)
     parser.add_argument("--containment-wall-thickness", type=float, default=None)
     parser.add_argument("--removal-speed", type=float, default=0.005)
@@ -130,6 +157,54 @@ def main() -> None:
             f"rmse={candidate_h0_rmse:.6g}, max={candidate_h0_max_abs:.6g}"
         )
 
+    candidate_initial_stability: dict[str, float | int | str | bool] = {
+        "enabled": bool(args.candidate_initial_hold_time > 0.0),
+        "hold_time_s": float(args.candidate_initial_hold_time),
+    }
+    if args.candidate_initial_hold_time > 0.0:
+        initial_hold_dir = output_dir / "candidate_initial_hold_raw"
+        initial_hold_command = [
+            sys.executable, str(runner),
+            *common_solver_args,
+            "--initial-mpm-state-npz", str(candidate_prepare_dir / "mpm_state.npz"),
+            "--output-dir", str(initial_hold_dir),
+            "--pre-settle-only",
+            "--pre-settle-max-time", str(args.candidate_initial_hold_time),
+            "--pre-settle-run-full-duration",
+            "--pre-settle-required-duration", str(args.candidate_pre_settle_required_duration),
+            "--pre-settle-particle-speed-threshold", str(args.candidate_pre_settle_speed_threshold),
+            "--require-pre-settle",
+        ]
+        subprocess.run(initial_hold_command, check=True, cwd=REPO_ROOT)
+        hold_start_points = read_particle_ply(initial_hold_dir / "particles_unsettled_mpm.ply")
+        hold_end_points = read_particle_ply(initial_hold_dir / "particles_initial_mpm.ply")
+        hold_start_map, hold_start_supported = project_surface_to_chrono_grid(hold_start_points, manifest, 1.51 * spacing)
+        hold_end_map, hold_end_supported = project_surface_to_chrono_grid(hold_end_points, manifest, 1.51 * spacing)
+        hold_valid = chrono_valid_mask & hold_start_supported & hold_end_supported
+        if not np.any(hold_valid):
+            raise RuntimeError("Candidate initial no-action hold supports no Chrono-valid cells")
+        hold_delta = hold_end_map[hold_valid] - hold_start_map[hold_valid]
+        hold_rmse = float(np.sqrt(np.mean(hold_delta**2)))
+        hold_max_abs = float(np.max(np.abs(hold_delta)))
+        candidate_initial_stability.update(
+            {
+                "valid_cells": int(np.count_nonzero(hold_valid)),
+                "surface_change_rmse_m": hold_rmse,
+                "surface_change_max_abs_m": hold_max_abs,
+                "surface_change_mean_signed_m": float(np.mean(hold_delta)),
+                "surface_change_min_signed_m": float(np.min(hold_delta)),
+                "surface_change_max_signed_m": float(np.max(hold_delta)),
+                "rmse_tolerance_m": float(args.candidate_initial_hold_rmse_tolerance),
+                "max_abs_tolerance_m": float(args.candidate_initial_hold_max_abs_tolerance),
+                "raw_output": str(initial_hold_dir),
+            }
+        )
+        if hold_rmse > args.candidate_initial_hold_rmse_tolerance or hold_max_abs > args.candidate_initial_hold_max_abs_tolerance:
+            raise RuntimeError(
+                "Candidate initial no-action hold failed stability gate: "
+                f"rmse={hold_rmse:.6g}, max={hold_max_abs:.6g}"
+            )
+
     raw_dir = output_dir / "genesis_raw"
     command = [
         sys.executable, str(runner),
@@ -144,6 +219,7 @@ def main() -> None:
         "--loaded-max-time", str(args.loaded_max_time),
         "--post-max-time", str(args.post_max_time),
         "--required-duration", str(args.required_duration),
+        *( ["--post-observation-times", *(str(value) for value in args.post_observation_times)] if args.post_observation_times else []),
         "--removal-mode", str(action.get("removal", "lift")),
         "--removal-speed", str(args.removal_speed),
         "--max-removal-steps", str(args.max_removal_steps),
@@ -165,6 +241,50 @@ def main() -> None:
     np.save(output_dir / "loaded_heightmap_m.npy", loaded_map)
     np.save(output_dir / "residual_heightmap_m.npy", residual_map)
     np.save(output_dir / "valid_heightmap_mask.npy", valid_mask)
+
+    post_observation_summary: list[dict] = []
+    observations_csv = raw_dir / "post_removal_observations.csv"
+    if observations_csv.is_file():
+        chrono_loaded = np.load(episode_dir / manifest["states"]["loaded"])
+        chrono_residual = np.load(episode_dir / manifest["states"]["residual"])
+        common_loaded_valid = chrono_valid_mask & initial_supported & loaded_supported
+        loaded_error = (loaded_map - initial_map) - (chrono_loaded - initial)
+        loaded_rmse = float(np.sqrt(np.mean(loaded_error[common_loaded_valid] ** 2)))
+        previous_map: np.ndarray | None = None
+        previous_supported: np.ndarray | None = None
+        with observations_csv.open(newline="", encoding="utf-8") as file:
+            for row in csv.DictReader(file):
+                requested_time = float(row["requested_time_s"])
+                tag = f"{requested_time:.3f}s".replace(".", "p")
+                checkpoint_path = raw_dir / f"particles_post_removal_{tag}_mpm.ply"
+                checkpoint_points = read_particle_ply(checkpoint_path)
+                checkpoint_map, checkpoint_supported = project_surface_to_chrono_grid(checkpoint_points, manifest, max_fill)
+                checkpoint_valid = chrono_valid_mask & checkpoint_supported
+                np.save(output_dir / f"residual_heightmap_{tag}.npy", checkpoint_map)
+                residual_error = (checkpoint_map - initial_map) - (chrono_residual - initial)
+                residual_rmse = float(np.sqrt(np.mean(residual_error[checkpoint_valid] ** 2)))
+                summary = {
+                    "requested_time_s": requested_time,
+                    "actual_time_s": float(row["actual_time_s"]),
+                    "first_equilibrium_time_s": None if not row["first_equilibrium_time_s"] else float(row["first_equilibrium_time_s"]),
+                    "checkpoint_particles": str(checkpoint_path),
+                    "residual_heightmap": str(output_dir / f"residual_heightmap_{tag}.npy"),
+                    "valid_cells": int(np.count_nonzero(checkpoint_valid)),
+                    "particle_speed_percentiles_mps": {key: float(value) for key, value in row.items() if key.startswith("particle_speed_p")},
+                    "residual_rmse_m": residual_rmse,
+                    "objective_m": loaded_rmse + args.residual_weight * residual_rmse,
+                }
+                if previous_map is not None and previous_supported is not None:
+                    pair_valid = chrono_valid_mask & checkpoint_supported & previous_supported
+                    delta = checkpoint_map[pair_valid] - previous_map[pair_valid]
+                    summary["residual_dem_change_from_previous_rmse_m"] = float(np.sqrt(np.mean(delta**2)))
+                    summary["residual_dem_change_from_previous_max_abs_m"] = float(np.max(np.abs(delta)))
+                    summary["residual_dem_change_cells"] = int(np.count_nonzero(pair_valid))
+                post_observation_summary.append(summary)
+                previous_map = checkpoint_map
+                previous_supported = checkpoint_supported
+        with (output_dir / "post_removal_observations.json").open("w", encoding="utf-8") as file:
+            json.dump(post_observation_summary, file, indent=2)
     shutil.copy2(episode_dir / "action.json", output_dir / "action.json")
     shutil.copy2(episode_dir / "manifest.yaml", output_dir / "chrono_manifest.yaml")
     bridge_manifest = {
@@ -192,6 +312,7 @@ def main() -> None:
             "h0_max_abs_m": candidate_h0_max_abs,
             "h0_valid_cells": int(np.count_nonzero(candidate_valid)),
             "speed_threshold_mps": args.candidate_pre_settle_speed_threshold,
+            "no_action_stability": candidate_initial_stability,
         },
         "removal": {
             "mode": action.get("removal", "lift"),
@@ -200,6 +321,11 @@ def main() -> None:
             "capped": bool(args.max_removal_steps),
         },
         "prepared_settling": prepared["settling"],
+        "post_removal_observations": {
+            "requested_times_s": args.post_observation_times or [],
+            "residual_weight": args.residual_weight,
+            "summary": str(output_dir / "post_removal_observations.json") if post_observation_summary else None,
+        },
     }
     with (output_dir / "manifest.json").open("w", encoding="utf-8") as file:
         json.dump(bridge_manifest, file, indent=2)
