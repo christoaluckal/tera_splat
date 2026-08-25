@@ -36,6 +36,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--view", choices=("oblique", "top"), default="oblique")
     parser.add_argument("--indenter-style", choices=("solid", "wire"), default="solid")
+    parser.add_argument("--indenter-radius", type=float, default=None, help="Override the rendered cylinder radius in meters.")
+    parser.add_argument("--indenter-height", type=float, default=None, help="Override the rendered cylinder height in meters.")
     parser.add_argument(
         "--particle-view",
         choices=("all", "surface", "subsurface"),
@@ -60,12 +62,23 @@ def read_pose_csv(path: Path) -> dict[int, dict[str, float]]:
     poses = {}
     with path.open("r", encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
-            poses[int(row["step"])] = {key: float(value) for key, value in row.items() if key != "step"}
+            pose: dict[str, float] = {}
+            for key, value in row.items():
+                if key == "step" or value in (None, ""):
+                    continue
+                try:
+                    pose[key] = float(value)
+                except ValueError:
+                    continue
+            poses[int(row["step"])] = pose
     return poses
 
 
 def step_from_frame(path: Path) -> int:
-    return int(path.stem.split("_")[-1])
+    parts = path.stem.split("_")
+    if len(parts) < 2 or parts[0] != "sim":
+        raise ValueError(f"Expected sim_<step>[_phase].ply frame name, got {path.name}")
+    return int(parts[1])
 
 
 def particle_view_indices(points: np.ndarray, metadata: dict, particle_view: str) -> np.ndarray | None:
@@ -307,11 +320,14 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     frame_paths = find_frame_paths(args.output_folder)
     selected_frames = frame_indices(len(frame_paths), args.duration, args.fps)
-    poses = read_pose_csv(args.output_folder / "indenter_pose.csv")
+    pose_path = args.output_folder / "indenter_pose.csv"
+    if not pose_path.is_file():
+        pose_path = args.output_folder / "cylinder_pose.csv"
+    poses = read_pose_csv(pose_path)
     metadata = load_metadata(args.output_folder) or {}
     indenter = metadata.get("indenter") or {}
-    radius = float(indenter.get("radius", 0.08))
-    height_m = float(indenter.get("height", 0.04))
+    radius = float(args.indenter_radius if args.indenter_radius is not None else indenter.get("radius", 0.08))
+    height_m = float(args.indenter_height if args.indenter_height is not None else indenter.get("height", 0.04))
     stats_lines = []
     if args.stats_text is not None and args.stats_text.exists():
         with args.stats_text.open("r", encoding="utf-8") as f:

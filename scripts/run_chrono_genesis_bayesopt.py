@@ -14,6 +14,7 @@ import csv
 import json
 import math
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -35,6 +36,8 @@ PARTICLE_CHOICES = (
     (0.020, 0.85),
     (0.020, 1.00),
 )
+LOG10_E_MIN = 4.0
+LOG10_E_MAX = 6.0
 PHI_MIN_DEG = 5.0
 PHI_MAX_DEG = 45.0
 NU_MIN = 0.10
@@ -67,6 +70,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-one", action="store_true", help="Run one explicitly supplied candidate in one W&B study run.")
     parser.add_argument("--wandb-init-only", action="store_true", help="Authenticate through wandb.init(), log no trial, and exit.")
     parser.add_argument("--log10-e", type=float, default=5.0, help="Used only with --run-one.")
+    parser.add_argument("--log10-e-min", type=float, default=4.0, help="Lower log10(Young modulus / Pa) bound for sweep proposals.")
+    parser.add_argument("--log10-e-max", type=float, default=6.0, help="Upper log10(Young modulus / Pa) bound for sweep proposals.")
     parser.add_argument("--phi-deg", type=float, default=30.0, help="Used only with --run-one.")
     parser.add_argument("--nu", type=float, default=0.20, help="Poisson ratio; used only with --run-one.")
     parser.add_argument("--phi-min-deg", type=float, default=5.0, help="Lower friction-angle bound for sweep proposals.")
@@ -90,6 +95,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-grid", type=int, default=64)
     parser.add_argument("--dt", type=float, default=0.001)
     parser.add_argument("--enable-cpic", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--render-best-episode-video",
+        action="store_true",
+        help="After the study, render the best valid candidate beside captured Chrono terrain snapshots.",
+    )
+    parser.add_argument("--best-video-duration", type=float, default=8.0)
+    parser.add_argument("--best-video-fps", type=int, default=24)
+    parser.add_argument(
+        "--retain-trial-raw",
+        action="store_true",
+        help="Keep large per-trial raw MPM PLY/state folders. Disabled by default; rerun the selected winner for visualization.",
+    )
     return parser.parse_args()
 
 
@@ -117,8 +134,8 @@ def candidate_from_mapping(values: dict[str, Any]) -> dict[str, float]:
         "particle_spacing_m": float(values["particle_spacing_m"]),
         "particle_size_ratio": float(values["particle_size_ratio"]),
     }
-    if not 4.0 <= candidate["log10_E"] <= 6.0:
-        raise ValueError("log10_E must lie in [4, 6]")
+    if not LOG10_E_MIN <= candidate["log10_E"] <= LOG10_E_MAX:
+        raise ValueError(f"log10_E must lie in [{LOG10_E_MIN}, {LOG10_E_MAX}]")
     if not PHI_MIN_DEG <= candidate["phi_deg"] <= PHI_MAX_DEG:
         raise ValueError(f"phi_deg must lie in [{PHI_MIN_DEG}, {PHI_MAX_DEG}]")
     if not NU_MIN <= candidate["nu"] <= NU_MAX:
@@ -252,6 +269,20 @@ def run_command(command: list[str]) -> None:
     subprocess.run(command, check=True, cwd=REPO_ROOT)
 
 
+def compact_trial_raw(trial_dir: Path) -> None:
+    """Remove reproducible, large raw rollout artifacts after scoring a trial."""
+    bridge_dir = trial_dir / "bridge"
+    for name in ("candidate_prepare_raw", "candidate_initial_hold_raw", "genesis_raw"):
+        shutil.rmtree(bridge_dir / name, ignore_errors=True)
+
+
+def finalize_trial_result(args: argparse.Namespace, trial_dir: Path, result: dict[str, Any]) -> dict[str, Any]:
+    (trial_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    if not args.retain_trial_raw:
+        compact_trial_raw(trial_dir)
+    return result
+
+
 def evaluate_candidate(
     args: argparse.Namespace,
     run: Any,
@@ -353,8 +384,7 @@ def evaluate_candidate(
                     **dem_payload,
                 },
             )
-            (trial_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-            return result
+            return finalize_trial_result(args, trial_dir, result)
         log_stage(
             run,
             started,
@@ -392,8 +422,7 @@ def evaluate_candidate(
             log_stage(run, started, iteration, "invalid", candidate, valid=0, failure_type=type(error).__name__)
         else:
             run.log({"iteration": iteration, "time/elapsed_s": time.perf_counter() - started, "stage": "invalid", "valid": 0, "failure_type": type(error).__name__})
-    (trial_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-    return result
+    return finalize_trial_result(args, trial_dir, result)
 
 
 def halton(index: int, base: int) -> float:
@@ -409,10 +438,10 @@ def halton(index: int, base: int) -> float:
 def bootstrap_candidate(iteration: int) -> dict[str, float]:
     """A deterministic, space-filling start that begins at the known valid point."""
     if iteration == 0:
-        return {"log10_E": 5.0, "phi_deg": PHI_MAX_DEG, "nu": 0.20, "particle_spacing_m": 0.020, "particle_size_ratio": 1.0}
+        return {"log10_E": 0.5 * (LOG10_E_MIN + LOG10_E_MAX), "phi_deg": 0.5 * (PHI_MIN_DEG + PHI_MAX_DEG), "nu": 0.5 * (NU_MIN + NU_MAX), "particle_spacing_m": 0.020, "particle_size_ratio": 1.0}
     index = iteration + 1
     return {
-        "log10_E": 4.0 + 2.0 * halton(index, 2),
+        "log10_E": LOG10_E_MIN + (LOG10_E_MAX - LOG10_E_MIN) * halton(index, 2),
         "phi_deg": PHI_MIN_DEG + (PHI_MAX_DEG - PHI_MIN_DEG) * halton(index, 3),
         "nu": NU_MIN + (NU_MAX - NU_MIN) * halton(index, 5),
         "particle_spacing_m": PARTICLE_CHOICES[min(int(halton(index, 7) * len(PARTICLE_CHOICES)), len(PARTICLE_CHOICES) - 1)][0],
@@ -423,7 +452,7 @@ def bootstrap_candidate(iteration: int) -> dict[str, float]:
 def candidate_vector(candidate: dict[str, float]) -> np.ndarray:
     return np.asarray(
         [
-            (candidate["log10_E"] - 4.0) / 2.0,
+            (candidate["log10_E"] - LOG10_E_MIN) / (LOG10_E_MAX - LOG10_E_MIN),
             (candidate["phi_deg"] - PHI_MIN_DEG) / (PHI_MAX_DEG - PHI_MIN_DEG),
             (candidate["nu"] - NU_MIN) / (NU_MAX - NU_MIN),
             SPACING_CHOICES_M.index(candidate["particle_spacing_m"]) / max(len(SPACING_CHOICES_M) - 1, 1),
@@ -442,7 +471,7 @@ def propose_candidate(iteration: int, observations: list[tuple[dict[str, float],
         spacing, size_ratio = PARTICLE_CHOICES[int(rng.integers(len(PARTICLE_CHOICES)))]
         pool.append(
             {
-                "log10_E": float(rng.uniform(4.0, 6.0)),
+                "log10_E": float(rng.uniform(LOG10_E_MIN, LOG10_E_MAX)),
                 "phi_deg": float(rng.uniform(PHI_MIN_DEG, PHI_MAX_DEG)),
                 "nu": float(rng.uniform(NU_MIN, NU_MAX)),
                 "particle_spacing_m": spacing,
@@ -473,21 +502,72 @@ def propose_candidate(iteration: int, observations: list[tuple[dict[str, float],
 def load_seed_results(study_dir: Path) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for path in sorted((study_dir / "trials").glob("iteration_*/result.json")):
-        with path.open(encoding="utf-8") as file:
-            result = json.load(file)
+        try:
+            with path.open(encoding="utf-8") as file:
+                result = json.load(file)
+        except json.JSONDecodeError:
+            print(f"[BayesOpt] ignoring incomplete seed result: {path}", flush=True)
+            continue
         if result.get("valid") and "candidate" in result and "objective_m" in result:
             result["_source_path"] = str(path)
             results.append(result)
     return results
 
 
+def render_best_episode_video(args: argparse.Namespace, study_dir: Path, run: Any) -> None:
+    snapshots = args.chrono_episode.resolve() / "terrain_snapshots" / "manifest.json"
+    if not snapshots.is_file():
+        run.summary["artifacts/best_episode_video_status"] = "skipped: Chrono episode has no terrain snapshots"
+        print("[BayesOpt] best-video skipped: Chrono episode has no terrain snapshots", flush=True)
+        return
+    valid_results: list[tuple[Path, dict[str, Any]]] = []
+    for result_path in sorted((study_dir / "trials").glob("iteration_*/result.json")):
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        if result.get("valid") and "objective_m" in result:
+            valid_results.append((result_path, result))
+    if not valid_results:
+        run.summary["artifacts/best_episode_video_status"] = "skipped: no valid candidate"
+        print("[BayesOpt] best-video skipped: no valid candidate", flush=True)
+        return
+    result_path, result = min(valid_results, key=lambda item: float(item[1]["objective_m"]))
+    genesis_raw = result_path.parent / "bridge" / "genesis_raw"
+    output = study_dir / "best_chrono_genesis_episode.mp4"
+    command = [
+        sys.executable, str(REPO_ROOT / "scripts" / "render_chrono_genesis_episode_video.py"),
+        "--chrono-episode", str(args.chrono_episode.resolve()),
+        "--genesis-raw", str(genesis_raw),
+        "--output", str(output),
+        "--duration", str(args.best_video_duration),
+        "--fps", str(args.best_video_fps),
+    ]
+    run_command(command)
+    run.summary["artifacts/best_episode_video"] = str(output)
+    run.summary["artifacts/best_episode_iteration"] = result_path.parent.name
+    run.save(str(output), base_path=str(study_dir))
+    run.save(str(output.with_suffix(".json")), base_path=str(study_dir))
+    print(f"[BayesOpt] best-video={output}", flush=True)
+
+
 def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
-    run = wandb.init(project=args.project, entity=args.entity, job_type="chrono-genesis-bayesopt-study")
+    run = wandb.init(
+        project=args.project,
+        entity=args.entity,
+        job_type="chrono-genesis-bayesopt-study",
+        settings=wandb.Settings(init_timeout=45),
+    )
     define_history(run)
     started = time.perf_counter()
     study_dir = args.output_root.resolve() / f"study_{trial_directory_name(run.id)}"
     study_dir.mkdir(parents=True, exist_ok=False)
-    seed_results = [result for seed_dir in args.seed_study_dir for result in load_seed_results(seed_dir.resolve())]
+    raw_seed_results = [result for seed_dir in args.seed_study_dir for result in load_seed_results(seed_dir.resolve())]
+    seed_results: list[dict[str, Any]] = []
+    for result in raw_seed_results:
+        try:
+            candidate_from_mapping(result["candidate"])
+        except ValueError:
+            print("[BayesOpt] ignoring out-of-region seed: {}".format(result.get("_source_path", "unknown")), flush=True)
+            continue
+        seed_results.append(result)
     observations = [(candidate_from_mapping(result["candidate"]), float(result["objective_m"])) for result in seed_results]
     target_valid_count = args.target_valid_count if args.target_valid_count is not None else len(observations) + count
     if target_valid_count <= 0:
@@ -499,7 +579,13 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
             "target_valid_count": target_valid_count,
             "seed_valid_count": len(seed_results),
             "seed_study_dirs": [str(seed_dir.resolve()) for seed_dir in args.seed_study_dir],
-            "search_space": {"log10_E": [4.0, 6.0], "phi_deg": [PHI_MIN_DEG, PHI_MAX_DEG], "nu": [NU_MIN, NU_MAX]},
+            "search_space": {"log10_E": [LOG10_E_MIN, LOG10_E_MAX], "phi_deg": [PHI_MIN_DEG, PHI_MAX_DEG], "nu": [NU_MIN, NU_MAX]},
+            "candidate_initial_stability": {
+                "hold_time_s": args.candidate_initial_hold_time,
+                "rmse_tolerance_m": args.candidate_initial_hold_rmse_tolerance,
+                "max_abs_tolerance_m": args.candidate_initial_hold_max_abs_tolerance,
+            },
+            "retain_trial_raw": args.retain_trial_raw,
         },
         allow_val_change=True,
     )
@@ -561,6 +647,8 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
         f"target_reached={len(observations) >= target_valid_count}",
         flush=True,
     )
+    if args.render_best_episode_video:
+        render_best_episode_video(args, study_dir, run)
     run.finish()
 
 
@@ -572,7 +660,13 @@ def run_one(args: argparse.Namespace, wandb: Any) -> None:
         "particle_spacing_m": args.particle_spacing_m,
         "particle_size_ratio": args.particle_size_ratio,
     }
-    run = wandb.init(project=args.project, entity=args.entity, job_type="chrono-genesis-bayesopt-study", config=candidate)
+    run = wandb.init(
+        project=args.project,
+        entity=args.entity,
+        job_type="chrono-genesis-bayesopt-study",
+        config=candidate,
+        settings=wandb.Settings(init_timeout=45),
+    )
     define_history(run)
     started = time.perf_counter()
     study_dir = args.output_root.resolve() / f"study_{trial_directory_name(run.id)}"
@@ -582,7 +676,13 @@ def run_one(args: argparse.Namespace, wandb: Any) -> None:
 
 
 def init_only(args: argparse.Namespace, wandb: Any) -> None:
-    run = wandb.init(project=args.project, entity=args.entity, job_type="bayesopt-init", config={"campaign": "chrono-genesis-4d"})
+    run = wandb.init(
+        project=args.project,
+        entity=args.entity,
+        job_type="bayesopt-init",
+        config={"campaign": "chrono-genesis-4d"},
+        settings=wandb.Settings(init_timeout=45),
+    )
     define_history(run)
     run.log({"time/elapsed_s": 0.0, "stage": "initialized", "init_only": 1})
     receipt = {"project": run.project, "entity": run.entity, "run_id": run.id, "mode": "wandb.init_only"}
@@ -594,6 +694,7 @@ def init_only(args: argparse.Namespace, wandb: Any) -> None:
 
 def main() -> None:
     args = parse_args()
+    print("[BayesOpt] validating inputs", flush=True)
     if sum((args.wandb_init_only, args.run_one, args.count > 0)) != 1:
         raise SystemExit("Choose exactly one mode: --wandb-init-only, --run-one, or --count N.")
     if not args.chrono_episode.is_dir():
@@ -610,17 +711,22 @@ def main() -> None:
         raise SystemExit("BayesOpt requires an accepted frozen prepared bed")
     spacing = float(prepared_manifest["metric_bed"]["particle_spacing_m"])
     size_ratio = float(prepared_manifest["settling"]["particle_size_m"]) / spacing
+    if not 0.0 < args.log10_e_min < args.log10_e_max:
+        raise SystemExit("log10-E bounds must satisfy 0 < min < max")
     if not 0.0 < args.phi_min_deg < args.phi_max_deg <= 90.0:
         raise SystemExit("friction-angle bounds must satisfy 0 < min < max <= 90")
     if not 0.0 < args.nu_min < args.nu_max < 0.5:
         raise SystemExit("Poisson-ratio bounds must satisfy 0 < min < max < 0.5")
-    global SPACING_CHOICES_M, SIZE_RATIO_CHOICES, PARTICLE_CHOICES, PHI_MIN_DEG, PHI_MAX_DEG, NU_MIN, NU_MAX
+    global SPACING_CHOICES_M, SIZE_RATIO_CHOICES, PARTICLE_CHOICES, LOG10_E_MIN, LOG10_E_MAX, PHI_MIN_DEG, PHI_MAX_DEG, NU_MIN, NU_MAX
+    LOG10_E_MIN, LOG10_E_MAX = args.log10_e_min, args.log10_e_max
     PHI_MIN_DEG, PHI_MAX_DEG = args.phi_min_deg, args.phi_max_deg
     NU_MIN, NU_MAX = args.nu_min, args.nu_max
     SPACING_CHOICES_M = (spacing,)
     SIZE_RATIO_CHOICES = (size_ratio,)
     PARTICLE_CHOICES = ((spacing, size_ratio),)
+    print("[BayesOpt] loading W&B client", flush=True)
     wandb = wandb_module()
+    print("[BayesOpt] initializing online study", flush=True)
     if args.wandb_init_only:
         init_only(args, wandb)
         return

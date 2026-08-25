@@ -1172,5 +1172,30 @@ initial-state rebound; it passes the 0.5 mm RMSE and 1.0 mm maximum gates.
 The reproducible raw PLYs, projected difference, and metrics are at
 outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_footprint_phi5_nu_online/study_zwz8qbj6/trials/iteration_002/bridge/candidate_initial_hold_check_0p25s/.
 
+### Best-Candidate Episode Video Hook (2026-08-25)
+
+render_chrono_genesis_episode_video.py now renders a captured Chrono SCM
+episode and the selected Genesis raw rollout side by side. It samples each
+stored episode uniformly over the same display duration, labels the panels, and
+writes the component MP4s plus a manifest that explicitly says the result is
+phase-normalized rather than physical-time synchronized. BayesOpt exposes this
+as --render-best-episode-video. It intentionally requires Chrono terrain
+snapshots; recreate the otherwise identical Chrono episode with
+run_cylinder_episode.py --capture-interval-s before enabling the hook. The
+current A0 target has only initial, loaded, and residual maps, so creating an
+episode video from it would be misleading.
+
 Diagnostic artifacts are under
 `outputs/validity_experiment/bayesopt/A0_cal_candidate_stress_postremoval_diagnostic/`.
+
+
+### Initial-Stability Trust-Region Sweep (2026-08-25)
+
+The broad seeded compact study was stopped after it repeatedly proposed a
+post-removal-timeout corner: E about 0.56--0.98 MPa and friction about 5--7
+degrees. Its no-action initial-state holds passed, and almost all loaded phases
+reached equilibrium, so this is a proposal-policy failure rather than an H0 or
+stress-initialization failure. The next online study therefore uses fixed
+evidence-based trust-region bounds: log10(E/Pa)=5.114--5.653 (130--450 kPa),
+friction=7--11 degrees, and nu=0.18--0.30. These are proposal bounds only; no
+new physical parameter, loss weight, geometry, or initialization rule is added.

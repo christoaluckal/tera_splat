@@ -81,7 +81,10 @@ def find_frame_paths(output_folder: Path) -> list[Path]:
 
 
 def frame_number(path: Path) -> int:
-    return int(path.stem.split("_")[-1])
+    parts = path.stem.split("_")
+    if len(parts) < 2 or parts[0] != "sim":
+        raise ValueError(f"Expected sim_<step>[_phase].ply frame name, got {path.name}")
+    return int(parts[1])
 
 
 def read_xyz_ply(path: Path) -> np.ndarray:
