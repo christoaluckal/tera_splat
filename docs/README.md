@@ -6,9 +6,10 @@ splat-derived sand bed, then compares the result against RealSense terrain DEMs.
 
 ## Start Here
 
-Read [Current state](current-state.md). It is the sole live description of
-the experiment, source data, implementation status, validation evidence, and
-next required work.
+Read [Current state](current-state.md) for experiment history and
+[Chrono Oracle Run Contract](chrono-oracle-run-contract.md) before starting a
+new Chrono-to-Genesis BayesOpt study. The run contract defines the active
+oracle, legacy-observation policy, and required stability gate.
 
 ## Environment
 

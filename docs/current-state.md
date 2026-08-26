@@ -1199,3 +1199,93 @@ stress-initialization failure. The next online study therefore uses fixed
 evidence-based trust-region bounds: log10(E/Pa)=5.114--5.653 (130--450 kPa),
 friction=7--11 degrees, and nu=0.18--0.30. These are proposal bounds only; no
 new physical parameter, loss weight, geometry, or initialization rule is added.
+
+### Calibration Pipeline versus Oracle Fidelity (2026-08-25)
+
+The current bridge is operational: it can prepare candidate-consistent Genesis
+initial states, reject unstable preparations, evaluate loaded and residual
+surfaces, optimize the existing material parameters, log online to W&B, and
+render a selected replay. This establishes that the I/O and optimization loop
+are runnable; it does **not** establish that the Chrono reference surface is a
+physically faithful calibration target.
+
+The current 10 mm Chrono SCM cylinder episode has an asymmetric loaded
+deformation despite a centered, axisymmetric cylinder. Its maximum depression
+is about 5.556 mm at `(x, y) = (+30, -10) mm`, rather than at the action
+center. There is no material displacement outside the 73.025 mm cylinder
+footprint and recorded lateral cylinder drift is only about 0.14 mm, so this
+is not explained by contact travel. It is therefore treated as a possible SCM
+grid/contact or terrain-export artifact.
+
+BayesOpt correctly minimizes the loss against whichever Chrono maps it is
+given. Consequently, improving Genesis parameters against this unvalidated
+surface can improve the numerical objective while teaching Genesis to match an
+artifact. Do not interpret the current best parameter set as a physical
+calibration until the oracle is checked. The next change is deliberately on
+the Chrono side only: repeat the identical centered cylinder episode with a
+finer SCM grid (2--5 mm), capture time snapshots, and compare center location,
+rotational symmetry, radial profile, and loaded-to-residual rebound. If that
+target is sound, reuse the existing frozen-initialization BayesOpt loop
+unchanged with the regenerated maps.
+
+### Chrono SCM Runtime Build (2026-08-25)
+
+`chrono_splat` originally contained the Conda-forge core-only PyChrono package,
+which cannot import `pychrono.vehicle` and therefore cannot generate SCM
+oracle episodes. A separate, pinned headless Chrono build now supplies the
+required binding while retaining `chrono_splat` as the Python environment:
+Chrono `10.0.0` source commit `9faf13dd8f1128dd75ed233a9627027b0422c3f7`,
+compiled with Python, Vehicle, and Vehicle Models enabled, and demos, tests,
+visualization, and vehicle co-simulation disabled. Source and build artifacts
+live under `/data/christoa/Chrono/vendor/projectchrono-10.0.0` and
+`/data/christoa/Chrono/build/projectchrono-10.0.0-vehicle-py310`.
+
+Activation hooks in `chrono_splat/etc/conda/activate.d` place that build before
+the Conda core-only package and add its library directory at runtime; matching
+deactivation hooks restore the prior paths. A normal `conda run -n chrono_splat`
+command has been verified to import `pychrono.vehicle` and construct a Bullet-
+backed `veh.SCMTerrain`. `run_cylinder_episode.py` also now accepts
+`--scm-grid-spacing-m`, so oracle-resolution experiments do not modify the
+shared terrain configuration.
+
+### Chrono SCM Translation/Phase Check Correction (2026-08-26)
+
+The previous compact phase-check interpretation was incorrect: its centroid
+calculation included the invalid SCM boundary ring. Recomputing the `t=0.1 s`
+centroids with `valid_heightmap_mask.npy` shows that the early deformation does
+move with the cylinder. The test reveals millimetre-scale coarse-grid phase
+sensitivity in x, but it does **not** prove that the deformation is fixed to
+the SCM grid or that the current target is invalid for that reason.
+
+BayesOpt remains paused while the guided and finer-resolution tests are
+reviewed, but the grid-lock claim is withdrawn. See
+[Chrono SCM Oracle Diagnostics](chrono-oracle-diagnostics.md) for corrected
+measurements, visuals, and the current validation sequence.
+
+### Oracle Target Decision and Legacy BayesOpt Policy (2026-08-26)
+
+The completed `A0_cal_full10mm` BayesOpt campaigns are now **legacy pipeline
+evidence**, not calibration observations for the next study. A fresh Chrono
+replay matches the stored maps to `0.00076 mm`, so the maps themselves are not
+stale. What is stale is the target contract: the artifact does not record its
+fixed post-removal `residual_settle_s` or recovery snapshots, and it came from
+an unqualified free centered drop. Its observations must remain on disk for
+auditability but must not seed, warm-start, or be mixed into the new W&B study.
+
+The R&D oracle protocol is a 1.5 kg vertically guided cylinder at `(0, +5) mm`
+on a 10 mm, 0.6 m SCM screen. The guided offset has the cleaner visual
+cross-section in the synchronized triplet at
+`/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/free_vs_guided_1p5kg_10mm_triplet/`.
+It is an R&D repeatability choice, not a new BayesOpt parameter or a claim of
+special physical significance for the offset. The 5 mm guided protocol is the
+final high-fidelity validation/export resolution.
+
+Neither current compact candidate can yet be used as an oracle because both
+terminate at a fixed loading timeout. The selected 10 mm case still has
+`1.142 mm/s` final linear speed; the 5 mm case is closer at `0.319 mm/s` but
+also times out. Before the next run, the Chrono exporter must record a fixed
+speed-and-hold convergence gate, capture the loaded map at that accepted state,
+and record the fixed residual recovery duration. The existing Genesis
+preparation, no-action stability gate, loss, and parameterization then remain
+unchanged. The detailed run contract is
+[Chrono Oracle Run Contract](chrono-oracle-run-contract.md).
