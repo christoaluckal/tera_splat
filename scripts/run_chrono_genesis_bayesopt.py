@@ -88,7 +88,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--candidate-initial-hold-rmse-tolerance", type=float, default=5.0e-4)
     parser.add_argument("--candidate-initial-hold-max-abs-tolerance", type=float, default=1.0e-3)
     parser.add_argument("--loaded-max-time", type=float, default=1.0)
+    parser.add_argument(
+        "--loaded-run-full-duration",
+        action="store_true",
+        help="Match a fixed-time Chrono loaded target instead of ending Genesis loading at first equilibrium.",
+    )
     parser.add_argument("--post-max-time", type=float, default=2.0, help="Post-removal equilibrium cap; 2 s avoids the verified 1 s borderline timeout region.")
+    parser.add_argument(
+        "--post-observation-times",
+        type=float,
+        nargs="+",
+        default=None,
+        help="Fixed Genesis post-removal times; forces the post phase through --post-max-time.",
+    )
     parser.add_argument("--required-duration", type=float, default=0.02)
     parser.add_argument("--residual-weight", type=float, default=0.5)
     parser.add_argument("--minimum-common-valid-fraction", type=float, default=0.95)
@@ -124,6 +136,52 @@ def wandb_module() -> Any:
 def phase_reasons(path: Path) -> dict[str, str]:
     with path.open(newline="", encoding="utf-8") as file:
         return {row["phase"]: row["termination_reason"] for row in csv.DictReader(file)}
+
+
+def phase_acceptance(args: argparse.Namespace, bridge_dir: Path, reasons: dict[str, str]) -> dict[str, dict[str, Any]]:
+    """Accept equilibrium phases or complete fixed-time observations.
+
+    A fixed-time Chrono target is a transient observation contract, not an
+    equilibrium contract. Genesis may therefore still report ``timeout`` at
+    the requested horizon while having produced the exact map that must be
+    scored. Initial H0 and no-action stability remain separately gated by the
+    bridge before this function is reached.
+    """
+    loaded_fixed_complete = bool(
+        args.loaded_run_full_duration
+        and (bridge_dir / "loaded_heightmap_m.npy").is_file()
+    )
+    loaded_equilibrium = reasons.get("loaded") == "equilibrium"
+
+    requested_post_times = tuple(float(value) for value in (args.post_observation_times or ()))
+    recorded_post_times: tuple[float, ...] = ()
+    post_summary_path = bridge_dir / "post_removal_observations.json"
+    if requested_post_times and post_summary_path.is_file():
+        observations = json.loads(post_summary_path.read_text(encoding="utf-8"))
+        recorded_post_times = tuple(float(item["requested_time_s"]) for item in observations)
+    post_fixed_complete = bool(
+        requested_post_times
+        and all(
+            any(math.isclose(requested, recorded, rel_tol=0.0, abs_tol=1.0e-9) for recorded in recorded_post_times)
+            for requested in requested_post_times
+        )
+    )
+    post_equilibrium = reasons.get("post_removal") == "equilibrium"
+
+    return {
+        "loaded": {
+            "accepted": bool(loaded_equilibrium or loaded_fixed_complete),
+            "mode": "equilibrium" if loaded_equilibrium else ("fixed_duration" if loaded_fixed_complete else "incomplete"),
+            "raw_reason": reasons.get("loaded"),
+        },
+        "post_removal": {
+            "accepted": bool(post_equilibrium or post_fixed_complete),
+            "mode": "equilibrium" if post_equilibrium else ("fixed_observation" if post_fixed_complete else "incomplete"),
+            "raw_reason": reasons.get("post_removal"),
+            "requested_times_s": list(requested_post_times),
+            "recorded_times_s": list(recorded_post_times),
+        },
+    }
 
 
 def candidate_from_mapping(values: dict[str, Any]) -> dict[str, float]:
@@ -335,7 +393,9 @@ def evaluate_candidate(
             "--backend", args.backend,
             "--particle-spacing-m", str(candidate["particle_spacing_m"]),
             "--loaded-max-time", str(args.loaded_max_time),
+            *( ["--loaded-run-full-duration"] if args.loaded_run_full_duration else []),
             "--post-max-time", str(args.post_max_time),
+            *( ["--post-observation-times", *(str(value) for value in args.post_observation_times)] if args.post_observation_times else []),
             "--required-duration", str(args.required_duration),
             "--candidate-pre-settle-max-time", str(args.pre_settle_max_time),
             "--candidate-pre-settle-required-duration", str(args.pre_settle_required_duration),
@@ -357,15 +417,23 @@ def evaluate_candidate(
             "candidate_init/no_action_stability_max_abs_m": candidate_initialization["no_action_stability"].get("surface_change_max_abs_m", float("nan")),
         }
         reasons = phase_reasons(bridge_dir / "genesis_raw" / "phase_summary.csv")
+        acceptance = phase_acceptance(args, bridge_dir, reasons)
         loss = compute_loss(args.chrono_episode.resolve(), bridge_dir, args.minimum_common_valid_fraction, args.residual_weight)
         dem_payload = {f"dem/{name}": value for name, value in loss.items() if name != "objective_m"}
-        if reasons.get("loaded") != "equilibrium" or reasons.get("post_removal") != "equilibrium":
+        acceptance_payload = {
+            "bridge/loaded_reason": reasons.get("loaded"),
+            "bridge/post_reason": reasons.get("post_removal"),
+            "bridge/loaded_acceptance_mode": acceptance["loaded"]["mode"],
+            "bridge/post_acceptance_mode": acceptance["post_removal"]["mode"],
+        }
+        if not acceptance["loaded"]["accepted"] or not acceptance["post_removal"]["accepted"]:
             result = {
                 "valid": False,
-                "failure_type": "non_equilibrium",
-                "failure": f"bridge did not settle: {reasons}",
+                "failure_type": "incomplete_phase",
+                "failure": f"bridge did not complete the requested equilibrium/fixed-time contract: {acceptance}",
                 "candidate": candidate,
                 "phase_reasons": reasons,
+                "phase_acceptance": acceptance,
                 "candidate_initialization": candidate_initialization,
                 **loss,
             }
@@ -377,8 +445,7 @@ def evaluate_candidate(
                 candidate,
                 valid=0,
                 **{
-                    "bridge/loaded_reason": reasons.get("loaded"),
-                    "bridge/post_reason": reasons.get("post_removal"),
+                    **acceptance_payload,
                     "diagnostic/objective_m": loss["objective_m"],
                     **candidate_init_metrics,
                     **dem_payload,
@@ -391,10 +458,17 @@ def evaluate_candidate(
             iteration,
             "bridge",
             candidate,
-            **{"bridge/loaded_reason": reasons["loaded"], "bridge/post_reason": reasons["post_removal"], **candidate_init_metrics},
+            **{**acceptance_payload, **candidate_init_metrics},
         )
 
-        result = {"valid": True, "candidate": candidate, "phase_reasons": reasons, "candidate_initialization": candidate_initialization, **loss}
+        result = {
+            "valid": True,
+            "candidate": candidate,
+            "phase_reasons": reasons,
+            "phase_acceptance": acceptance,
+            "candidate_initialization": candidate_initialization,
+            **loss,
+        }
         log_stage(
             run,
             started,
@@ -438,7 +512,14 @@ def halton(index: int, base: int) -> float:
 def bootstrap_candidate(iteration: int) -> dict[str, float]:
     """A deterministic, space-filling start that begins at the known valid point."""
     if iteration == 0:
-        return {"log10_E": 0.5 * (LOG10_E_MIN + LOG10_E_MAX), "phi_deg": 0.5 * (PHI_MIN_DEG + PHI_MAX_DEG), "nu": 0.5 * (NU_MIN + NU_MAX), "particle_spacing_m": 0.020, "particle_size_ratio": 1.0}
+        spacing, size_ratio = PARTICLE_CHOICES[0]
+        return {
+            "log10_E": 0.5 * (LOG10_E_MIN + LOG10_E_MAX),
+            "phi_deg": 0.5 * (PHI_MIN_DEG + PHI_MAX_DEG),
+            "nu": 0.5 * (NU_MIN + NU_MAX),
+            "particle_spacing_m": spacing,
+            "particle_size_ratio": size_ratio,
+        }
     index = iteration + 1
     return {
         "log10_E": LOG10_E_MIN + (LOG10_E_MAX - LOG10_E_MIN) * halton(index, 2),

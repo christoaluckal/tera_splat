@@ -80,6 +80,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-clearance", type=float, default=0.0)
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
     parser.add_argument(
+        "--loaded-run-full-duration",
+        action="store_true",
+        help="Continue loading through --loaded-max-time after first equilibrium; use for fixed-time Chrono targets.",
+    )
+    parser.add_argument(
         "--loaded-only",
         action="store_true",
         help="End after the released-cylinder loaded settle phase; diagnostic mode with no removal or residual claim.",
@@ -504,11 +509,18 @@ def main() -> None:
         if force or step % max(args.save_every, 1) == 0:
             write_particle_ply(tensor_to_numpy(sand.get_particles_pos()), sim_dir / f"sim_{step:06d}_{phase}.ply")
 
-    def run_until_settled(phase: str, max_time: float, require_cylinder: bool, hold_cylinder_z: float | None = None) -> tuple[str, int]:
+    def run_until_settled(
+        phase: str,
+        max_time: float,
+        require_cylinder: bool,
+        hold_cylinder_z: float | None = None,
+        run_full_duration: bool = False,
+    ) -> tuple[str, int]:
         nonlocal step
         required_steps = max(1, int(np.ceil(args.required_duration / args.dt)))
         max_steps = max(1, int(np.ceil(max_time / args.dt)))
         stable_steps = 0
+        reached_equilibrium = False
         for local_step in range(max_steps):
             if hold_cylinder_z is not None:
                 cylinder.set_pos((float(query_xy[0]), float(query_xy[1]), hold_cylinder_z), zero_velocity=True)
@@ -521,8 +533,10 @@ def main() -> None:
             particle_ok = float(latest["particle_speed_pctl"]) <= args.particle_speed_threshold
             stable_steps = stable_steps + 1 if cylinder_ok and particle_ok else 0
             if stable_steps >= required_steps:
-                return "equilibrium", local_step + 1
-        return "timeout", max_steps
+                reached_equilibrium = True
+                if not run_full_duration:
+                    return "equilibrium", local_step + 1
+        return ("equilibrium" if reached_equilibrium else "timeout"), max_steps
 
     def run_post_removal_diagnostic(max_time: float, hold_cylinder_z: float) -> tuple[str, int, float | None, list[dict]]:
         """Run the complete requested post-removal horizon and save fixed-time observations."""
@@ -572,7 +586,12 @@ def main() -> None:
         return ("equilibrium" if first_equilibrium_time is not None else "timeout"), max_steps, first_equilibrium_time, observations
 
     record("initial")
-    loaded_reason, loaded_steps = run_until_settled("loaded", args.loaded_max_time, require_cylinder=True)
+    loaded_reason, loaded_steps = run_until_settled(
+        "loaded",
+        args.loaded_max_time,
+        require_cylinder=True,
+        run_full_duration=args.loaded_run_full_duration,
+    )
     loaded_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(loaded_points, args.output_dir / "particles_loaded_mpm.ply")
     save_mpm_state(sand, args.output_dir / "mpm_state_loaded.npz")

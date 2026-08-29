@@ -1,145 +1,95 @@
-# Experiment Problems And Corrective Plan
+# Calibration Problems, Evidence, and Corrective Actions
 
-Last reviewed: 2026-08-18
+Last reviewed: 2026-08-29
 
-This document records active experimental blockers discovered while calibrating
-the Chrono SCM A0 target with Genesis. It is linked from
-[`current-state.md`](current-state.md), which remains the live handoff and
-source of output provenance.
+This document separates resolved setup failures from the current response
+calibration problem. The historical 2026-08-18 diagnosis is archived in
+[experiment-problems-through-2026-08-18.md](archive/experiment-problems-through-2026-08-18.md).
 
-## Stage 1: Prepared-Bed Feasibility Fails Before Contact Calibration
+## Current problem
 
-The BayesOpt campaign has two gates:
+The active Chrono oracle and Genesis n128 initialization both pass their gates.
+The remaining mismatch is post-removal response: Genesis retains too little
+plastic deformation.
 
-1. **Stage 1 — feasibility:** construct a gravity-settled Genesis bed that
-   reaches the frozen H0 geometry and low-speed acceptance gates.
-2. **Stage 2 — response fit:** run the gravity-cylinder bridge and compare the
-   loaded/residual Genesis DEM deformation against Chrono.
+For the current 20 kPa incumbent at n128:
 
-The current blocker is Stage 1. It is not evidence that a material candidate
-has a poor contact response; it means its initial state is not comparable to
-the Chrono H0 target and must not enter the objective model.
+- loaded RMSE: `2.142 mm`;
+- residual-footprint RMSE: `14.966 mm`;
+- residual-footprint signed mean: `+14.308 mm`;
+- objective: `9.626 mm`.
 
-### Measured Evidence
+Positive signed residual error means Genesis is higher than Chrono in the
+footprint after removal.
 
-Across the failed prepared beds recorded under the pilot and proper-study
-output roots:
+## Resolved problems
 
-```text
-pre-settle termination: equilibrium
-all-bed p99 speed:      below the 0.5 mm/s threshold
-failure gate:           frozen H0 surface match
-surface RMSE:           typically 16--45 mm
-surface maximum error:  typically 100--105 mm
-required RMSE / max:    <= 5 mm / <= 10 mm
-```
+| Problem | Observation | Action | Result |
+| --- | --- | --- | --- |
+| incomplete legacy target | `A0_cal_full10mm` lacked a qualified residual-time/action contract | built guided, timed 5 mm oracle | active oracle accepted at `3.595 s` plus `0.25 s` residual |
+| false grid-lock diagnosis | centroid included invalid SCM boundary ring | applied `valid_heightmap_mask.npy` | deformation follows cylinder; only millimetre-scale phase sensitivity remains |
+| candidate stress mismatch | restoring `F` prepared at another `E` changed implied stress | reconstruct candidate-specific geostatic `F` | candidates start from frozen geometry with their own material state |
+| rebound uncertainty | low speed alone did not prove surface stability | added separate 0.25 s no-action surface test | promoted candidates drift only `0.008--0.011 mm` RMSE |
+| bootstrap geometry bug | first fresh-study candidate used hard-coded 20 mm spacing | derive particle geometry from prepared-bed manifest | corrected study completed 12/12 valid |
+| n128 initialization failure | 10 mm particles left 1.5625 spacings per n128 cell | use 5 mm particles and restore ratio 3.125 | 307,461-particle bed accepts with H0 RMSE `0.070 mm` |
+| n128 candidate timeout | old 2 s cap ended just before equilibrium | increase cap to 4 s, retain 0.5 mm/s gate | candidates accept at `2.077--2.180 s` |
 
-The maximum error is approximately the 100 mm bed depth. This points to a
-surface-support or surface-extraction discontinuity, not ordinary gravity
-compaction. Increasing the settle duration, adding damping, or loosening the
-H0 gate would conceal rather than solve the discrepancy.
+No H0, no-action, RMSE, or speed gate was loosened.
 
-The broad particle proposal also established this empirical feasibility fact:
+## Previous best-known candidate
 
-```text
-15 mm spacing, 0.85 size ratio: rejected
-25 mm spacing, 0.85 size ratio: rejected
-```
+The coarse 20 kPa candidate was selected from these observations:
 
-The initial attempt to constrain the optimizer to apparently accepted particle
-pairs was still insufficient: feasibility also depends on `E` and `phi`.
-The 35-new-attempt continuation stopped with only two new valid observations.
+1. it matched Chrono sinkage at n64: `34.051 mm` versus `34.270 mm`;
+2. it scored `8.548 mm`, better than the fresh unseeded study's
+   `9.232 mm`;
+3. anchor-inclusive study `vrxqwoe2` produced nearby low-`nu` results at
+   `8.605` and `8.643 mm`, corroborating the same basin.
 
-## Likely Mechanisms
+Actions taken before trusting it at high resolution:
 
-### 1. Particle Mass/Volume Is Coupled To Discretization
+1. fixed particle geometry in the proposal code;
+2. constructed an accepted ratio-matched n128 bed;
+3. retained physical geostatic scale 1.0;
+4. extended only candidate preparation duration;
+5. replayed the incumbent and both corroborating candidates with identical
+   fixed loading and residual times.
 
-Particle spacing changes particles per unit volume. Genesis particle size
-sets represented particle volume. Holding the material density fixed while
-varying both changes the represented bulk density approximately as:
+Results:
 
-```text
-rho_bulk = rho_material * (particle_size / particle_spacing)^3
-```
+| Candidate | n64 objective | n128 objective | n128 initialization |
+| --- | ---: | ---: | --- |
+| 20.000 kPa / 18.149 deg / 0.100004 | **`8.548 mm`** | **`9.626 mm`** | H0 `0.747 mm`; drift `0.011 mm` |
+| 18.110 kPa / 18.984 deg / 0.103989 | `8.605 mm` | `9.833 mm` | H0 `0.793 mm`; drift `0.008 mm` |
+| 20.186 kPa / 18.485 deg / 0.100693 | `8.643 mm` | `10.041 mm` | H0 `0.724 mm`; drift `0.011 mm` |
 
-For example, a `0.85` size ratio represents about `0.85^3 = 0.614` of the
-bulk density of a ratio-1 lattice when the configured material density is
-unchanged. That materially changes gravity settlement before the cylinder is
-released, so it is not a pure particle-resolution experiment.
+The ranking survives resolution promotion. Initialization quality is much
+better at n128, while residual response is worse, so the remaining error cannot
+be attributed to a bad starting bed.
 
-### 2. Surface Support Or Extraction Is Losing H0 Cells
+## Current hypothesis
 
-The near-bed-depth maximum error suggests one or more target cells are mapped
-to a deep particle, an unsupported nearest-fill value, or the wrong particle
-layer. The current highest-particle projection must be diagnosed at the cells
-that set the maximum error before interpreting any contact result.
+Within the existing Genesis Sand model, a slightly more plastic response may
+retain more deformation after removal. The next test should vary only the
+existing `E`, `phi`, and `nu` values on the accepted n128 bed.
 
-### 3. Material Calibration Currently Rebuilds The Initial State
+A compact evidence-based region is:
 
-Rebuilding and gravity-settling a bed for each `E`/`phi` candidate lets the
-candidate change H0 before contact. That confounds initial-state construction
-with the material-response objective. A valid contact fit must compare from a
-frozen, H0-matched initial state.
+- `E = 18--26 kPa`;
+- `phi = 16.5--18.5 deg`;
+- `nu = 0.10--0.13`.
 
-## Corrective Plan
+Lower friction may increase retained plastic deformation, while `E` must
+preserve the loaded response. This is a parameter-search hypothesis, not a
+request for a new parameter or changed physics.
 
-### A. Enforce Mass/Volume Normalization First
+## Decision rule
 
-For each particle configuration, compute the actual represented MPM volume
-from the initialized particle count and particle volume. Set the material
-density so the desired physical bulk density and total bed mass are unchanged
-across spacing/size choices. Record:
-
-- particle count;
-- spacing and particle size;
-- represented volume;
-- target bulk density;
-- resolved material density and total mass.
-
-Do not compare different particle configurations until this check passes.
-
-### B. Instrument The H0 Failure Cells
-
-For every preparation attempt, save or report:
-
-- pre- and post-settle surface support masks;
-- coordinates and values of the worst H0-error cells;
-- designated initial surface-cap particle IDs;
-- highest-particle and designated-surface reconstructions at those cells;
-- coverage, nearest-fill distance, and selected-particle depth.
-
-Use this to determine whether the approximately 100 mm error comes from a
-hole, a projection rule, or genuine surface collapse. Do not relax the H0
-tolerances to pass this diagnostic.
-
-### C. Split Feasibility From Contact Optimization
-
-Build one accepted complete MPM state for each particle configuration using a
-frozen preparation protocol. Persist position, velocity, `C`, `F`, `Jp`,
-active mask, metric-bed metadata, and the accepted H0 reconstruction.
-
-Then run `E`/`phi` contact candidates from that state. If the candidate needs
-a different geostatic stress field, construct that stress consistently without
-moving the accepted H0 geometry and require a short unconstrained stability
-check before the cylinder release.
-
-### D. Establish A Feasible Particle Family Before BayesOpt
-
-Run a fixed-reference-material feasibility study over spacing/size pairs. A
-pair becomes a discrete BayesOpt category only after it has an accepted,
-volume-normalized prepared state. This is separate from minimizing the Chrono
-DEM loss.
-
-### E. Consider A Constrained Preparation Only If Needed
-
-If gravity equilibration cannot retain H0, a temporary surface-height
-constraint may be used during geostatic preparation. Remove it before loading
-and require the resulting unconstrained state to pass the same H0 and speed
-gates. Record the constraint exactly; never apply an undocumented vertical
-offset after settlement.
-
-## Current Decision
-
-Do not spend another response-optimization budget until A and B are complete.
-The current best response candidate is an incumbent only, not a calibrated
-solution, because the feasible initial-state region has not yet been mapped.
+- If a valid n128 candidate lowers residual-footprint error without materially
+  worsening loaded RMSE, promote it.
+- If the current parameters trade loaded fit against residual retention with no
+  joint improvement, record a limitation of the current Genesis Sand
+  constitutive response.
+- Do not solve the mismatch by changing Chrono, adding a classifier, loosening
+  gates, fitting a stress multiplier, or mixing n64 and n128 objectives in one
+  unmodelled-fidelity surrogate.

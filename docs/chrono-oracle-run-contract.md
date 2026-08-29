@@ -1,107 +1,161 @@
-# Chrono Oracle Run Contract
+# Chrono Oracle and BayesOpt Run Contract
 
-Status: agreed R&D protocol, 2026-08-26. This is the operational handoff for
-the next Genesis/BayesOpt run. It is read together with
-[Chrono SCM Oracle Diagnostics](chrono-oracle-diagnostics.md), which retains
-the measurements and investigation history.
+Last verified: 2026-08-29
 
-## Decision
+This document defines the active experiment contract. Historical contracts are
+archived in
+[chrono-oracle-run-contract-through-2026-08-29.md](archive/chrono-oracle-run-contract-through-2026-08-29.md).
 
-Use the **guided, y-offset 10 mm Chrono SCM episode** as the R&D oracle
-protocol. It is the fastest configuration with the cleaner visual contact
-cross-section. Use the corresponding guided **5 mm** protocol only for
-higher-fidelity final validation and final production target generation.
+## Active oracle
 
-This is a resolution decision, not a change in material parameters, Genesis
-initialization, the BayesOpt acquisition rule, or the loss.
+Use only:
 
-## What the old BayesOpt target taught us
+`/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_oracle_guided_offset_5mm_gate6mm_v1`
 
-The target consumed by the completed BayesOpt studies was
-`A0_cal_full10mm`. It is now a **legacy pipeline target**:
-
-- A fresh Chrono 10.0.0 replay agrees with its stored maps within `0.00076 mm`.
-  Therefore it was not stale terrain data and was not corrupted by an old
-  Chrono build.
-- Its *contract* was incomplete: the artifact did not record the fixed
-  `residual_settle_s` duration or post-removal time snapshots. A residual map
-  cannot be retrospectively matched to Genesis at an arbitrary equilibrium
-  time.
-- The episode was a free, centered cylinder drop. At the 10 mm grid it had
-  early sparse/asymmetric contact and nonzero lateral/angular motion. The
-  completed BayesOpt observations are valid evidence that the bridge,
-  candidate-consistent Genesis preparation, stability gate, loss, W&B logging,
-  and optimizer execute. They are **not** material-calibration evidence and
-  must not seed or be mixed with the next oracle-specific study.
-- The earlier claim that the imprint was locked to absolute SCM-grid location
-  was false. It resulted from including the invalid one-cell boundary ring in
-  a centroid calculation. With `valid_heightmap_mask.npy`, the deformation
-  follows the translated cylinder, though 10 mm grid phase sensitivity remains.
-
-Thus “stale target” means stale/incomplete *experiment contract and oracle
-qualification*, not stale numerical terrain data. Keep the old output
-directories for auditability; archive their observations from the next study.
-
-## R&D oracle settings: 10 mm
-
-The selected R&D reference is
-`A0_oracle_vertical_guided_grid_aligned_10mm`:
-
-| Item | Value |
+| Item | Required value |
 | --- | --- |
-| Contact | 1.5 kg, right circular cylinder, radius `73.025 mm`, height `50.8 mm` |
-| Pose | commanded center `(x, y) = (0, +5) mm` |
-| Constraint | vertical prismatic guide; x/y and rotation constrained |
-| SCM patch/grid | `0.6 x 0.6 m`, `10 mm` spacing, `1 ms` step |
-| Soil and action | unchanged from the existing cylinder episode |
-| Capture | initial, 0.1 s loading checkpoints, and post-removal checkpoints |
-| Usable cells | always apply `valid_heightmap_mask.npy`; exclude the one-cell SCM boundary ring |
+| cylinder | 1.5 kg; radius `73.025 mm`; height `50.8 mm` |
+| center | `(x, y) = (0, +5 mm)` |
+| constraint | vertical prismatic guide; lateral motion and rotation constrained |
+| SCM patch | `0.6 x 0.6 m` |
+| SCM spacing | `5 mm` |
+| Chrono timestep | `1 ms` |
+| loaded acceptance | linear speed below `6 mm/s` and angular speed below `0.01 rad/s` for `0.10 s` |
+| loaded sample time | `3.595 s` |
+| residual duration | exactly `0.25 s` after removal |
+| valid cells | `14,161`; exclude the one-cell SCM boundary ring |
+| cylinder sinkage | `34.270 mm` |
 
-The synchronized comparison is at
-`/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/free_vs_guided_1p5kg_10mm_triplet/`.
-It shows that the offset guided cross-section is visually cleaner than the
-free-centered and guided-centered controls. This is a practical R&D choice;
-it does not establish that the y offset is physically privileged.
+The loading rule is a documented low-speed timing convention, not a
+static-equilibrium claim. Its thresholds are oracle protocol constants, never
+BayesOpt parameters.
 
-## Stability gate before export
+## Active Genesis bed
 
-None of the current compact tests is yet an exportable loaded oracle: all end
-because of the fixed loading timeout. In particular, the selected 10 mm R&D
-episode ends with `1.142 mm/s` linear speed. The centered guided control ends
-with `6.497 mm/s`; the free control ends with `23.529 mm/s` and substantial
-angular speed. The 5 mm guided run is closer (`0.319 mm/s`) but also ends by
-timeout.
+Use only the accepted promoted bed:
 
-The next exporter/run change must replace the fixed loading-duration acceptance
-with a recorded, deterministic convergence gate:
+`/data/christoa/Chrono/tera_splat/outputs/validity_experiment/A0_oracle_guided_offset_5mm_gate6mm_prepared_5mm_n128_ratio_matched/prepared_bed`
 
-1. simulate loading until linear and angular speed are below declared
-   thresholds for a declared consecutive hold interval;
-2. record the threshold values, hold duration, first gate-crossing time, final
-   sampling time, and the sampled pose/speeds in `manifest.yaml` and
-   `metrics.json`;
-3. capture the loaded heightmap at that fixed accepted state;
-4. remove the cylinder, recover for an explicitly recorded fixed
-   `residual_settle_s`, and capture the residual state at that exact time;
-5. reject an episode that cannot meet the loading gate within a declared
-   maximum duration rather than labelling its timeout surface as an oracle.
+Required discretization:
 
-The speed/hold thresholds are protocol constants to be selected and recorded
-once, not BayesOpt hyperparameters.
+| Item | Required value |
+| --- | ---: |
+| particle spacing | `5 mm` |
+| particle size | `5 mm` |
+| particles | `307,461` |
+| MPM grid | `n128` |
+| MPM cell width | `15.625 mm` |
+| timestep | `0.5 ms` |
+| CPIC | enabled |
+| geostatic stress scale | `1.0` |
 
-## Promotion sequence
+Prepared-bed acceptance evidence is p99 `0.492 mm/s`, H0 RMSE
+`0.070 mm`, and maximum H0 error `0.237 mm` over all 14,161 cells.
 
-1. Implement and smoke-test the recorded loading-convergence gate using the
-   10 mm guided y-offset R&D protocol.
-2. Generate one gated 10 mm episode; run the existing Genesis initial-state
-   stability gate and one bridge replay against it. Do not import any old
-   BayesOpt observations.
-3. If this is reproducible, run the new W&B BayesOpt study against that
-   isolated target with a fresh study directory/run ID.
-4. Recreate the same guided protocol at 5 mm for the selected final candidate.
-   It is the higher-fidelity oracle and final validation target, not the
-   iteration-resolution target.
-5. Compare the 10 mm and 5 mm final results on their own valid masks; record
-   resolution, timing contract, and residual recovery before publishing PLY/PCD
-   exports or interpreting fitted parameters.
+Do not substitute a 10 mm-particle/n128 bed. It under-samples the grid and was
+the cause of the previous high-resolution initialization failures.
 
+## Candidate initialization gate
+
+For every material candidate:
+
+1. restore the accepted particle positions and active mask;
+2. zero velocity and affine velocity state, reset plastic state, and reconstruct
+   analytic depth-dependent geostatic `F` for that candidate's `E` and `nu`;
+3. relax without the cylinder for up to `4 s`;
+4. require p99 particle speed at or below `0.5 mm/s` for `0.02 s`;
+5. require candidate H0 RMSE at or below `5 mm` and maximum error at or below
+   `10 mm`;
+6. hold the candidate without action for `0.25 s`;
+7. require no-action surface drift at or below `0.5 mm` RMSE and `1.0 mm`
+   maximum error.
+
+The 4 s cap is duration headroom, not a relaxed gate. The three promoted
+candidates first accepted between `2.077` and `2.180 s`.
+
+A failure at this stage is an invalid initialization and must not enter the
+BayesOpt surrogate.
+
+## Response timing and loss
+
+Every valid response uses:
+
+- exactly `3.595 s` / 7,190 Genesis loading steps;
+- removal by deleting the cylinder body;
+- exactly `0.25 s` / 500 residual steps;
+- at least 95% common valid support;
+- the same Chrono valid mask and footprint.
+
+The objective is unchanged:
+
+`loaded_RMSE + 0.5 * residual_footprint_RMSE`
+
+A complete fixed-time map is scoreable even if the raw phase label is
+`timeout`. Preserve both the raw label and fixed-time acceptance mode.
+
+## Current incumbent and provenance
+
+The active n128 incumbent is `E=20 kPa`, `phi=18.149 deg`,
+`nu=0.100004`, W&B run
+[`qgk3079l`](https://wandb.ai/christo12aluckal/chrono-genesis-bayesopt/runs/qgk3079l).
+
+| Metric | Coarse n64 observation | Promoted n128 observation |
+| --- | ---: | ---: |
+| objective | `8.548 mm` | `9.626 mm` |
+| loaded RMSE | `2.183 mm` | `2.142 mm` |
+| residual-footprint RMSE | `12.729 mm` | `14.966 mm` |
+| cylinder sinkage | `34.051 mm` | `29.413 mm` |
+| H0 RMSE | `4.193 mm` | `0.747 mm` |
+| no-action drift RMSE | `0.008 mm` | `0.011 mm` |
+
+The n128 residual signed mean is `+14.308 mm`, meaning Genesis is too high
+and too recovered inside the footprint after removal.
+
+The actions that produced this promoted result were:
+
+1. validate the 20 kPa point at n64 (`jg3b5v3s`);
+2. confirm the low-`nu` basin with `vrxqwoe2`;
+3. restore the n64 particle-to-cell ratio using 5 mm particles on n128;
+4. retain geostatic scale 1.0 and all physics/gates;
+5. extend only the candidate preparation cap from 2 s to 4 s;
+6. replay the anchor and two confirmations with identical fixed-time maps.
+
+The other promoted results are:
+
+- `nwvdm2h8`: 18.110 kPa / 18.984 deg / 0.103989,
+  objective `9.833 mm`;
+- `4mtb3fyp`: 20.186 kPa / 18.485 deg / 0.100693,
+  objective `10.041 mm`.
+
+## Observation policy
+
+Eligible current evidence:
+
+- `jg3b5v3s`, `e72xmaou`, and `vrxqwoe2` for coarse search provenance;
+- `qgk3079l`, `nwvdm2h8`, and `4mtb3fyp` for n128 response ranking.
+
+Explicitly excluded:
+
+- every study against legacy `A0_cal_full10mm`;
+- setup study `ysagrtcb`, which exposed the fixed bootstrap geometry bug;
+- `mv698mto`, which failed before contact under the obsolete 2 s cap;
+- rejected 10 mm-particle/n128 prepared beds;
+- any trial failing initialization, support, or timing requirements.
+
+Do not seed an n128 surrogate with coarse objectives unless the code explicitly
+models resolution as a fidelity level. The next n128 study may seed only from
+valid n128 results, beginning with `qgk3079l`.
+
+## Next study
+
+Run a small online n128 study with the current incumbent as the anchor:
+
+- `E = 18--26 kPa`;
+- `phi = 16.5--18.5 deg`;
+- `nu = 0.10--0.13`;
+- existing objective and gates unchanged;
+- no new classifier, material parameter, stress multiplier, or target change.
+
+The purpose is to reduce residual recovery while preserving the loaded fit.
+If the existing parameterization cannot do both, report a constitutive-model
+limitation rather than loosening RMSE or initialization gates.

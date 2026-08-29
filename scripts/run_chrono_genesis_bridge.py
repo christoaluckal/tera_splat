@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bed-depth-m", type=float, default=0.10)
     parser.add_argument("--particle-spacing-m", type=float, default=None)
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
+    parser.add_argument(
+        "--loaded-run-full-duration",
+        action="store_true",
+        help="Evaluate Genesis at the fixed loaded horizon rather than stopping at first equilibrium.",
+    )
     parser.add_argument("--post-max-time", type=float, default=0.25)
     parser.add_argument(
         "--post-observation-times",
@@ -217,6 +222,7 @@ def main() -> None:
         "--indenter-mass", str(action["mass_kg"]),
         "--start-clearance", str(action["start_clearance_m"]),
         "--loaded-max-time", str(args.loaded_max_time),
+        *( ["--loaded-run-full-duration"] if args.loaded_run_full_duration else []),
         "--post-max-time", str(args.post_max_time),
         "--required-duration", str(args.required_duration),
         *( ["--post-observation-times", *(str(value) for value in args.post_observation_times)] if args.post_observation_times else []),
@@ -313,6 +319,12 @@ def main() -> None:
             "h0_valid_cells": int(np.count_nonzero(candidate_valid)),
             "speed_threshold_mps": args.candidate_pre_settle_speed_threshold,
             "no_action_stability": candidate_initial_stability,
+        },
+        "timing": {
+            "loaded_max_time_s": float(args.loaded_max_time),
+            "loaded_run_full_duration": bool(args.loaded_run_full_duration),
+            "post_max_time_s": float(args.post_max_time),
+            "post_observation_times_s": args.post_observation_times,
         },
         "removal": {
             "mode": action.get("removal", "lift"),
