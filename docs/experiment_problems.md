@@ -1,6 +1,6 @@
 # Calibration Problems, Evidence, and Corrective Actions
 
-Last reviewed: 2026-08-29
+Last reviewed: 2026-08-30
 
 This document separates resolved setup failures from the current response
 calibration problem. The historical 2026-08-18 diagnosis is archived in
@@ -12,15 +12,27 @@ The active Chrono oracle and Genesis n128 initialization both pass their gates.
 The remaining mismatch is post-removal response: Genesis retains too little
 plastic deformation.
 
-For the current 20 kPa incumbent at n128:
+For the confirmed `20.433 kPa / 14.727 deg / 0.101895` incumbent at n128:
 
-- loaded RMSE: `2.142 mm`;
-- residual-footprint RMSE: `14.966 mm`;
-- residual-footprint signed mean: `+14.308 mm`;
-- objective: `9.626 mm`.
+- loaded RMSE: `1.864 mm`;
+- residual-footprint RMSE: `13.678 mm`;
+- residual-footprint signed mean: `+12.941 mm`;
+- objective: `8.704 mm`.
 
 Positive signed residual error means Genesis is higher than Chrono in the
 footprint after removal.
+
+The retained-raw replay `ykep3esa` makes the spatial error inspectable without
+changing this result. Its generated bundle contains separate and combined
+loaded/residual isometric surface point clouds, signed 2D DEM-error maps,
+compressed comparison arrays, aligned Chrono-grid PCDs, full 307,461-particle
+Genesis PCDs, and 78 sampled rollout PLYs. The residual map shows a coherent
+positive footprint error rather than an I/O-frame or support-mask offset.
+
+`ykep3esa` scored `8.705 mm`, but it is not new confirmation evidence. Its p99
+map disagreement stayed below `0.011 mm`, while four residual cells exceeded
+the 1 mm discrete-projection threshold versus the frozen allowance of three.
+The gate remains unchanged and `r2at0vvb` remains authoritative.
 
 ## Resolved problems
 
@@ -33,6 +45,8 @@ footprint after removal.
 | bootstrap geometry bug | first fresh-study candidate used hard-coded 20 mm spacing | derive particle geometry from prepared-bed manifest | corrected study completed 12/12 valid |
 | n128 initialization failure | 10 mm particles left 1.5625 spacings per n128 cell | use 5 mm particles and restore ratio 3.125 | 307,461-particle bed accepts with H0 RMSE `0.070 mm` |
 | n128 candidate timeout | old 2 s cap ended just before equilibrium | increase cap to 4 s, retain 0.5 mm/s gate | candidates accept at `2.077--2.180 s` |
+| unresolved incumbent-region trend | previous best sat near the low-`nu` corner | ran compact n128 study `9on0s14j` and exact replay `85cw5i1i` | objective improved by `0.502 mm`; new best lies on lower `phi` boundary |
+| lower-`phi` boundary trend | compact-study winner sat at `phi=16.5 deg` | ran boundary study `yab3idti` and exact replay `r2at0vvb` | objective improved another `0.420 mm`; winner at `phi=14.727 deg` passed repeatability |
 
 No H0, no-action, RMSE, or speed gate was loosened.
 
@@ -69,19 +83,16 @@ be attributed to a bad starting bed.
 
 ## Current hypothesis
 
-Within the existing Genesis Sand model, a slightly more plastic response may
-retain more deformation after removal. The next test should vary only the
-existing `E`, `phi`, and `nu` values on the accepted n128 bed.
+Lower friction improved both loaded and residual metrics, but the confirmed
+residual signed error remains `+12.941 mm`. The winner is inside the extended
+friction interval rather than at its lower boundary, so blind boundary
+expansion is no longer justified.
 
-A compact evidence-based region is:
-
-- `E = 18--26 kPa`;
-- `phi = 16.5--18.5 deg`;
-- `nu = 0.10--0.13`.
-
-Lower friction may increase retained plastic deformation, while `E` must
-preserve the loaded response. This is a parameter-search hypothesis, not a
-request for a new parameter or changed physics.
+The aligned point-cloud and 2D error comparison is now generated. The next
+diagnostic should quantify those maps using footprint radial profiles, center
+cross-sections, and loaded-to-residual recovery change. If the mismatch is a
+coherent recovery-mode error rather than a narrow local parameter trend,
+record a limitation of the current Genesis Sand constitutive response.
 
 ## Decision rule
 

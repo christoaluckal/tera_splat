@@ -52,10 +52,15 @@ episode-generation details also need a synchronized status update in
 - Oracle: `A0_oracle_guided_offset_5mm_gate6mm_v1`.
 - Prepared bed:
   `A0_oracle_guided_offset_5mm_gate6mm_prepared_5mm_n128_ratio_matched`.
-- Incumbent: `E=20 kPa`, `phi=18.149 deg`, `nu=0.100004`.
-- W&B run: `qgk3079l`.
-- Result: objective `9.626 mm`, loaded RMSE `2.142 mm`,
-  residual-footprint RMSE `14.966 mm`.
+- Incumbent: `E=20.432828 kPa`, `phi=14.727053 deg`, `nu=0.101894536`.
+- Discovery / exact replay: W&B `yab3idti` / `r2at0vvb`.
+- Confirmed result: objective `8.704 mm`, loaded RMSE `1.864 mm`,
+  residual-footprint RMSE `13.678 mm`.
+- Retained raw/visual replay: W&B `ykep3esa`, under
+  `A0_oracle_guided_offset_5mm_gate6mm_5mm_n128_incumbent_raw_20260830`.
+  It is visualization evidence only because four residual projection cells
+  exceeded the frozen three-cell sparse-bin bound; never seed from it or use
+  it to replace `r2at0vvb`.
 - Remaining issue: excessive post-removal recovery.
 
 ## Current entry points
@@ -65,6 +70,7 @@ conda run -n chrono_splat python scripts/build_chrono_settled_bed.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bridge.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
 conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
+conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
 ```
 
 Do not create another live status document. Update `docs/current-state.md`;

@@ -67,6 +67,14 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Prior single-study directory whose valid results seed the optimizer and W&B history; repeat as needed.",
     )
+    parser.add_argument(
+        "--allow-out-of-region-seeds",
+        action="store_true",
+        help=(
+            "Import valid same-fidelity seeds outside the current proposal bounds. "
+            "Particle geometry must still match the frozen prepared bed."
+        ),
+    )
     parser.add_argument("--run-one", action="store_true", help="Run one explicitly supplied candidate in one W&B study run.")
     parser.add_argument("--wandb-init-only", action="store_true", help="Authenticate through wandb.init(), log no trial, and exit.")
     parser.add_argument("--log10-e", type=float, default=5.0, help="Used only with --run-one.")
@@ -184,7 +192,9 @@ def phase_acceptance(args: argparse.Namespace, bridge_dir: Path, reasons: dict[s
     }
 
 
-def candidate_from_mapping(values: dict[str, Any]) -> dict[str, float]:
+def candidate_from_mapping(
+    values: dict[str, Any], *, enforce_search_bounds: bool = True
+) -> dict[str, float]:
     candidate = {
         "log10_E": float(values["log10_E"]),
         "phi_deg": float(values["phi_deg"]),
@@ -192,12 +202,20 @@ def candidate_from_mapping(values: dict[str, Any]) -> dict[str, float]:
         "particle_spacing_m": float(values["particle_spacing_m"]),
         "particle_size_ratio": float(values["particle_size_ratio"]),
     }
-    if not LOG10_E_MIN <= candidate["log10_E"] <= LOG10_E_MAX:
-        raise ValueError(f"log10_E must lie in [{LOG10_E_MIN}, {LOG10_E_MAX}]")
-    if not PHI_MIN_DEG <= candidate["phi_deg"] <= PHI_MAX_DEG:
-        raise ValueError(f"phi_deg must lie in [{PHI_MIN_DEG}, {PHI_MAX_DEG}]")
-    if not NU_MIN <= candidate["nu"] <= NU_MAX:
-        raise ValueError(f"nu must lie in [{NU_MIN}, {NU_MAX}]")
+    if enforce_search_bounds:
+        if not LOG10_E_MIN <= candidate["log10_E"] <= LOG10_E_MAX:
+            raise ValueError(f"log10_E must lie in [{LOG10_E_MIN}, {LOG10_E_MAX}]")
+        if not PHI_MIN_DEG <= candidate["phi_deg"] <= PHI_MAX_DEG:
+            raise ValueError(f"phi_deg must lie in [{PHI_MIN_DEG}, {PHI_MAX_DEG}]")
+        if not NU_MIN <= candidate["nu"] <= NU_MAX:
+            raise ValueError(f"nu must lie in [{NU_MIN}, {NU_MAX}]")
+    else:
+        if candidate["log10_E"] <= 0.0:
+            raise ValueError("seed log10_E must be positive")
+        if not 0.0 < candidate["phi_deg"] <= 90.0:
+            raise ValueError("seed phi_deg must satisfy 0 < phi_deg <= 90")
+        if not 0.0 < candidate["nu"] < 0.5:
+            raise ValueError("seed nu must satisfy 0 < nu < 0.5")
     if candidate["particle_spacing_m"] <= 0.0 or candidate["particle_size_ratio"] <= 0.0:
         raise ValueError("particle spacing and size ratio must be positive")
     candidate["E_pa"] = 10.0 ** candidate["log10_E"]
@@ -356,14 +374,6 @@ def evaluate_candidate(
         if trial_dir.exists():
             raise RuntimeError(f"Refusing to overwrite existing trial directory: {trial_dir}")
         trial_dir.mkdir(parents=True)
-        material_config = json.loads(args.base_config.read_text(encoding="utf-8"))
-        material_config["E"] = candidate["E_pa"]
-        material_config["friction_angle"] = candidate["phi_deg"]
-        material_config["nu"] = candidate["nu"]
-        material_config_path = trial_dir / "material_config.json"
-        material_config_path.write_text(json.dumps(material_config, indent=2) + "\n", encoding="utf-8")
-        (trial_dir / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
-        log_stage(run, started, iteration, "candidate", candidate)
 
         prepared_dir = args.prepared_bed.resolve()
         prepared_manifest_path = prepared_dir.parent / "prepared_bed_manifest.json"
@@ -376,6 +386,21 @@ def evaluate_candidate(
         prepared_size = float(prepared_manifest["settling"]["particle_size_m"])
         if not np.isclose(candidate["particle_spacing_m"], prepared_spacing) or not np.isclose(candidate["particle_size_m"], prepared_size):
             raise RuntimeError("candidate particle geometry does not match frozen prepared bed")
+
+        material_config = json.loads(args.base_config.read_text(encoding="utf-8"))
+        material_config["E"] = candidate["E_pa"]
+        material_config["friction_angle"] = candidate["phi_deg"]
+        material_config["nu"] = candidate["nu"]
+        # Persist the resolved runtime discretization rather than stale values
+        # inherited from a coarse base material file.  The bridge independently
+        # enforces these same values from the accepted prepared-bed manifest.
+        material_config["n_grid"] = int(prepared_manifest["settling"]["n_grid"])
+        material_config["substep_dt"] = float(prepared_manifest["settling"]["dt_s"])
+        material_config_path = trial_dir / "material_config.json"
+        material_config_path.write_text(json.dumps(material_config, indent=2) + "\n", encoding="utf-8")
+        (trial_dir / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
+        log_stage(run, started, iteration, "candidate", candidate)
+
         log_stage(run, started, iteration, "prepared", candidate, **{
             "settling/duration_s": prepared_manifest["settling"]["duration_s"],
             "settling/final_particle_speed_p99_mps": prepared_manifest["settling"]["final_particle_speed_p99_mps"],
@@ -644,12 +669,35 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
     seed_results: list[dict[str, Any]] = []
     for result in raw_seed_results:
         try:
-            candidate_from_mapping(result["candidate"])
+            seed_candidate = candidate_from_mapping(
+                result["candidate"],
+                enforce_search_bounds=not args.allow_out_of_region_seeds,
+            )
         except ValueError:
             print("[BayesOpt] ignoring out-of-region seed: {}".format(result.get("_source_path", "unknown")), flush=True)
             continue
+        if (
+            seed_candidate["particle_spacing_m"] not in SPACING_CHOICES_M
+            or seed_candidate["particle_size_ratio"] not in SIZE_RATIO_CHOICES
+        ):
+            print(
+                "[BayesOpt] ignoring seed with non-frozen particle geometry: {}".format(
+                    result.get("_source_path", "unknown")
+                ),
+                flush=True,
+            )
+            continue
         seed_results.append(result)
-    observations = [(candidate_from_mapping(result["candidate"]), float(result["objective_m"])) for result in seed_results]
+    observations = [
+        (
+            candidate_from_mapping(
+                result["candidate"],
+                enforce_search_bounds=not args.allow_out_of_region_seeds,
+            ),
+            float(result["objective_m"]),
+        )
+        for result in seed_results
+    ]
     target_valid_count = args.target_valid_count if args.target_valid_count is not None else len(observations) + count
     if target_valid_count <= 0:
         raise ValueError("target valid count must be positive")
@@ -660,6 +708,7 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
             "target_valid_count": target_valid_count,
             "seed_valid_count": len(seed_results),
             "seed_study_dirs": [str(seed_dir.resolve()) for seed_dir in args.seed_study_dir],
+            "allow_out_of_region_seeds": args.allow_out_of_region_seeds,
             "search_space": {"log10_E": [LOG10_E_MIN, LOG10_E_MAX], "phi_deg": [PHI_MIN_DEG, PHI_MAX_DEG], "nu": [NU_MIN, NU_MAX]},
             "candidate_initial_stability": {
                 "hold_time_s": args.candidate_initial_hold_time,
@@ -676,7 +725,10 @@ def run_study(args: argparse.Namespace, wandb: Any, count: int) -> None:
         flush=True,
     )
     for iteration, result in enumerate(seed_results):
-        candidate = candidate_from_mapping(result["candidate"])
+        candidate = candidate_from_mapping(
+            result["candidate"],
+            enforce_search_bounds=not args.allow_out_of_region_seeds,
+        )
         dem_payload = {
             f"dem/{name}": value
             for name, value in result.items()

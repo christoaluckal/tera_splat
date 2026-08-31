@@ -25,11 +25,19 @@ instructions and intentionally retain superseded hypotheses and next steps.
 
 - Active oracle: `A0_oracle_guided_offset_5mm_gate6mm_v1`.
 - Active Genesis bed: 307,461 particles at 5 mm on n128.
-- Current incumbent: `E=20 kPa`, `phi=18.149 deg`, `nu=0.100004`.
-- n128 incumbent result: objective `9.626 mm`, loaded RMSE `2.142 mm`,
-  residual-footprint RMSE `14.966 mm`.
+- Current incumbent: `E=20.433 kPa`, `phi=14.727 deg`, `nu=0.101895`.
+- Confirmed n128 result: objective `8.704 mm`, loaded RMSE `1.864 mm`,
+  residual-footprint RMSE `13.678 mm`.
+- Retained raw/visual replay: W&B `ykep3esa`; 78 sampled rollout PLYs,
+  initial/loaded/residual MPM states, aligned surface PCDs, comparison arrays,
+  and loaded/residual point-cloud plus DEM-error figures.
 - Current blocker: Genesis recovers too much after removal; initialization,
   I/O, timing, and resolution gates pass.
+
+The raw visualization replay is not a replacement confirmation: aggregate
+metrics and p99 map agreement were stable, but four residual cells exceeded
+the frozen three-cell sparse projection-bin allowance. The authoritative
+confirmation remains `r2at0vvb`.
 
 ## Environment
 
@@ -61,6 +69,7 @@ conda run -n chrono_splat python scripts/build_chrono_settled_bed.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bridge.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
 conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
+conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
 ```
 
 Do not launch a new study until its target, prepared bed, resolution, seed

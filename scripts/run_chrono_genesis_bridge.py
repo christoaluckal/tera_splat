@@ -304,6 +304,19 @@ def main() -> None:
             "accepted": True,
             "state": "complete MPM restore (pos, vel, C, F, Jp, active)",
         },
+        "genesis_runtime": {
+            "backend": args.backend,
+            "n_grid": int(prepared["settling"].get("n_grid", args.n_grid)),
+            "dt_s": float(prepared["settling"].get("dt_s", 0.0005)),
+            "particle_spacing_m": spacing,
+            "particle_size_m": float(
+                prepared["settling"].get("particle_size_m", args.particle_size or 0.0125)
+            ),
+            "enable_cpic": bool(prepared["settling"].get("enable_cpic", False)),
+            "geostatic_stress_scale": float(
+                prepared["settling"].get("geostatic_stress_scale", 1.0)
+            ),
+        },
         "surface_projection": {
             "method": "highest_particle_per_Chrono_cell_then_nearest_fill",
             "max_fill_distance_m": max_fill,

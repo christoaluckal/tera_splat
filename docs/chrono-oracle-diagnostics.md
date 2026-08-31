@@ -1,6 +1,6 @@
 # Chrono SCM Oracle Diagnostics
 
-Last verified: 2026-08-29
+Last verified: 2026-08-30
 
 Status: the 5 mm guided Chrono oracle is accepted and frozen for the current
 Genesis calibration. The investigation history through 2026-08-26 is archived
@@ -85,7 +85,7 @@ caused by an under-sampled Genesis particle/grid discretization, not Chrono H0.
 7. Promoted Genesis to a ratio-matched 5 mm-particle/n128 bed without changing
    Chrono or using a geostatic stress multiplier.
 
-## Result for the previous best Genesis candidate
+## Resolution-promotion result for the previous best Genesis candidate
 
 The previous best known coarse candidate was `E=20 kPa`,
 `phi=18.149 deg`, and `nu=0.100004`.
@@ -102,6 +102,19 @@ Against this oracle:
 Chrono sinkage is `34.270 mm`. At n128, Genesis loaded fit remains good, but
 the residual signed mean is `+14.308 mm`, so Genesis recovers too much after
 removal. This result does not indicate an oracle defect.
+
+## Current downstream Genesis result
+
+Subsequent frozen-contract studies selected
+`E=20.432828 kPa`, `phi=14.727053 deg`, and `nu=0.101894536`. Exact replay
+`r2at0vvb` confirmed objective `8.704 mm`, loaded RMSE `1.864 mm`,
+residual-footprint RMSE `13.678 mm`, and residual signed mean `+12.941 mm`.
+This improvement changes neither the accepted oracle nor its qualification.
+
+Retained-raw replay `ykep3esa` generated aligned isometric point-cloud and
+signed 2D DEM-error views plus surface/raw-particle PCDs. Its aggregate result
+was stable, but it remains visualization evidence only because four residual
+projection cells exceeded the frozen three-cell sparse-bin allowance.
 
 ## Canonical episode bundle
 
@@ -126,4 +139,4 @@ manifest path.
 No further Chrono target modification is indicated. The active issue is
 Genesis residual response at the accepted n128 resolution. See
 [Chrono Oracle and BayesOpt Run Contract](chrono-oracle-run-contract.md) for
-the exact next-study rules.
+the exact diagnostic and future-study rules.
