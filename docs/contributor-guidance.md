@@ -61,7 +61,23 @@ episode-generation details also need a synchronized status update in
   It is visualization evidence only because four residual projection cells
   exceeded the frozen three-cell sparse-bin bound; never seed from it or use
   it to replace `r2at0vvb`.
-- Remaining issue: excessive post-removal recovery.
+- Remaining Genesis issue: excessive post-removal recovery is entangled with
+  timestep-dependent boundary/free-surface preparation drift.
+
+## Forward-model branch rules
+
+- Treat this working tree and every active result above as the Genesis
+  baseline. Newton is assessed but is not installed or implemented here.
+- Develop Newton on a separate branch and in a separately pinned environment.
+- Reuse the qualified Chrono oracle and external comparison contract, not the
+  Genesis prepared state or optimizer observations.
+- Give every generated study, manifest, diagnostic, and W&B run an explicit
+  backend identity. Never merge Genesis and Newton observations into one
+  surrogate unless a documented multi-backend model is introduced.
+- Translate and validate material conventions explicitly. Newton's friction
+  coefficient is not automatically the Genesis friction angle.
+- Update both repositories' active docs when a backend reaches or fails an
+  acceptance gate.
 
 ## Current entry points
 

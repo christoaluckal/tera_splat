@@ -1,0 +1,16 @@
+metric,value,unit
+status,pre_settle_only,
+backend,cuda,
+cuda_device,NVIDIA GeForce RTX 5090,
+particles,307461,count
+pre_settle_termination_reason,timeout,
+pre_settle_steps,32000,count
+pre_settle_duration,4.0,seconds
+pre_settle_particle_speed_threshold,0.0005,meters/second
+pre_settle_final_particle_speed_p99,0.0006209802231751382,meters/second
+containment_wall_height,0.2,meters
+containment_wall_thickness,0.02,meters
+complete_state_restore,True,
+state_source,analytic_geostatic_F,
+saved_state_particles,307461,count
+total_wall_seconds,794.2779170520371,seconds

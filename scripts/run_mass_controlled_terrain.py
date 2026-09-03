@@ -22,6 +22,7 @@ os.environ.setdefault("MPLCONFIGDIR", str(WRITABLE_CACHE / "matplotlib"))
 
 from particle_io import load_material_config, read_particle_ply, write_particle_ply
 from mpm_state_io import geostatic_state_from_points, load_mpm_state, restore_mpm_state, save_mpm_state
+from pre_settle_diagnostics import pre_settle_diagnostic_row
 from run_genesis_ground_plane_solver import cuda_device_name, directory_size_bytes, make_bounds, tensor_to_numpy
 from run_genesis_indenter_test import (
     DEFAULT_BASE,
@@ -168,6 +169,21 @@ def parse_args() -> argparse.Namespace:
         "--pre-settle-only",
         action="store_true",
         help="Write the contained no-cylinder settled state and exit before loading.",
+    )
+    parser.add_argument(
+        "--pre-settle-diagnostic-interval-s",
+        type=float,
+        default=0.0,
+        help=(
+            "Write velocity/energy and top-mover localization every requested physical-time interval. "
+            "Zero disables this diagnostic."
+        ),
+    )
+    parser.add_argument(
+        "--pre-settle-top-fraction",
+        type=float,
+        default=0.01,
+        help="Fastest particle fraction summarized by the optional pre-settle diagnostic.",
     )
     parser.add_argument(
         "--containment-wall-height",
@@ -398,12 +414,24 @@ def main() -> None:
     source_points = tensor_to_numpy(sand.get_particles_pos())
     write_particle_ply(source_points, args.output_dir / "particles_unsettled_mpm.ply")
 
+    if args.pre_settle_diagnostic_interval_s < 0.0:
+        raise ValueError("--pre-settle-diagnostic-interval-s must be nonnegative")
+    if not 0.0 < args.pre_settle_top_fraction <= 1.0:
+        raise ValueError("--pre-settle-top-fraction must satisfy 0 < fraction <= 1")
+
     pre_settle_reason = "disabled"
     pre_settle_steps = 0
     pre_settle_final_p99 = 0.0
+    pre_settle_diagnostic_rows: list[dict[str, float | int | bool]] = []
+    top_mover_hits = np.zeros(source_points.shape[0], dtype=np.int32)
+    first_equilibrium_step: int | None = None
     if args.pre_settle_max_time > 0.0:
         max_pre_settle_steps = max(1, int(np.ceil(args.pre_settle_max_time / args.dt)))
         required_pre_settle_steps = max(1, int(np.ceil(args.pre_settle_required_duration / args.dt)))
+        diagnostic_every_steps = max(
+            1,
+            int(np.ceil(args.pre_settle_diagnostic_interval_s / args.dt)),
+        )
         stable_steps = 0
         pre_settle_reason = "timeout"
         for pre_settle_steps in range(1, max_pre_settle_steps + 1):
@@ -411,19 +439,72 @@ def main() -> None:
             scene.step(update_visualizer=False, refresh_visualizer=False)
             speeds = np.linalg.norm(tensor_to_numpy(sand.get_particles_vel()), axis=1)
             pre_settle_final_p99 = float(np.percentile(speeds, 99.0))
+            should_stop = False
             if pre_settle_final_p99 <= args.pre_settle_particle_speed_threshold:
                 stable_steps += 1
                 if stable_steps >= required_pre_settle_steps:
                     pre_settle_reason = "equilibrium"
+                    if first_equilibrium_step is None:
+                        first_equilibrium_step = pre_settle_steps
                     if not args.pre_settle_run_full_duration:
-                        break
+                        should_stop = True
             else:
                 stable_steps = 0
+            if args.pre_settle_diagnostic_interval_s > 0.0 and (
+                pre_settle_steps == 1
+                or pre_settle_steps % diagnostic_every_steps == 0
+                or pre_settle_steps == max_pre_settle_steps
+                or should_stop
+            ):
+                diagnostic_row, top_indices = pre_settle_diagnostic_row(
+                    step=pre_settle_steps,
+                    dt=args.dt,
+                    speeds=speeds,
+                    positions=tensor_to_numpy(sand.get_particles_pos()),
+                    source_points=source_points,
+                    query_xy=query_xy,
+                    footprint_radius=args.indenter_radius,
+                    particle_size=args.particle_size,
+                    top_fraction=args.pre_settle_top_fraction,
+                    stable_steps=stable_steps,
+                    equilibrium_seen=first_equilibrium_step is not None,
+                )
+                pre_settle_diagnostic_rows.append(diagnostic_row)
+                top_mover_hits[top_indices] += 1
+            if should_stop:
+                break
         if args.require_pre_settle and pre_settle_reason != "equilibrium":
             raise RuntimeError("Pre-settle phase timed out before cylinder loading")
 
     baseline_points = tensor_to_numpy(sand.get_particles_pos())
     if args.pre_settle_only:
+        if pre_settle_diagnostic_rows:
+            write_phase_csv(args.output_dir / "pre_settle_diagnostic.csv", pre_settle_diagnostic_rows)
+            final_speeds = np.linalg.norm(tensor_to_numpy(sand.get_particles_vel()), axis=1)
+            final_top_count = max(1, int(np.ceil(args.pre_settle_top_fraction * final_speeds.size)))
+            final_top = np.argpartition(final_speeds, final_speeds.size - final_top_count)[-final_top_count:]
+            persistent_min_hits = max(2, int(np.ceil(0.10 * len(pre_settle_diagnostic_rows))))
+            selected = np.flatnonzero(top_mover_hits >= persistent_min_hits)
+            selected = np.union1d(selected, final_top)
+            selected = selected[
+                np.lexsort((-final_speeds[selected], -top_mover_hits[selected]))
+            ][:10000]
+            mover_rows = [
+                {
+                    "particle_index": int(index),
+                    "diagnostic_sample_hits": int(top_mover_hits[index]),
+                    "diagnostic_sample_fraction": float(top_mover_hits[index] / len(pre_settle_diagnostic_rows)),
+                    "final_speed_mps": float(final_speeds[index]),
+                    "source_x_m": float(source_points[index, 0]),
+                    "source_y_m": float(source_points[index, 1]),
+                    "source_z_m": float(source_points[index, 2]),
+                    "final_x_m": float(baseline_points[index, 0]),
+                    "final_y_m": float(baseline_points[index, 1]),
+                    "final_z_m": float(baseline_points[index, 2]),
+                }
+                for index in selected
+            ]
+            write_phase_csv(args.output_dir / "pre_settle_top_movers.csv", mover_rows)
         write_particle_ply(baseline_points, args.output_dir / "particles_initial_mpm.ply")
         write_particle_ply(baseline_points, args.output_dir / "particles_final_mpm.ply")
         state_info = save_mpm_state(sand, args.output_dir / "mpm_state.npz")
@@ -439,6 +520,12 @@ def main() -> None:
                 ("pre_settle_duration", pre_settle_steps * args.dt, "seconds"),
                 ("pre_settle_particle_speed_threshold", args.pre_settle_particle_speed_threshold, "meters/second"),
                 ("pre_settle_final_particle_speed_p99", pre_settle_final_p99, "meters/second"),
+                (
+                    "pre_settle_first_equilibrium_time",
+                    "" if first_equilibrium_step is None else first_equilibrium_step * args.dt,
+                    "seconds",
+                ),
+                ("pre_settle_diagnostic_samples", len(pre_settle_diagnostic_rows), "count"),
                 ("containment_wall_height", args.containment_wall_height, "meters"),
                 ("containment_wall_thickness", args.containment_wall_thickness, "meters"),
                 ("complete_state_restore", True, ""),

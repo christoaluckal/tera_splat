@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "experiment": "n128 third timestep diagnostic",
+  "runtime_dt_s": 0.000125,
+  "particle_spacing_m": 0.005,
+  "particle_size_m": 0.005,
+  "n_grid": 128,
+  "equilibrium_gate": {
+    "particle_speed_p99_mps": 0.0005,
+    "required_duration_s": 0.02
+  },
+  "end_to_end_attempts": [
+    {
+      "pre_settle_cap_s": 2.0,
+      "accepted": false,
+      "termination_reason": "timeout",
+      "final_particle_speed_p99_mps": 0.0005902783013880253,
+      "surface_rmse_m": 0.0007685056189075112,
+      "surface_max_abs_m": 0.0011606529587879777
+    },
+    {
+      "pre_settle_cap_s": 4.0,
+      "accepted": false,
+      "termination_reason": "timeout",
+      "final_particle_speed_p99_mps": 0.0006209802231751382,
+      "surface_rmse_m": 0.0018334419000893831,
+      "surface_max_abs_m": 0.0024500086437910795
+    }
+  ],
+  "accepted_state_reuse_attempt": {
+    "prepared_state_dt_s": 0.00025,
+    "runtime_dt_s": 0.000125,
+    "candidate_pre_settle_cap_s": 4.0,
+    "valid": false,
+    "failure_phase": "candidate_preparation_before_contact",
+    "failure": "Pre-settle phase timed out before cylinder loading",
+    "offline_run_id": "k9ajbhw0"
+  },
+  "loaded_residual_observation_produced": false,
+  "conclusion": "0.125 ms is not valid under the frozen initialization gate; timestep convergence is not demonstrated"
+}

@@ -1,6 +1,6 @@
 # Chrono Oracle and BayesOpt Run Contract
 
-Last verified: 2026-08-30
+Last verified: 2026-09-03
 
 This document defines the active experiment contract. Historical contracts are
 archived in
@@ -157,6 +157,8 @@ Explicitly excluded:
 - `mv698mto`, which failed before contact under the obsolete 2 s cap;
 - rejected 10 mm-particle/n128 prepared beds;
 - any trial failing initialization, support, or timing requirements.
+- all `0.125 ms` n128 attempts from `n128_dt0p125_20260901`; they fail
+  pre-contact equilibrium and are diagnostics, not observations.
 
 Do not seed an n128 surrogate with coarse objectives unless the code explicitly
 models resolution as a fidelity level. A future n128 study may seed valid
@@ -165,16 +167,47 @@ proposal box is narrower than those same-fidelity observations, use the
 explicit `--allow-out-of-region-seeds` flag; particle geometry must still
 match the accepted prepared bed.
 
-## Next experiment
+## Current numerical diagnostic
 
 Boundary-extension study `yab3idti` completed seven of eight requested new
 candidates; one failed the no-action initialization gate before contact. Its
 iteration 011 winner passed exact replay `r2at0vvb` and is now the incumbent.
 
-The incumbent's aligned isometric point-cloud and signed 2D DEM-error views are
-now generated from retained-raw replay `ykep3esa`. Before another optimization
-study, quantify the maps with footprint radial profiles, center cross-sections,
-signed error, and loaded-to-residual recovery change. Use that evidence to
-decide between a local refinement around `phi=14--15 deg` and a documented
-constitutive-model limitation. Do not change the target, initial state, timing,
-projection, objective, or acceptance gates during diagnosis.
+The spatial/recovery/Pareto diagnostics and 2x2 numerical matrix are complete.
+The requested n128 `0.125 ms` third level failed the unchanged equilibrium gate
+with both 2 and 4 s preparation caps. A run-one-only accepted-state-reuse check
+using `--diagnostic-runtime-dt 0.000125` also failed candidate preparation
+before contact. This flag is diagnostic provenance only and must never be used
+for an optimizer study.
+
+The pre-settle speed-trajectory and moving-particle localization is now
+complete. Full 4 s same-state traces show wall/ground settling
+at `0.5 ms`, mixed wall/surface motion at `0.25 ms`, and free-surface
+uplift at `0.125 ms`. Fine-step final p50/p95/p99 are
+`0.291/0.764/0.986 mm/s`; p95 rules out dismissing the failure as only a
+one-percent wall tail. The next admissible change is a controlled
+containment/state-preparation numerical correction or ablation, one mechanism
+at a time, followed by the unchanged three-level gate and response checks.
+No material search is admissible until those checks establish a consistent
+forward model.
+
+## Backend evidence isolation
+
+This contract defines the external Chrono target and comparison semantics; it
+does not make internal solver state portable. The current prepared bed,
+`F`/`C`/`Jp` fields, material observations, replay evidence, and incumbent are
+Genesis-specific.
+
+A separate Newton branch may keep the Chrono episode, action geometry, loaded
+and residual times, valid mask, surface projection, score definition, and
+acceptance reporting unchanged. It must build and qualify a fresh Newton state,
+record Newton/Warp versions and solver settings, translate material conventions
+explicitly, and create a separate study namespace. Do not seed Newton from
+Genesis observations or describe a Newton result as a replay of a Genesis
+candidate.
+
+On the Genesis branch, the next admissible change remains a one-mechanism
+containment/state-preparation correction followed by the unchanged three-level
+checks. On a Newton branch, the next admissible work is an uncalibrated backend
+prototype that passes state-preparation, rigid-coupling, removal-penetration,
+and external-I/O gates before any optimizer is run.

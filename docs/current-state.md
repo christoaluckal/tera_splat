@@ -1,6 +1,6 @@
 # Current Chrono–Genesis Calibration State
 
-Last verified: 2026-08-30
+Last verified: 2026-09-03
 
 This is the authoritative live handoff for the cylinder calibration. Dated
 investigation history is preserved in
@@ -27,9 +27,10 @@ The current best known material candidate is:
 Its exact independent replay, W&B `r2at0vvb`, has objective `8.704 mm`,
 loaded RMSE `1.864 mm`, and residual-footprint RMSE `13.678 mm`.
 Initialization is not the remaining blocker: H0 RMSE is `0.876 mm`, and the
-0.25 s no-action drift RMSE is only `0.018 mm`. The remaining mismatch is
-excessive Genesis recovery after
-cylinder removal.
+0.25 s no-action drift RMSE is only `0.018 mm`. Genesis still recovers too
+much after cylinder removal, but a controlled numerical matrix now shows that
+this response mismatch cannot yet be attributed purely to constitutive model
+form.
 
 ## Frozen experiment contract
 
@@ -158,6 +159,92 @@ threshold, however, while the frozen sparse-bin allowance is three. Therefore
 use it for raw/visual evidence, not as a replacement confirmation, and do not
 relax the gate after observing this run.
 
+### Non-learned model-form diagnosis
+
+`diagnose_chrono_genesis_model_form.py` now performs the proposed diagnosis
+without adding a discrepancy network. It generated:
+
+- a post-hoc loaded-versus-residual Pareto front from 16 unique valid n128
+  candidates;
+- loaded, residual, and loaded-to-residual recovery error maps, radial
+  profiles, and center cross-sections;
+- particle-level `F`, `Jp`, displacement, and radial internal-state summaries;
+- a controlled `n64/n128` by `0.5/0.25 ms` end-to-end numerical matrix.
+
+The Pareto front has four points. Moving from its best loaded point to its
+best residual point worsens loaded RMSE from `1.864` to `1.997 mm` while
+improving residual-footprint RMSE only from `13.682` to `13.533 mm`. The raw
+incumbent's footprint recovery-error RMSE is `9.213 mm`; its final state has
+8,481 particles with nonzero `Jp`, up from 1,243 initially. These observations
+support a localized plastic/recovery mismatch rather than an I/O offset.
+
+The numerical matrix is:
+
+| particles / grid | timestep | loaded RMSE | residual-footprint RMSE |
+| --- | ---: | ---: | ---: |
+| 10 mm / n64 | `0.5 ms` | `2.298 mm` | `13.448 mm` |
+| 10 mm / n64 | `0.25 ms` | `2.979 mm` | `15.773 mm` |
+| 5 mm / n128 | `0.5 ms` | `1.864 mm` | `13.682 mm` |
+| 5 mm / n128 | `0.25 ms` | `2.468 mm` | `15.207 mm` |
+
+Halving the timestep changes residual-footprint RMSE by `+2.325 mm` at n64
+and `+1.525 mm` at n128. Resolution changes at fixed timestep are smaller:
+`+0.233 mm` at `0.5 ms` and `-0.566 mm` at `0.25 ms`. Two timestep levels
+expose material end-to-end sensitivity but cannot establish an asymptotic
+convergence rate. Therefore the current status is: constitutive/recovery
+mismatch is strongly suggested, but it is not isolated from numerical
+sensitivity.
+
+Canonical report:
+
+`tera_splat/diagnostics/model_form_2x2_20260901`
+
+### Third n128 timestep experiment
+
+The requested `0.125 ms` n128 refinement did not produce a valid response
+observation. End-to-end prepared-bed attempts failed the unchanged p99-speed
+gate at both 2 and 4 s:
+
+| preparation cap | final p99 speed | H0 RMSE / maximum | result |
+| ---: | ---: | ---: | --- |
+| `2.0 s` | `0.590 mm/s` | `0.769 / 1.161 mm` | rejected timeout |
+| `4.0 s` | `0.621 mm/s` | `1.833 / 2.450 mm` | rejected timeout |
+
+Both surface gates passed, but the required `0.5 mm/s for 0.02 s` speed hold
+did not. Reusing the accepted n128/0.25 ms state and running candidate
+reconstruction at `0.125 ms` through the explicit run-one diagnostic override
+also timed out before cylinder contact. Therefore there is no legitimate third
+loaded/residual score and no three-level convergence estimate. The failed
+trial is excluded from optimization evidence.
+
+Lightweight evidence:
+
+`tera_splat/diagnostics/n128_dt0p125_20260901`
+
+### Same-state pre-settle localization
+
+The requested follow-up is complete. Three full-duration 4.0 s traces start
+from the exact same accepted 307,461-particle n128 state and change only
+timestep:
+
+| timestep | first accepted p99 window | final p50 / p95 / p99 | fastest 1% at 4 s | persistent median dz |
+| ---: | ---: | ---: | --- | ---: |
+| `0.5 ms` | `2.055 s` | `0.100 / 0.243 / 0.450 mm/s` | 98.4% wall; 76.7% ground | `-3.135 mm` |
+| `0.25 ms` | `1.53025 s` | `0.170 / 0.360 / 0.516 mm/s` | 97.7% wall; 49.9% surface | `-1.968 mm` |
+| `0.125 ms` | none | `0.291 / 0.764 / 0.986 mm/s` | 99.87% surface; 58.8% wall | `+2.555 mm` |
+
+The accepted-window times record the first transient 0.02 s hold; because the
+diagnostic deliberately continues to 4 s, the 0.25 ms p99 can finish above the
+gate. Median speed is below 0.5 mm/s in every trace, excluding uniform
+whole-bed motion. At 0.125 ms, however, p95 is also above 0.5 mm/s and the
+fastest population is almost entirely at the free surface. The failed third
+level is therefore a timestep-dependent shift from containment settling to
+surface uplift/rebound, not merely a one-percent wall-tail artifact.
+
+Canonical lightweight report:
+
+`tera_splat/diagnostics/pre_settle_timestep_20260903`
+
 ### Excluded evidence
 
 - All `A0_cal_full10mm` studies use a legacy free-centered target with an
@@ -223,8 +310,14 @@ removal.
 - The BayesOpt I/O and fixed-time loop are working.
 - The confirmed 20.433 kPa / 14.727 deg / 0.101895 candidate is the current
   n128 incumbent.
-- The remaining problem is response calibration: the current Genesis Sand
-  response recovers too much after removal.
+- The current Genesis Sand response recovers too much after removal, and the
+  loaded/residual Pareto trade-off plus `F`/`Jp` localization make model-form
+  limitation plausible.
+- End-to-end timestep convergence is not demonstrated, and the `0.125 ms`
+  level cannot pass the frozen initialization gate. Same-state traces localize
+  this to a timestep-dependent boundary/free-surface mode with net surface
+  uplift at the fine step. This prevents a clean model-form-only diagnosis
+  and blocks another material sweep.
 - The current evidence does not justify a classifier, an extra fit parameter,
   a stress multiplier, a relaxed initialization gate, or another target change.
 
@@ -262,12 +355,50 @@ objective `8.707 mm`, loaded RMSE `1.864 mm`, residual-footprint RMSE
 confirmed it at `8.704 mm`, `1.864 mm`, `13.678 mm`, and `+12.941 mm`.
 
 The winner is not on the extended lower friction boundary, so another blind
-boundary expansion is not the next step. The aligned isometric point-cloud and
-2D DEM-error comparison is now generated from retained-raw replay `ykep3esa`.
-Quantify it with radial profiles, center cross-sections, and
-loaded-to-residual recovery change before choosing another search box or
-declaring a Genesis Sand constitutive limitation. Keep the oracle, bed, I/O,
-timing, loss, and gates frozen.
+boundary expansion is not the next step. The spatial, recovery, hidden-state,
+Pareto, 2x2 numerical, and same-state pre-settle diagnostics are complete.
+If work continues with Genesis, its next forward-model task is a controlled
+containment/state-preparation correction or ablation that removes the
+timestep-dependent wall/surface drift, followed by rerunning the unchanged
+three-level preparation and response checks. Keep the oracle, material, action,
+observation times, scoring, and acceptance rule frozen while changing one
+numerical mechanism at a time. Do not add a learned discrepancy model or start
+another BayesOpt study before preparation consistency and response convergence
+are demonstrated.
+
+## Forward-model branch decision
+
+This working tree is the Genesis baseline and should be committed as such
+before starting another solver. Newton is a viable candidate for a separate
+MPM branch, not a drop-in replacement and not part of any result above. Its
+implicit granular MPM solver exposes pressure-dependent yielding and rigid-MPM
+coupling, but the coupling path is still described as experimental and moving
+container boundaries require an explicit penetration test.
+
+The Newton branch may reuse the qualified Chrono oracle, cylinder action and
+timing, valid mask, map projection, score definition, visualization, diagnostic
+layout, and external output contract. It must not reuse Genesis `F`/`C`/`Jp`
+state, prepared-bed acceptance, material observations, optimizer seeds, or
+calibrated parameters as if they were solver-independent. In particular,
+Newton's friction coefficient is not silently interchangeable with the Genesis
+friction angle.
+
+The first Newton acceptance ladder is:
+
+1. pin Newton and Warp in a separate environment and record exact versions;
+2. reproduce the frozen geometry with a cylinder-free granular bed and static
+   containment;
+3. run the same three timestep/state-preparation diagnostics and qualify a new
+   Newton initial state;
+4. validate two-way cylinder loading and container removal without wall
+   penetration;
+5. emit the same externally visible maps, masks, timing, gates, and provenance;
+6. compare one valid Newton response with the unchanged Chrono oracle;
+7. begin a fresh Newton calibration only after those gates pass.
+
+If work instead continues on the Genesis branch, the controlled numerical
+correction described above remains its next experiment. Evidence from the two
+backends must remain separately named and must never be pooled implicitly.
 
 ## Operational paths
 
@@ -281,6 +412,10 @@ timing, loss, and gates frozen.
   `tera_splat/scripts/run_mass_controlled_terrain.py`
 - aligned point-cloud/DEM comparison renderer:
   `tera_splat/scripts/render_chrono_genesis_pointcloud_dem_comparison.py`
+- non-learned model-form diagnostic:
+  `tera_splat/scripts/diagnose_chrono_genesis_model_form.py`
+- pre-settle timestep analyzer:
+  `tera_splat/scripts/analyze_pre_settle_timestep_diagnostics.py`
 - aligned and raw PCD exporter:
   `tera_splat_sim/export_scm_genesis_pcd.py`
 - active environment:

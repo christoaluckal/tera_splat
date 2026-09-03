@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "accepted": false,
+  "source_chrono_episode": "/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_oracle_guided_offset_5mm_gate6mm_v1",
+  "coordinate_frame": "bed",
+  "heightmap": {
+    "axis_order": "rows=y_increasing, columns=x_increasing",
+    "units": "m",
+    "origin_xy_m": [
+      -0.3,
+      -0.3
+    ],
+    "spacing_m": 0.005,
+    "shape": [
+      121,
+      121
+    ],
+    "x_bounds_m": [
+      -0.3,
+      0.30000000000000054
+    ],
+    "y_bounds_m": [
+      -0.3,
+      0.30000000000000054
+    ],
+    "valid_mask": "valid_heightmap_mask.npy; one-cell SCM boundary ring excluded"
+  },
+  "metric_bed": {
+    "source": "chrono_metric_heightmap",
+    "coordinate_frame": "bed",
+    "surface_particle_count": 14641,
+    "particle_count": 307461,
+    "particle_spacing_m": 0.005,
+    "bed_depth_m": 0.1,
+    "chrono_heightmap": {
+      "axis_order": "rows=y_increasing, columns=x_increasing",
+      "units": "m",
+      "origin_xy_m": [
+        -0.3,
+        -0.3
+      ],
+      "spacing_m": 0.005,
+      "shape": [
+        121,
+        121
+      ],
+      "x_bounds_m": [
+        -0.3,
+        0.30000000000000054
+      ],
+      "y_bounds_m": [
+        -0.3,
+        0.30000000000000054
+      ],
+      "valid_mask": "valid_heightmap_mask.npy; one-cell SCM boundary ring excluded"
+    },
+    "ground_plane_mpm": {
+      "point": [
+        0.0,
+        0.0,
+        -0.10500000417232513
+      ],
+      "normal": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "surface": "sticky",
+      "height_source": "metric_bed_bottom_minus_particle_spacing"
+    }
+  },
+  "state": {
+    "path": "prepared_bed/mpm_state.npz",
+    "format": "complete Genesis MPM state: pos, vel, C, F, Jp, active",
+    "source": "analytic geostatic F followed by gravity settling"
+  },
+  "settling": {
+    "termination_reason": "timeout",
+    "duration_s": 2.0,
+    "final_particle_speed_p99_mps": 0.0005902783013880253,
+    "threshold_mps": 0.0005,
+    "containment_wall_height_m": 0.2,
+    "containment_wall_thickness_m": 0.02,
+    "geostatic_stress_scale": 1.0,
+    "dt_s": 0.000125,
+    "n_grid": 128,
+    "particle_size_m": 0.005,
+    "enable_cpic": true
+  },
+  "surface_match": {
+    "projection": "highest_particle_per_Chrono_cell_then_nearest_fill",
+    "valid_cells": 14161,
+    "rmse_m": 0.0007685056189075112,
+    "max_abs_m": 0.0011606529587879777,
+    "rmse_tolerance_m": 0.005,
+    "max_abs_tolerance_m": 0.01
+  }
+}

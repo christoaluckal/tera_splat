@@ -31,8 +31,25 @@ instructions and intentionally retain superseded hypotheses and next steps.
 - Retained raw/visual replay: W&B `ykep3esa`; 78 sampled rollout PLYs,
   initial/loaded/residual MPM states, aligned surface PCDs, comparison arrays,
   and loaded/residual point-cloud plus DEM-error figures.
-- Current blocker: Genesis recovers too much after removal; initialization,
-  I/O, timing, and resolution gates pass.
+- Non-learned diagnosis complete: four-point loaded/residual Pareto front,
+  recovery and `F`/`Jp` localization, and a 2x2 resolution/timestep matrix.
+- Current blocker: Genesis recovers too much after removal, but halving the
+  timestep changes residual-footprint RMSE by `1.525--2.325 mm`; numerical
+  convergence is not demonstrated, so model-form failure is not yet isolated.
+- Third n128 level: `0.125 ms` preparations with 2 and 4 s caps both failed
+  the unchanged speed gate; accepted-state reuse also failed candidate
+  relaxation before contact. No third score is eligible.
+- Same-state 4 s traces explain that failure: the fast mode shifts from
+  wall/ground at `0.5 ms`, through wall/surface at `0.25 ms`, to
+  free-surface uplift at `0.125 ms`. Fine-step p50/p95/p99 are
+  `0.291/0.764/0.986 mm/s`; this is timestep-dependent preparation, not
+  uniform bulk compaction or a one-percent wall artifact.
+- Lightweight reports are tracked under `diagnostics/`; large beds, states,
+  PLY/PCD sequences, and evaluation runs remain under `outputs/`.
+- Forward-model decision: the current branch remains the frozen Genesis
+  baseline. Newton v1.5.1 has been assessed as a viable alternate MPM backend,
+  but no Newton implementation, prepared state, calibration, or result exists
+  yet. It belongs on a separate branch with solver-specific evidence.
 
 The raw visualization replay is not a replacement confirmation: aggregate
 metrics and p99 map agreement were stable, but four residual cells exceeded
@@ -58,9 +75,10 @@ RealSense source: ../lamp/ros2_ws/src/realsense_splat/
 Chrono oracle:   ../tera_splat_sim/
 ```
 
-`tera_splat` owns Genesis preparation, calibration interpretation, response
-scoring, W&B studies, and handoff documentation. `tera_splat_sim` owns Chrono
-oracle generation and qualification artifacts.
+`tera_splat` owns forward-model preparation, calibration interpretation,
+response scoring, W&B studies, and handoff documentation. The present
+implementation and all current results are Genesis-specific. `tera_splat_sim`
+owns Chrono oracle generation and qualification artifacts.
 
 ## Current entry points
 
@@ -70,6 +88,7 @@ conda run -n chrono_splat python scripts/run_chrono_genesis_bridge.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
 conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
 conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
+conda run -n chrono_splat python scripts/diagnose_chrono_genesis_model_form.py --help
 ```
 
 Do not launch a new study until its target, prepared bed, resolution, seed

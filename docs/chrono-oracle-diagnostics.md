@@ -1,6 +1,6 @@
 # Chrono SCM Oracle Diagnostics
 
-Last verified: 2026-08-30
+Last verified: 2026-09-03
 
 Status: the 5 mm guided Chrono oracle is accepted and frozen for the current
 Genesis calibration. The investigation history through 2026-08-26 is archived
@@ -136,7 +136,23 @@ manifest path.
 
 ## Current conclusion
 
-No further Chrono target modification is indicated. The active issue is
-Genesis residual response at the accepted n128 resolution. See
+No further Chrono target modification is indicated. A controlled Genesis
+`n64/n128` by `0.5/0.25 ms` matrix changes residual-footprint RMSE by
+`1.525--2.325 mm` when timestep is halved, while the qualified Chrono target
+is unchanged. The active issue is therefore Genesis end-to-end numerical
+convergence followed by residual constitutive response, not oracle
+regeneration. The attempted n128 `0.125 ms` third level failed Genesis
+pre-contact equilibrium with both 2 and 4 s caps, and accepted-state reuse
+failed the same phase. Controlled same-state traces now show a qualitative
+shift from wall/ground settling at `0.5 ms` to free-surface uplift at
+`0.125 ms`; final fine-step p50/p95/p99 are
+`0.291/0.764/0.986 mm/s`, and 99.87% of the fastest 1% is near the surface.
+This is a Genesis preparation/integration issue, not evidence for changing
+the Chrono oracle. See
 [Chrono Oracle and BayesOpt Run Contract](chrono-oracle-run-contract.md) for
 the exact diagnostic and future-study rules.
+
+Changing the downstream MPM backend does not require regenerating this oracle.
+A Newton branch should consume the same qualified episode, mask, action, and
+observation times while keeping its solver state and calibration evidence
+separate from Genesis.

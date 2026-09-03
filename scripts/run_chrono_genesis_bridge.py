@@ -37,6 +37,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--backend", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--bed-depth-m", type=float, default=0.10)
     parser.add_argument("--particle-spacing-m", type=float, default=None)
+    parser.add_argument(
+        "--diagnostic-runtime-dt",
+        type=float,
+        default=None,
+        help=(
+            "Refined runtime timestep for a fixed accepted prepared-state diagnostic. "
+            "Does not change the prepared-state provenance or acceptance."
+        ),
+    )
     parser.add_argument("--loaded-max-time", type=float, default=0.25)
     parser.add_argument(
         "--loaded-run-full-duration",
@@ -106,6 +115,12 @@ def main() -> None:
     if not (state_path.is_file() and particle_path.is_file() and metadata_path.is_file()):
         raise SystemExit("Prepared bed is missing particles, metadata, or complete MPM state")
     spacing = float(args.particle_spacing_m or manifest["heightmap"]["spacing_m"])
+    prepared_dt = float(prepared["settling"].get("dt_s", 0.0005))
+    runtime_dt = float(args.diagnostic_runtime_dt if args.diagnostic_runtime_dt is not None else prepared_dt)
+    if runtime_dt <= 0.0:
+        raise SystemExit("Runtime timestep must be positive")
+    if args.diagnostic_runtime_dt is not None and runtime_dt >= prepared_dt:
+        raise SystemExit("Diagnostic runtime timestep must refine the accepted prepared-bed timestep")
     output_dir.mkdir(parents=True)
     containment_height = float(
         prepared["settling"]["containment_wall_height_m"]
@@ -125,7 +140,7 @@ def main() -> None:
         "--backend", args.backend,
         "--n-grid", str(prepared["settling"].get("n_grid", args.n_grid)),
         "--particle-size", str(prepared["settling"].get("particle_size_m", args.particle_size or 0.0125)),
-        "--dt", str(prepared["settling"].get("dt_s", 0.0005)),
+        "--dt", str(runtime_dt),
     ]
     if prepared["settling"].get("enable_cpic", False):
         common_solver_args.append("--enable-cpic")
@@ -307,7 +322,9 @@ def main() -> None:
         "genesis_runtime": {
             "backend": args.backend,
             "n_grid": int(prepared["settling"].get("n_grid", args.n_grid)),
-            "dt_s": float(prepared["settling"].get("dt_s", 0.0005)),
+            "dt_s": runtime_dt,
+            "prepared_state_dt_s": prepared_dt,
+            "diagnostic_dt_override": bool(args.diagnostic_runtime_dt is not None),
             "particle_spacing_m": spacing,
             "particle_size_m": float(
                 prepared["settling"].get("particle_size_m", args.particle_size or 0.0125)

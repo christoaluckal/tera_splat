@@ -1,0 +1,15 @@
+{
+  "valid": false,
+  "iteration": 0,
+  "failure_type": "CalledProcessError",
+  "failure": "Command '['/data/christoa/conda/envs/chrono_splat/bin/python', '/eng/home/christoa/Workspace/splatting/Chrono/tera_splat/scripts/run_chrono_genesis_bridge.py', '--chrono-episode', '/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_oracle_guided_offset_5mm_gate6mm_v1', '--prepared-bed', '/data/christoa/Chrono/tera_splat/outputs/validity_experiment/numerical_diagnosis/A0_incumbent_n128_p5mm_dt0p25ms_prepared/prepared_bed', '--output-dir', '/data/christoa/Chrono/tera_splat/outputs/validity_experiment/numerical_diagnosis/matrix_n128_p5mm_prepared_dt0p25_runtime_dt0p125ms/study_k9ajbhw0/trials/iteration_000/bridge', '--config', '/data/christoa/Chrono/tera_splat/outputs/validity_experiment/numerical_diagnosis/matrix_n128_p5mm_prepared_dt0p25_runtime_dt0p125ms/study_k9ajbhw0/trials/iteration_000/material_config.json', '--backend', 'cuda', '--particle-spacing-m', '0.005', '--diagnostic-runtime-dt', '0.000125', '--loaded-max-time', '3.595', '--loaded-run-full-duration', '--post-max-time', '0.25', '--post-observation-times', '0.25', '--required-duration', '0.02', '--candidate-pre-settle-max-time', '4.0', '--candidate-pre-settle-required-duration', '0.02', '--candidate-pre-settle-speed-threshold', '0.0005', '--candidate-initial-hold-time', '0.25', '--candidate-initial-hold-rmse-tolerance', '0.0005', '--candidate-initial-hold-max-abs-tolerance', '0.001']' returned non-zero exit status 1.",
+  "candidate": {
+    "log10_E": 4.310328487292889,
+    "phi_deg": 14.727052951461,
+    "nu": 0.10189453643386188,
+    "particle_spacing_m": 0.005,
+    "particle_size_ratio": 1.0,
+    "E_pa": 20432.828380658964,
+    "particle_size_m": 0.005
+  }
+}

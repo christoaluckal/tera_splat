@@ -1,5 +1,11 @@
 # Single-Trial real3 Calibration Report
 
+> Historical real-data report. The active project scope is currently
+> simulation-only, and this report is not an active calibration target or a
+> source of current next steps. See
+> [`docs/current-state.md`](../docs/current-state.md) for the live Chrono-to-MPM
+> handoff. Values below are preserved as provenance.
+
 ## Summary
 
 - Trial directory: `/home/moog-2/christo/splatting_stuff/physical/tera_splat/data/single_trial_real3`

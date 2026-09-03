@@ -8,6 +8,40 @@ are not part of the Git diff unless explicitly stated.
 
 Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
 
+### Current handoff through 2026-09-03
+
+- Qualified and froze Chrono oracle
+  `A0_oracle_guided_offset_5mm_gate6mm_v1`, including its guided cylinder,
+  fixed loaded/residual observation times, valid mask, and scoring contract.
+- Promoted the ratio-matched 307,461-particle, 5 mm/n128 Genesis bed and
+  confirmed incumbent `20.432828 kPa / 14.727053 deg / 0.101894536` in exact
+  replay `r2at0vvb`: objective `8.704 mm`, loaded RMSE `1.864 mm`, and
+  residual-footprint RMSE `13.678 mm`.
+- Retained raw replay `ykep3esa` for visualization and state evidence. It is
+  not a replacement confirmation because four residual projection cells
+  exceeded the frozen three-cell sparse-bin allowance.
+- Completed the non-learned Pareto, spatial, recovery, `F`/`Jp`, and 2x2
+  resolution/timestep diagnosis. A third n128 `0.125 ms` response was rejected
+  before contact because it could not pass the unchanged preparation gate.
+- Completed controlled 4 s same-state pre-settle traces at `0.5`, `0.25`, and
+  `0.125 ms`. They identify timestep-dependent boundary/free-surface drift,
+  preventing a clean constitutive-only diagnosis or another material sweep.
+- Added tracked lightweight diagnostics at repository-root `diagnostics/`;
+  large beds, states, PLY/PCD sequences, videos, and evaluation runs remain in
+  `outputs/`.
+- Froze this work as the Genesis baseline. Newton v1.5.1 is documented as a
+  viable separate-branch candidate, but it is not installed or implemented and
+  has no prepared state, calibrated parameters, or results in this repository.
+
+### Current next work
+
+- Commit the Genesis baseline and keep its evidence immutable across backend
+  work.
+- On a Newton branch, reproduce the external Chrono I/O and scoring contract,
+  then qualify a fresh Newton state and coupling path before calibration.
+- If Genesis work continues instead, correct or ablate one containment/state-
+  preparation mechanism and rerun the frozen three-level checks.
+
 ### Runtime and documentation
 
 - Standardized commands and contributor documentation on the `chrono_splat`
@@ -64,7 +98,10 @@ Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
   within 1 s. Best valid objective was 0.372 mm at `log10_E=4.5`,
   `phi_deg=35`.
 
-### Remaining work
+### Superseded August 20 follow-up
+
+The items below record the next steps as of August 20. They were completed or
+superseded by the current handoff above and are not active instructions.
 
 - Run the documented 1.0/1.5/2.0/3.0 s post-removal diagnostic before another
   calibration sweep.
@@ -72,7 +109,7 @@ Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
   equilibrium.
 - Freeze the production post-removal window from the diagnostic evidence.
 
-### Tracked files changed
+### Tracked files at the August 20 checkpoint
 
 - `docs/README.md`
 - `docs/contributor-guidance.md`
@@ -82,7 +119,7 @@ Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
 - `scripts/run_mass_controlled_terrain.py`
 - `CHANGELOG.md` (new)
 
-### Generated evidence not tracked by Git
+### Generated evidence at the August 20 checkpoint
 
 - `outputs/validity_experiment/A0_cal_full10mm_prepared_20mm_cpic_frozen/`
 - `outputs/validity_experiment/bayesopt/A0_cal_full10mm_frozen_online/`

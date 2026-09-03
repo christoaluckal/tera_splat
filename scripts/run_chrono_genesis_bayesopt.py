@@ -114,6 +114,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--minimum-common-valid-fraction", type=float, default=0.95)
     parser.add_argument("--n-grid", type=int, default=64)
     parser.add_argument("--dt", type=float, default=0.001)
+    parser.add_argument(
+        "--diagnostic-runtime-dt",
+        type=float,
+        default=None,
+        help=(
+            "Run-one-only timestep refinement using an accepted prepared state. "
+            "The prepared-state timestep and override are both persisted; never use this for optimizer studies."
+        ),
+    )
     parser.add_argument("--enable-cpic", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument(
         "--render-best-episode-video",
@@ -395,7 +404,11 @@ def evaluate_candidate(
         # inherited from a coarse base material file.  The bridge independently
         # enforces these same values from the accepted prepared-bed manifest.
         material_config["n_grid"] = int(prepared_manifest["settling"]["n_grid"])
-        material_config["substep_dt"] = float(prepared_manifest["settling"]["dt_s"])
+        material_config["substep_dt"] = float(
+            args.diagnostic_runtime_dt
+            if args.diagnostic_runtime_dt is not None
+            else prepared_manifest["settling"]["dt_s"]
+        )
         material_config_path = trial_dir / "material_config.json"
         material_config_path.write_text(json.dumps(material_config, indent=2) + "\n", encoding="utf-8")
         (trial_dir / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
@@ -417,6 +430,11 @@ def evaluate_candidate(
             "--config", str(material_config_path),
             "--backend", args.backend,
             "--particle-spacing-m", str(candidate["particle_spacing_m"]),
+            *(
+                ["--diagnostic-runtime-dt", str(args.diagnostic_runtime_dt)]
+                if args.diagnostic_runtime_dt is not None
+                else []
+            ),
             "--loaded-max-time", str(args.loaded_max_time),
             *( ["--loaded-run-full-duration"] if args.loaded_run_full_duration else []),
             "--post-max-time", str(args.post_max_time),
@@ -830,6 +848,11 @@ def main() -> None:
     print("[BayesOpt] validating inputs", flush=True)
     if sum((args.wandb_init_only, args.run_one, args.count > 0)) != 1:
         raise SystemExit("Choose exactly one mode: --wandb-init-only, --run-one, or --count N.")
+    if args.diagnostic_runtime_dt is not None:
+        if not args.run_one:
+            raise SystemExit("--diagnostic-runtime-dt is permitted only with --run-one")
+        if args.diagnostic_runtime_dt <= 0.0:
+            raise SystemExit("--diagnostic-runtime-dt must be positive")
     if not args.chrono_episode.is_dir():
         raise SystemExit(f"Chrono episode not found: {args.chrono_episode}")
     if not args.prepared_bed.is_dir():
@@ -842,6 +865,11 @@ def main() -> None:
     prepared_manifest = json.loads(prepared_manifest_path.read_text(encoding="utf-8"))
     if not prepared_manifest.get("accepted", False):
         raise SystemExit("BayesOpt requires an accepted frozen prepared bed")
+    if (
+        args.diagnostic_runtime_dt is not None
+        and args.diagnostic_runtime_dt >= float(prepared_manifest["settling"]["dt_s"])
+    ):
+        raise SystemExit("--diagnostic-runtime-dt must refine the accepted prepared-bed timestep")
     spacing = float(prepared_manifest["metric_bed"]["particle_spacing_m"])
     size_ratio = float(prepared_manifest["settling"]["particle_size_m"]) / spacing
     if not 0.0 < args.log10_e_min < args.log10_e_max:

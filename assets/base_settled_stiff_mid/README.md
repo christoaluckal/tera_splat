@@ -1,6 +1,9 @@
-# Settled Mid-Stiff Base State
+# Legacy Settled Mid-Stiff Base State
 
-This is the active base state for the Genesis sand prototype.
+This is a retained 12.5 mm-particle prototype asset. It is not the active
+calibration bed and must not seed the current 5 mm/n128 workflow. See
+[`docs/current-state.md`](../../docs/current-state.md) for the authoritative
+prepared state and experiment contract.
 
 It starts from the settled final frame of:
 
@@ -21,8 +24,8 @@ substeps: 10
 ground coupling: friction 0.2, softness 0.0, restitution 0.0
 ```
 
-Use `particles_initial_mpm.ply` plus `ground_plane_metadata.json` as the
-starting state for the next base simulation.
+`particles_initial_mpm.ply` plus `ground_plane_metadata.json` reproduce this
+historical prototype only.
 
 Reference output:
 

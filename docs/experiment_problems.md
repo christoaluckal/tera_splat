@@ -1,6 +1,6 @@
 # Calibration Problems, Evidence, and Corrective Actions
 
-Last reviewed: 2026-08-30
+Last reviewed: 2026-09-03
 
 This document separates resolved setup failures from the current response
 calibration problem. The historical 2026-08-18 diagnosis is archived in
@@ -33,6 +33,19 @@ positive footprint error rather than an I/O-frame or support-mask offset.
 map disagreement stayed below `0.011 mm`, while four residual cells exceeded
 the 1 mm discrete-projection threshold versus the frozen allowance of three.
 The gate remains unchanged and `r2at0vvb` remains authoritative.
+
+The non-learned diagnosis is now complete. Sixteen unique valid n128
+candidates produce a four-point Pareto front: reducing residual-footprint
+RMSE from `13.682` to `13.533 mm` costs loaded RMSE (`1.864 -> 1.997 mm`).
+The incumbent recovery-error RMSE is `9.213 mm` in the footprint, and nonzero
+Genesis `Jp` particle count grows from 1,243 initially to 8,481 after removal.
+This is coherent recovery/plastic-state evidence, not a frame or mask error.
+
+However, the controlled numerical matrix prevents a model-form-only verdict.
+Halving timestep changes residual-footprint RMSE by `+2.325 mm` at n64 and
+`+1.525 mm` at n128. Fixed-timestep resolution effects are only `+0.233` and
+`-0.566 mm`, respectively. Numerical convergence is therefore not
+demonstrated.
 
 ## Resolved problems
 
@@ -81,26 +94,59 @@ The ranking survives resolution promotion. Initialization quality is much
 better at n128, while residual response is worse, so the remaining error cannot
 be attributed to a bad starting bed.
 
-## Current hypothesis
+## Current diagnosis
 
 Lower friction improved both loaded and residual metrics, but the confirmed
 residual signed error remains `+12.941 mm`. The winner is inside the extended
 friction interval rather than at its lower boundary, so blind boundary
 expansion is no longer justified.
 
-The aligned point-cloud and 2D error comparison is now generated. The next
-diagnostic should quantify those maps using footprint radial profiles, center
-cross-sections, and loaded-to-residual recovery change. If the mismatch is a
-coherent recovery-mode error rather than a narrow local parameter trend,
-record a limitation of the current Genesis Sand constitutive response.
+The aligned maps, radial profiles, center cross-sections, recovery change,
+Pareto decomposition, and `F`/`Jp` summaries all support a coherent recovery
+mismatch. The 2x2 matrix also shows material timestep sensitivity, however, so
+the constitutive limitation remains strongly suggested rather than isolated.
+The requested third n128 level is complete as a failed-gate diagnostic.
+End-to-end `0.125 ms` preparations timed out at 2 and 4 s with final p99 speeds
+of `0.590` and `0.621 mm/s`; H0 remained inside its surface bounds. Reusing the
+accepted `0.25 ms` state and refining downstream runtime to `0.125 ms` also
+failed candidate relaxation before contact. No third score exists.
+
+The same-state follow-up now records 401 samples over 4 s at each timestep.
+At `0.5/0.25/0.125 ms`, final p50/p95/p99 speeds are respectively
+`0.100/0.243/0.450`, `0.170/0.360/0.516`, and
+`0.291/0.764/0.986 mm/s`. The fastest 1% changes from 98.4% wall and 76.7%
+ground, to 97.7% wall and 49.9% surface, to 99.87% surface. Persistent movers
+shift from `-3.135 mm` median vertical displacement to `+2.555 mm`.
+This is timestep-dependent boundary/free-surface drift, not uniform bulk
+compaction. Because fine-step p95 also exceeds the gate, it is not only a
+one-percent wall artifact. Fix or ablate the numerical preparation mechanism
+before another material sweep; do not add a discrepancy network.
 
 ## Decision rule
 
 - If a valid n128 candidate lowers residual-footprint error without materially
   worsening loaded RMSE, promote it.
-- If the current parameters trade loaded fit against residual retention with no
-  joint improvement, record a limitation of the current Genesis Sand
-  constitutive response.
+- If a third-level/fixed-state check demonstrates score convergence while the
+  Pareto and recovery mismatch persist, record a limitation of the current
+  Genesis Sand constitutive response.
+- If timestep movement remains material, diagnose integrator/contact/state
+  preparation sensitivity before changing material parameters.
 - Do not solve the mismatch by changing Chrono, adding a classifier, loosening
   gates, fitting a stress multiplier, or mixing n64 and n128 objectives in one
   unmodelled-fidelity surrogate.
+
+## Alternate Newton forward model
+
+Newton is viable enough to prototype on a separate branch because its implicit
+MPM path supports granular/elasto-plastic particles and rigid coupling. That is
+an engineering option, not a resolution of the Genesis diagnosis and not a
+drop-in solver swap. Newton is not installed or implemented in this baseline,
+and no Newton result has been generated.
+
+The Chrono oracle, action/timing, mask, surface projection, score, and
+diagnostic schema can remain common. Genesis prepared states, `F`/`C`/`Jp`,
+parameter meanings, observations, and calibration bounds cannot be transferred
+without a new derivation and validation. The Newton branch must first qualify
+its own static-container bed, timestep/solver-tolerance behavior, two-way
+cylinder coupling, and moving-container removal before starting a fresh
+calibration.
