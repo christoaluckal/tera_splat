@@ -1,9 +1,11 @@
 # Tera Splat
 
-Chrono-to-Genesis terrain calibration for a mass-controlled rigid-cylinder
-experiment. The active workflow uses a qualified 5 mm Chrono SCM oracle, an
-accepted 5 mm-particle/n128 Genesis MPM bed, fixed-time loaded/residual maps,
-validity-gated candidate initialization, and online W&B BayesOpt.
+Chrono-to-MPM terrain calibration for a mass-controlled rigid-cylinder
+experiment. Genesis remains the frozen calibration baseline. The active Newton
+branch now has a converged PIC cylinder-free preparation and one
+mechanics-qualified, continuous-state rigid-cylinder response against the same
+Chrono SCM oracle. Its engineering material is uncalibrated; three-level
+response timestep convergence is the active gate.
 
 ## Start here
 
@@ -46,10 +48,25 @@ instructions and intentionally retain superseded hypotheses and next steps.
   uniform bulk compaction or a one-percent wall artifact.
 - Lightweight reports are tracked under `diagnostics/`; large beds, states,
   PLY/PCD sequences, and evaluation runs remain under `outputs/`.
-- Forward-model decision: the current branch remains the frozen Genesis
-  baseline. Newton v1.5.1 has been assessed as a viable alternate MPM backend,
-  but no Newton implementation, prepared state, calibration, or result exists
-  yet. It belongs on a separate branch with solver-specific evidence.
+- Newton preparation is now qualified with PIC transfer at `0.5`, `0.25`, and
+  `0.125 ms` over a common 2 s horizon. All speed/H0 gates pass; adjacent DEM
+  RMSE is `0.023/0.031 mm`, and the `1e-4 -> 1e-5` tolerance result is
+  identical. The rejected APIC fine-step state was a top-layer transfer mode.
+- Newton mechanics are qualified at the frozen action: continuous in-process
+  preparation, guided 1.5 kg cylinder loading for `3.595 s`, instantaneous
+  removal, and `0.25 s` residual output are finite with full I/O and zero
+  analytic particle-center penetration. The material is still uncalibrated;
+  response timestep convergence is the next gate before a larger evaluation.
+- The response gate uses the fixed uncalibrated smoke material
+  (`rho=1000 kg/m^3`, `E=100 kPa`, `nu=0.2`, friction coefficient `0.68`) at
+  `0.5/0.25/0.125 ms`. It compares loaded-minus-initial and
+  residual-minus-initial DEMs on the common valid mask; adjacent levels must
+  stay within `0.5 mm` RMSE and `1.0 mm` maximum error, while loaded cylinder
+  sinkage must stay within `0.5 mm`. Chrono fit is reported separately and
+  cannot make a numerically inconsistent case pass.
+- Newton state arrays are archival I/O, not qualified restart checkpoints.
+  Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
+  prepare continuously in-process.
 
 The raw visualization replay is not a replacement confirmation: aggregate
 metrics and p99 map agreement were stable, but four residual cells exceeded
@@ -58,9 +75,13 @@ confirmation remains `r2at0vvb`.
 
 ## Environment
 
-Use the existing environment for all instrumentation:
+Use the existing environment for Genesis instrumentation:
 
 `conda env: chrono_splat`
+
+Use the separately pinned Newton environment for the Newton runner:
+
+`/data/christoa/conda/envs/newton_splat`
 
 CUDA Genesis runs require a shell where the host GPU is visible. Generated
 calibration outputs belong under
@@ -77,7 +98,7 @@ Chrono oracle:   ../tera_splat_sim/
 
 `tera_splat` owns forward-model preparation, calibration interpretation,
 response scoring, W&B studies, and handoff documentation. The present
-implementation and all current results are Genesis-specific. `tera_splat_sim`
+implementation keeps backend state and evidence separate. `tera_splat_sim`
 owns Chrono oracle generation and qualification artifacts.
 
 ## Current entry points
@@ -89,6 +110,9 @@ conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
 conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
 conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
 conda run -n chrono_splat python scripts/diagnose_chrono_genesis_model_form.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_prepared_bed.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_preparation_convergence.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_cylinder_diagnostic.py --help
 ```
 
 Do not launch a new study until its target, prepared bed, resolution, seed

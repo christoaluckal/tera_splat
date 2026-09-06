@@ -1,0 +1,4 @@
+axis,left,right,common_cells,signed_mean_m,rmse_m,max_abs_m,passes_gate
+timestep,dt0p5ms_tol1e4,dt0p25ms_tol1e4,14161,2.8675098292296752e-05,4.082427767571062e-05,0.00010755006223917007,1
+timestep,dt0p25ms_tol1e4,dt0p125ms_tol1e4,14161,4.4865832023788244e-05,5.378493733587675e-05,9.986839722841978e-05,1
+tolerance,dt0p25ms_tol1e4,dt0p25ms_tol1e5,14161,0.0,0.0,0.0,1

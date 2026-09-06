@@ -8,7 +8,60 @@ are not part of the Git diff unless explicitly stated.
 
 Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
 
-### Current handoff through 2026-09-03
+### Newton failure resolution and qualified mechanics — 2026-09-06
+
+- Localized the fine-step APIC failure to an upward top-layer mode and promoted
+  PIC transfer after a complete `0.5/0.25/0.125 ms` plus tolerance matrix
+  passed all speed, H0, and pairwise DEM gates.
+- Explained the `0.508 mm` cylinder penetration as the 32-facet mesh inset plus
+  Newton's default `0.01 voxel` projection allowance.
+- Added a 128-segment circumscribed collider, zero cylinder projection
+  threshold, forward-consistent guide update, and recorded `10 um` guard. The
+  unchanged analytic zero-center gate passes throughout the full response.
+- Completed a mechanics-qualified, uncalibrated fixed-time run with full
+  `14,161`-cell support, `8.854 mm` sinkage, zero penetration, and raw Chrono
+  RMSE of `2.396 mm` loaded / `2.646 mm` residual.
+- Retained the compact evidence in
+  `diagnostics/newton_failure_resolution_20260906/`. Response timestep
+  convergence is the next gate before calibration or larger evaluation.
+
+### Newton convergence and coupling diagnosis — 2026-09-06
+
+- Added a reproducible preparation-matrix analyzer and ran `0.5`, `0.25`, and
+  `0.125 ms` timesteps plus a `1e-5` tolerance check. Adjacent initial DEMs
+  agree within `0.054 mm` RMSE, but the `0.125 ms` state fails the sustained
+  speed gate at 4 s, so preparation convergence is not demonstrated.
+- Added a continuous-state, vertically guided two-way cylinder diagnostic with
+  exact Chrono action/timing, collider impulse feedback, removal, penetration
+  checks, raw particle arrays, PLYs, DEMs, masks, traces, and provenance.
+- Ran the full fixed-time diagnostic. Coupling is finite and supports the
+  cylinder weight, but `1,302` particle centers remain inside the loaded
+  cylinder at up to `0.508 mm` depth; the strict zero-penetration gate fails.
+- Determined that saved Newton particle arrays are archival output rather than
+  restart-qualified state: reconstruction adds about `1.157 mm` of bulk
+  settlement. Preparation and response now run in one solver instance.
+- Retained lightweight evidence in
+  `diagnostics/newton_convergence_coupling_20260906/`; large states and PLYs
+  remain under repository-root `outputs/`.
+
+### Newton branch integration — 2026-09-03
+
+- Added a strict Newton configuration/contract layer, isolated dependency
+  pins, unit tests, and a headless preparation runner that never imports a
+  Genesis prepared state.
+- Pinned Python 3.11.15, Newton 1.5.1, and Warp 1.17.0 in the external
+  `/data/christoa/conda/envs/newton_splat` environment.
+- Added backend-labelled initial/final state arrays, PLYs, DEM maps, masks,
+  speed traces, metrics, configuration, and provenance manifests under the
+  repository-root `outputs/` namespace.
+- Accepted a fresh 307,461-particle full-bed preparation at 0.5 ms over 2 s:
+  full 14,161-cell support, first speed hold at 1.6165 s, final p99 speed
+  0.168 mm/s, and H0 RMSE/max 1.186/1.288 mm.
+- Retained the compact result in `diagnostics/newton_preparation_20260903/`.
+  Preparation convergence, rigid coupling/removal, response comparison, and
+  Newton calibration remain pending.
+
+### Genesis baseline handoff through 2026-09-03
 
 - Qualified and froze Chrono oracle
   `A0_oracle_guided_offset_5mm_gate6mm_v1`, including its guided cylinder,
@@ -29,16 +82,21 @@ Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
 - Added tracked lightweight diagnostics at repository-root `diagnostics/`;
   large beds, states, PLY/PCD sequences, videos, and evaluation runs remain in
   `outputs/`.
-- Froze this work as the Genesis baseline. Newton v1.5.1 is documented as a
-  viable separate-branch candidate, but it is not installed or implemented and
-  has no prepared state, calibrated parameters, or results in this repository.
+- Froze this work as the Genesis baseline before Newton integration.
 
 ### Current next work
 
-- Commit the Genesis baseline and keep its evidence immutable across backend
-  work.
-- On a Newton branch, reproduce the external Chrono I/O and scoring contract,
-  then qualify a fresh Newton state and coupling path before calibration.
+- Keep Genesis evidence immutable across backend work.
+- On this Newton branch, run the complete continuous-state response at `0.5`,
+  `0.25`, and `0.125 ms` with the qualified PIC preparation and unchanged
+  material, action, contact, mask, and observation times. Compare
+  loaded-minus-initial and residual-minus-initial maps so small preparation H0
+  offsets are not counted as response differences.
+- Require every level to retain preparation acceptance, finite/full-support
+  output, and zero analytic center penetration. Require each adjacent pair to
+  remain within `0.5 mm` DEM RMSE, `1.0 mm` maximum DEM error, and `0.5 mm`
+  loaded sinkage difference before starting a Newton calibration or larger
+  evaluation. Chrono RMSE is reported but is not a numerical-convergence gate.
 - If Genesis work continues instead, correct or ablate one containment/state-
   preparation mechanism and rerun the frozen three-level checks.
 

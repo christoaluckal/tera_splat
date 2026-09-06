@@ -16,12 +16,19 @@ Each diagnostic bundle should use a descriptive, dated subdirectory and retain
 absolute or repository-relative provenance paths to its source trials. This
 directory is intentionally not ignored by Git.
 
-All current bundles are Genesis-specific. A Newton branch should use an
-explicitly named backend namespace and must not present Newton diagnostics as
-continuations of Genesis state or calibration evidence.
+Bundles are backend-specific. Newton diagnostics use an explicitly named
+namespace and are not continuations of Genesis state or calibration evidence.
 
 Current bundles:
 
+- `newton_failure_resolution_20260906/`: controlled APIC/PIC and collider
+  ablations, passed PIC preparation matrix, and the first mechanics-qualified
+  uncalibrated full Newton response;
+- `newton_convergence_coupling_20260906/`: three-timestep/two-tolerance
+  preparation diagnosis, fixed-time cylinder coupling/removal result, and
+  Newton restart-I/O qualification;
+- `newton_preparation_20260903/`: accepted full-bed Newton preparation summary
+  and links to retained large evidence;
 - `model_form_2x2_20260901/`: Pareto, spatial/recovery, hidden-state, and
   two-resolution/two-timestep diagnosis;
 - `n128_dt0p125_20260901/`: rejected third-level attempts and provenance;

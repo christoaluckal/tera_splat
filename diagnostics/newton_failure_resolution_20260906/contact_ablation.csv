@@ -1,0 +1,6 @@
+case,transfer,collider,projection_threshold_m,guard_m,position_update,loaded_duration_s,max_inside_centers,max_penetration_m,zero_gate
+original_full,apic,primitive32,default_0p01_voxel,0,semi_implicit,3.595,1302,0.0005077418053256871,0
+circumscribed128,apic,circumscribed128,0,0,semi_implicit,2.25,15,6.770715117454529e-06,0
+circumscribed128_forward,apic,circumscribed128,0,0,forward_consistent,2.25,6,6.163492798805237e-06,0
+circumscribed128_guard10um_forward,apic,circumscribed128,0,0.00001,forward_consistent,2.25,0,0,1
+qualified_full,pic,circumscribed128,0,0.00001,forward_consistent,3.595,0,0,1

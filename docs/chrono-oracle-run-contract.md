@@ -208,6 +208,19 @@ candidate.
 
 On the Genesis branch, the next admissible change remains a one-mechanism
 containment/state-preparation correction followed by the unchanged three-level
-checks. On a Newton branch, the next admissible work is an uncalibrated backend
-prototype that passes state-preparation, rigid-coupling, removal-penetration,
-and external-I/O gates before any optimizer is run.
+checks. On this Newton branch, PIC full-bed preparations at `0.5`, `0.25`, and
+`0.125 ms` pass the unchanged speed/H0 gates and pairwise DEM limits; tolerance
+refinement is identical. The full uncalibrated guided cylinder/removal run is
+finite and passes the strict zero-center-penetration gate using the recorded
+circumscribed contact mesh. Response convergence across timestep remains
+required before a larger evaluation or optimizer run. That check runs the
+complete continuous preparation/loading/removal path at `0.5`, `0.25`, and
+`0.125 ms` with material, PIC transfer, solver tolerance, geometry, contact,
+action, observation times, projection, and mask fixed. Compare the response
+fields `loaded - initial` and `residual - initial`, not absolute DEMs: each
+adjacent pair must remain within `0.5 mm` RMSE and `1.0 mm` maximum cell
+error on the common valid mask, and loaded cylinder sinkage must differ by no
+more than `0.5 mm`. Each case must independently retain preparation
+acceptance, finite full-support I/O, and zero analytic center penetration.
+Absolute Chrono error is diagnostic/calibration evidence and is not part of
+this numerical gate.

@@ -1,6 +1,6 @@
-# Current Chrono–Genesis Calibration State
+# Current Chrono-to-MPM State
 
-Last verified: 2026-09-03
+Last verified: 2026-09-06
 
 This is the authoritative live handoff for the cylinder calibration. Dated
 investigation history is preserved in
@@ -9,9 +9,12 @@ and is not a source of current next steps.
 
 ## Current outcome
 
-The Chrono oracle, fixed-time bridge, W&B BayesOpt loop, candidate-specific
-initialization, no-action stability test, and high-resolution Genesis bed are
-all operational.
+The Chrono oracle and frozen Genesis baseline remain operational. On the
+Newton branch, PIC preparation convergence and two-way rigid-cylinder response
+are now mechanics-qualified end to end. The uncalibrated response passes the
+speed, H0, map-consistency, finite-state, support, and strict penetration gates.
+Response timestep convergence remains the next prerequisite for calibration or
+a larger evaluation sweep.
 
 The current best known material candidate is:
 
@@ -368,12 +371,47 @@ are demonstrated.
 
 ## Forward-model branch decision
 
-This working tree is the Genesis baseline and should be committed as such
-before starting another solver. Newton is a viable candidate for a separate
-MPM branch, not a drop-in replacement and not part of any result above. Its
-implicit granular MPM solver exposes pressure-dependent yielding and rigid-MPM
-coupling, but the coupling path is still described as experimental and moving
-container boundaries require an explicit penetration test.
+This working tree is the Newton branch. The Genesis results above remain the
+frozen comparison baseline; they are not Newton observations. Newton 1.5.1 and
+Warp 1.17.0 run in the isolated Python 3.11.15 environment at
+`/data/christoa/conda/envs/newton_splat`.
+
+The replacement full-bed PIC preparation matrix at a common 2 s horizon is:
+
+| timestep | tolerance | final p99 speed | H0 RMSE / max | result |
+| ---: | ---: | ---: | ---: | --- |
+| `0.5 ms` | `1e-4` | `0.000853 mm/s` | `1.145 / 1.214 mm` | accepted |
+| `0.25 ms` | `1e-4` | `0.00395 mm/s` | `1.123 / 1.177 mm` | accepted |
+| `0.125 ms` | `1e-4` | `0.00735 mm/s` | `1.092 / 1.145 mm` | accepted |
+| `0.25 ms` | `1e-5` | `0.00395 mm/s` | `1.123 / 1.177 mm` | accepted; identical to `1e-4` |
+
+The adjacent-timestep DEM differences are `0.0232 mm` RMSE for
+`0.5 -> 0.25 ms` and `0.0312 mm` for `0.25 -> 0.125 ms`, with at most
+`0.0416 mm` maximum error. All predeclared preparation gates pass. The prior
+APIC rejection was an upward top-layer mode; PIC is now the qualified default.
+
+The corrected continuous-state cylinder run loads the exact guided 1.5 kg
+action for `3.595 s`, removes it, and runs `0.25 s` residual. The original
+`0.508 mm` penetration was explained by the default 32-facet collider inset
+plus the `0.01 voxel` projection allowance. A 128-segment circumscribed mesh,
+zero cylinder threshold, forward-consistent guide, and recorded `10 um` guard
+produce zero analytic center penetration through the full trace. The loaded
+sinkage is `8.854 mm`; raw all-cell Chrono RMSE is `2.396 mm` loaded and
+`2.646 mm` residual. This run is mechanics-qualified but uncalibrated.
+The fixed smoke material used for this qualification is `1000 kg/m^3`,
+`E=100 kPa`, `nu=0.2`, and Newton friction coefficient `0.68`; these are
+engineering diagnostic values, not transferred Genesis values.
+
+The Newton particle arrays are archival/output artifacts, not restart
+checkpoints: reconstituting a solver from the saved arrays caused another
+`1.157 mm` signed bulk settlement. Preparation and response must remain in one
+solver process until grid and warm-start state are either serialized or a
+restart requalification is demonstrated.
+
+Large qualified evidence is under
+`outputs/validity_experiment/newton/preparation_pic_convergence_20260906/` and
+`outputs/validity_experiment/newton/cylinder_qualified_20260906/`; the tracked
+summary is `diagnostics/newton_failure_resolution_20260906/`.
 
 The Newton branch may reuse the qualified Chrono oracle, cylinder action and
 timing, valid mask, map projection, score definition, visualization, diagnostic
@@ -383,18 +421,44 @@ calibrated parameters as if they were solver-independent. In particular,
 Newton's friction coefficient is not silently interchangeable with the Genesis
 friction angle.
 
-The first Newton acceptance ladder is:
+The Newton acceptance ladder is now:
 
-1. pin Newton and Warp in a separate environment and record exact versions;
-2. reproduce the frozen geometry with a cylinder-free granular bed and static
-   containment;
-3. run the same three timestep/state-preparation diagnostics and qualify a new
-   Newton initial state;
-4. validate two-way cylinder loading and container removal without wall
-   penetration;
-5. emit the same externally visible maps, masks, timing, gates, and provenance;
-6. compare one valid Newton response with the unchanged Chrono oracle;
-7. begin a fresh Newton calibration only after those gates pass.
+1. complete: pin Newton and Warp separately and record exact versions;
+2. complete: reproduce the frozen geometry and qualify fresh cylinder-free
+   states with static containment;
+3. complete: PIC preparation passes timestep, tolerance, speed, and DEM gates;
+4. complete: full two-way loading/removal passes the strict penetration gate;
+5. complete: loaded/residual maps, masks, timing, gates,
+   traces, raw states, PLYs, and provenance are emitted externally;
+6. complete at one timestep: one mechanics-qualified raw response is compared
+   with the unchanged Chrono oracle;
+7. pending: establish response timestep convergence, then begin a fresh Newton
+   calibration/evaluation without importing Genesis observations.
+
+The response-convergence experiment is frozen before its remaining runs:
+
+1. run the full continuous preparation, `3.595 s` guided load, instantaneous
+   removal, and `0.25 s` residual at `0.5`, `0.25`, and `0.125 ms`;
+2. change timestep only; keep the smoke material, PIC transfer, `1e-4` solver
+   tolerance, geometry, 128-segment circumscribed collider, zero projection
+   threshold, `10 um` guard, action, observation times, surface projection,
+   and oracle valid mask unchanged;
+3. require each case to preserve accepted preparation, finite values, all
+   `14,161` valid cells, and zero analytic particle-center penetration;
+4. compare `loaded - initial` and `residual - initial` DEM fields on the common
+   valid mask, preventing the small accepted H0 offsets from contaminating the
+   response comparison;
+5. require every adjacent timestep pair to have at most `0.5 mm` response-map
+   RMSE, `1.0 mm` maximum response-map error, and `0.5 mm` loaded cylinder
+   sinkage difference. Record signed error, endpoint cylinder velocity,
+   residual particle speed, contacts, impulses, and the fine/coarse trend, but
+   do not use those reported diagnostics as post-hoc gates.
+
+Chrono loaded/residual RMSE must be reported for every case, but it measures
+uncalibrated material fit and cannot rescue or reject the numerical-convergence
+decision. Passing this matrix qualifies a consistent Newton forward-model/I/O
+path for larger Newton-only evaluation and calibration; it does not itself
+validate material prediction.
 
 If work instead continues on the Genesis branch, the controlled numerical
 correction described above remains its next experiment. Evidence from the two
@@ -416,10 +480,18 @@ backends must remain separately named and must never be pooled implicitly.
   `tera_splat/scripts/diagnose_chrono_genesis_model_form.py`
 - pre-settle timestep analyzer:
   `tera_splat/scripts/analyze_pre_settle_timestep_diagnostics.py`
+- Newton preparation runner:
+  `tera_splat/scripts/run_newton_prepared_bed.py`
+- Newton preparation convergence analyzer:
+  `tera_splat/scripts/analyze_newton_preparation_convergence.py`
+- Newton guided-cylinder diagnostic:
+  `tera_splat/scripts/run_newton_cylinder_diagnostic.py`
 - aligned and raw PCD exporter:
   `tera_splat_sim/export_scm_genesis_pcd.py`
-- active environment:
-  `chrono_splat`
+- Genesis / Newton environments:
+  `chrono_splat` / `/data/christoa/conda/envs/newton_splat`
+- Newton convergence/coupling evidence:
+  `/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/`
 - generated calibration outputs:
   `/data/christoa/Chrono/tera_splat/outputs`
 - retained incumbent raw/visual evidence:

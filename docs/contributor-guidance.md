@@ -66,9 +66,12 @@ episode-generation details also need a synchronized status update in
 
 ## Forward-model branch rules
 
-- Treat this working tree and every active result above as the Genesis
-  baseline. Newton is assessed but is not installed or implemented here.
-- Develop Newton on a separate branch and in a separately pinned environment.
+- Preserve every active Genesis result above as the immutable baseline. This
+  Newton branch contains a passed PIC preparation matrix and a
+  mechanics-qualified uncalibrated coupled response, but no calibrated or
+  response-converged Newton model.
+- Run Newton in the separately pinned `newton_splat` environment; do not add it
+  to the Genesis environment.
 - Reuse the qualified Chrono oracle and external comparison contract, not the
   Genesis prepared state or optimizer observations.
 - Give every generated study, manifest, diagnostic, and W&B run an explicit
@@ -76,6 +79,9 @@ episode-generation details also need a synchronized status update in
   surrogate unless a documented multi-backend model is introduced.
 - Translate and validate material conventions explicitly. Newton's friction
   coefficient is not automatically the Genesis friction angle.
+- Treat exported Newton particle arrays as archival/interchange evidence, not
+  restart checkpoints. Current solver reconstruction changes H0; prepare and
+  load continuously in one process until restart equivalence is proven.
 - Update both repositories' active docs when a backend reaches or fails an
   acceptance gate.
 
@@ -87,6 +93,9 @@ conda run -n chrono_splat python scripts/run_chrono_genesis_bridge.py --help
 conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
 conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
 conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_prepared_bed.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_preparation_convergence.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_cylinder_diagnostic.py --help
 ```
 
 Do not create another live status document. Update `docs/current-state.md`;

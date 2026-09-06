@@ -1,6 +1,6 @@
 # Calibration Problems, Evidence, and Corrective Actions
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-09-06
 
 This document separates resolved setup failures from the current response
 calibration problem. The historical 2026-08-18 diagnosis is archived in
@@ -137,16 +137,30 @@ before another material sweep; do not add a discrepancy network.
 
 ## Alternate Newton forward model
 
-Newton is viable enough to prototype on a separate branch because its implicit
-MPM path supports granular/elasto-plastic particles and rigid coupling. That is
-an engineering option, not a resolution of the Genesis diagnosis and not a
-drop-in solver swap. Newton is not installed or implemented in this baseline,
-and no Newton result has been generated.
+Newton is being prototyped on this separate branch because its implicit MPM
+path supports granular/elasto-plastic particles and rigid coupling. That is an
+engineering option, not a resolution of the Genesis diagnosis and not a
+drop-in solver swap. Newton 1.5.1 and Warp 1.17.0 are installed in the isolated
+`newton_splat` environment. The original APIC `0.125 ms` preparation failure
+was localized to an upward mode in the top six source layers. A controlled PIC
+replacement passes the full `0.5/0.25/0.125 ms` matrix at a common 2 s horizon:
+all speed/H0 gates pass, adjacent DEM RMSE is `0.023/0.031 mm`, and tolerance
+`1e-4` versus `1e-5` at `0.25 ms` is indistinguishable.
 
 The Chrono oracle, action/timing, mask, surface projection, score, and
 diagnostic schema can remain common. Genesis prepared states, `F`/`C`/`Jp`,
 parameter meanings, observations, and calibration bounds cannot be transferred
-without a new derivation and validation. The Newton branch must first qualify
-its own static-container bed, timestep/solver-tolerance behavior, two-way
-cylinder coupling, and moving-container removal before starting a fresh
-calibration.
+without a new derivation and validation. The original cylinder penetration was
+the sum of the default 32-facet radial inset and Newton's default projection
+allowance. A 128-segment circumscribed mesh, zero cylinder projection threshold,
+forward-consistent guide update, and recorded `10 um` guard pass the strict
+zero-center gate for the full fixed-time run. The resulting response is
+mechanics-qualified but uncalibrated. Establish response timestep convergence
+before a larger evaluation or fresh calibration. The predeclared experiment
+changes only timestep across `0.5/0.25/0.125 ms`; it holds the smoke material,
+PIC transfer, tolerance, collider/contact settings, action, observation times,
+projection, and mask fixed. Adjacent loaded-minus-initial and
+residual-minus-initial DEMs must stay within `0.5 mm` RMSE and `1.0 mm`
+maximum error, loaded sinkage within `0.5 mm`, and every case must retain all
+mechanics gates. Chrono RMSE remains a reported calibration metric, not a
+convergence criterion.

@@ -1,0 +1,15 @@
+metric,value,units
+status,mechanics_qualified_uncalibrated,
+preparation_convergence_passed,1,boolean
+strict_zero_center_penetration_passed,1,boolean
+valid_cells,14161,count
+loaded_duration,3.595,s
+residual_duration,0.25,s
+cylinder_sinkage,0.008853970751725136,m
+cylinder_loaded_vertical_speed,-0.004940348211675882,m/s
+loaded_particle_speed_p99,5.510870323632844e-05,m/s
+max_inside_particle_centers,0,count
+max_center_penetration,0,m
+loaded_all_cell_response_rmse,0.0023963607382029295,m
+residual_all_cell_response_rmse,0.0026460594963282347,m
+residual_particle_speed_p99,0.00023098097881302238,m/s
