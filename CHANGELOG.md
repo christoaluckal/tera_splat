@@ -6,7 +6,109 @@ are not part of the Git diff unless explicitly stated.
 
 ## Unreleased — changes since `0f30de26bdd151f822a2e691924b15e98e20b09d`
 
+### Newton full-volume contact activation — 2026-09-11
+
+- Added a process-local, cylinder-only, Newton-1.5.1-locked S2 rasterizer
+  adapter.  It changes collider-node activation from the native `+0.25` to
+  `-0.25` voxel without changing analytic cylinder geometry, action pose,
+  inertia, strict center-penetration test, external I/O, or gates.
+- Rejected a full-volume `-0.95`-voxel screen: the cylinder fell `116.5 mm`,
+  reached `13.423 mm` center penetration, and failed the guide gate.
+- Completed the full-volume `-0.25`-voxel `0.5/0.25/0.125 ms` matrix at
+  100 kPa.  Every row passes preparation, finite/full-support I/O, guide, and
+  zero-center-penetration gates; both adjacent response-map comparisons pass.
+- The matrix remains `not_demonstrated`: coarse/medium sinkage is `0.975 mm`,
+  above the unchanged `0.5 mm` limit, although medium/fine sinkage is
+  `0.480 mm` and passes.  Material calibration and large evaluation remain
+  stopped; no gate was relaxed.
+- Retained compact evidence in
+  `diagnostics/newton_contact_activation_20260910/`; raw states, PLYs, maps,
+  and traces remain under `outputs/`.
+
+### Newton support correction and calibration stop — 2026-09-10
+
+- Added an explicit cylinder collision-bottom inset while preserving analytic
+  action geometry, inertia, pose reporting, DEM scoring, and penetration checks.
+- Rejected global Q1 and particle-PIC collider-basis substitutions on
+  preparation speed/H0 evidence.
+- Tightened Kamino PADMM tolerance from `1e-5` to `1e-6`, matching the
+  existing guide gate, and recorded it in solver provenance.
+- Completed a strict `0.5/0.25/0.125 ms` matrix at a 9.375 mm inset and
+  100 kPa. All mechanics and response gates pass; adjacent loaded/residual DEM
+  RMSE is `0.130/0.123` and `0.107/0.110 mm`, with sinkage differences
+  `0.130/0.032 mm`.
+- Recomputed the shared A/B: corrected Newton scores `12.189 mm`, improved
+  from `12.638 mm`, versus matched Genesis `14.736 mm`; the calibrated
+  Genesis incumbent remains best at `8.705 mm`.
+- Ran a stiffness-only 25 kPa Newton calibration probe. Its preparation matrix
+  passes and its DEM-only score improves to `11.207 mm`, but the response is
+  rejected: up to 1,330 particle centers enter the analytic cylinder by
+  `5.950 mm`, and the guide gate fails.
+- Stopped material calibration. The raised proxy is a support-location
+  diagnostic, not a promotable collision model, because it omits analytic
+  collision coverage once the cylinder sinks.
+- Retained lightweight evidence in
+  `diagnostics/newton_collider_support_20260908/` and
+  `diagnostics/newton_calibration_20260910/`; raw outputs remain under
+  `outputs/`.
+
+### Newton/Genesis backend A/B — 2026-09-08
+
+- Ran Genesis at the nominal Newton 100 kPa smoke material with the frozen
+  `0.5 ms` action and recomputed both backends through one shared scorer.
+- Newton scores `12.638 mm` versus matched Genesis `14.736 mm`; Genesis is
+  about 16% faster in this single matched execution.
+- The calibrated Genesis incumbent remains the best absolute fit at
+  `8.705 mm`, so the A/B favors Newton's numerical foundation rather than
+  proving better prediction.
+- The reverse Genesis-incumbent-to-Newton transfer was rejected before contact:
+  Newton preparation reached the speed gate but failed H0 at
+  `9.809/10.241 mm` RMSE/max.
+- Retained lightweight configurations, shared metrics, plots, and analysis in
+  `diagnostics/backend_ab_20260906/`; raw states remain under `outputs/`.
 Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
+### Newton native guided coupling — 2026-09-06
+
+- Replaced the diagnostic runner's external explicit guide update with an
+  optional native Newton path: a Kamino rigid cylinder, world-to-body
+  prismatic joint, and `SolverCoupledProxy` connection to implicit MPM. The
+  historical explicit path remains selectable as a control.
+- Added a `1e-6` gate for forbidden horizontal/rotational guide motion and
+  required that gate in response analysis. All 18 focused Newton tests pass.
+- Ran the unchanged full `0.5/0.25/0.125 ms` response matrix with two lagged
+  proxy iterations and four Kamino substeps. All cases pass preparation,
+  finite/full-support I/O, zero-center penetration, and guide constraints.
+- Removed the dominant `g*T*dt` drift: endpoint vertical speed is now below
+  `0.010 mm/s`, and both loaded/residual DEM pairs pass at `0.082--0.089 mm`
+  RMSE and at most `0.745 mm` maximum error.
+- Full response convergence remains `not_demonstrated`: sinkage differences
+  are `0.464/0.586819 mm`, so the fine pair misses the frozen `0.5 mm` gate by
+  `0.086819 mm`. The corrected equilibrium also exposes a `9.8--10.8 mm`
+  analytic surface gap. Diagnose native coupling/contact support next; do not
+  loosen gates or start calibration.
+- Retained compact evidence in
+  `diagnostics/newton_response_convergence_native_proxy_20260906/`; large raw
+  outputs remain under repository-root `outputs/`.
+
+
+### Newton response convergence diagnosis — 2026-09-06
+
+- Added a predeclared response-matrix analyzer and focused tests; all 17 Newton
+  tests pass.
+- Ran clean full continuous-state responses from commit `73eb472` at `0.5`,
+  `0.25`, and `0.125 ms`. Every case is finite, has all `14,161` valid cells,
+  passes preparation, and has zero analytic particle-center penetration.
+- Response convergence is not demonstrated. Loaded sinkage changes from
+  `8.854` to `-0.578` to `-5.607 mm`. The coarse pair also exceeds loaded and
+  residual map gates; the fine pair passes both map gates but misses the
+  `0.5 mm` sinkage gate by an order of magnitude.
+- Diagnosed the dominant error as the explicit guide's pre-impulse position
+  update: steady endpoint speed is approximately `-g*dt`, accumulating a
+  first-order displacement near `g*T*dt`. The next controlled change is a
+  timestep-consistent guide update, not material calibration.
+- Retained compact evidence in
+  `diagnostics/newton_response_convergence_20260906/`; raw states and PLYs
+  remain under repository-root `outputs/`.
 
 ### Newton failure resolution and qualified mechanics — 2026-09-06
 
@@ -87,16 +189,12 @@ Baseline commit: `0f30de2` — `fixing bayesopt` — 2026-08-20 15:01:39 -04:00.
 ### Current next work
 
 - Keep Genesis evidence immutable across backend work.
-- On this Newton branch, run the complete continuous-state response at `0.5`,
-  `0.25`, and `0.125 ms` with the qualified PIC preparation and unchanged
-  material, action, contact, mask, and observation times. Compare
-  loaded-minus-initial and residual-minus-initial maps so small preparation H0
-  offsets are not counted as response differences.
-- Require every level to retain preparation acceptance, finite/full-support
-  output, and zero analytic center penetration. Require each adjacent pair to
-  remain within `0.5 mm` DEM RMSE, `1.0 mm` maximum DEM error, and `0.5 mm`
-  loaded sinkage difference before starting a Newton calibration or larger
-  evaluation. Chrono RMSE is reported but is not a numerical-convergence gate.
+- Retain the native Kamino/prismatic proxy correction and diagnose the
+  remaining collider-support/coupling sensitivity. Keep PIC preparation,
+  material, action, mask, observation times, and frozen gates unchanged. The
+  fine sinkage pair still exceeds its gate by `0.086819 mm`.
+- Do not begin Newton calibration or larger evaluation until both adjacent
+  response pairs pass without changing the declared gates.
 - If Genesis work continues instead, correct or ablate one containment/state-
   preparation mechanism and rerun the frozen three-level checks.
 

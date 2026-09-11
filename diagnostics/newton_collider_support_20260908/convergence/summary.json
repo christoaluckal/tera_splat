@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "backend": "newton",
+  "status": "passed",
+  "matrix_complete": true,
+  "invariant_settings_passed": true,
+  "invariant_mismatches": [],
+  "all_cases_mechanics_qualified": true,
+  "consistency_passed": true,
+  "required_timesteps_s": [
+    0.0005,
+    0.00025,
+    0.000125
+  ],
+  "gates": {
+    "response_rmse_m": 0.0005,
+    "response_max_abs_m": 0.001,
+    "loaded_sinkage_abs_difference_m": 0.0005
+  },
+  "comparison": {
+    "loaded": "loaded_heightmap_m - initial_heightmap_m",
+    "residual": "residual_heightmap_m - initial_heightmap_m",
+    "scope": "pairwise common valid finite cells",
+    "chrono_error_is_gate": false
+  },
+  "observed_timestep_order": {
+    "loaded": 0.2860093919555252,
+    "residual": 0.15694037854558587
+  },
+  "source_provenance": {
+    "git_commit": "73eb472028ef8492cf50c455273ed0088c81d4cc",
+    "forward_model_files_match_commit": false,
+    "forward_model_status": [
+      "M scripts/run_newton_cylinder_diagnostic.py"
+    ],
+    "file_sha256": {
+      "configs/newton_sand_smoke.json": "00c44c7a31ca579cb061765cc973af4132f61577c5c5ca0e746b7e4124debd6a",
+      "scripts/newton_contract.py": "6c95d48cbc8132da09bce03a1a92678bc598557c2b9e9b4d29928bb9ec26460d",
+      "scripts/run_newton_prepared_bed.py": "c6690811991ea20ffd8b34fec6d4251e41ce34fd8c0906720c80401845aa80a8",
+      "scripts/run_newton_cylinder_diagnostic.py": "6a85981ee5079717a36333df976eefc554f9c0b597013ef5af0686a50276d2f3"
+    }
+  },
+  "cases": [
+    {
+      "label": "dt0p5ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/collider_support_inset_20260908/full_strict_kamino/inset9p375mm_dt0p5ms",
+      "dt_s": 0.0005,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 0.00016588994185440242,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.0007732377693988393,
+      "loaded_vertical_speed_mps": -3.161691665809485e-06,
+      "loaded_chrono_rmse_m": 0.00363791361451149,
+      "residual_chrono_rmse_m": 0.0037694228813052177,
+      "residual_particle_speed_p99_mps": 0.00010948007547995076,
+      "max_contact_nodes": 852,
+      "max_upward_impulse_ns": 0.0438389852643013,
+      "wall_time_s": 376.377186962869
+    },
+    {
+      "label": "dt0p25ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/collider_support_inset_20260908/full_strict_kamino/inset9p375mm_dt0p25ms",
+      "dt_s": 0.00025,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 2.345171424167347e-06,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.0009033067458309244,
+      "loaded_vertical_speed_mps": -3.7171089388721157e-06,
+      "loaded_chrono_rmse_m": 0.003752467455342412,
+      "residual_chrono_rmse_m": 0.0038766320794820786,
+      "residual_particle_speed_p99_mps": 2.935982047347352e-05,
+      "max_contact_nodes": 852,
+      "max_upward_impulse_ns": 0.03559538722038269,
+      "wall_time_s": 748.249726183014
+    },
+    {
+      "label": "dt0p125ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/collider_support_inset_20260908/full_strict_kamino/inset9p375mm_dt0p125ms",
+      "dt_s": 0.000125,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 6.547159046021989e-06,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.00093506088750437,
+      "loaded_vertical_speed_mps": -1.0474228474777192e-05,
+      "loaded_chrono_rmse_m": 0.003850548528134823,
+      "residual_chrono_rmse_m": 0.003979297820478678,
+      "residual_particle_speed_p99_mps": 1.725471520330757e-05,
+      "max_contact_nodes": 852,
+      "max_upward_impulse_ns": 0.03407322242856026,
+      "wall_time_s": 1513.4649429239798
+    }
+  ],
+  "pairwise": [
+    {
+      "left": "dt0p5ms",
+      "right": "dt0p25ms",
+      "left_dt_s": 0.0005,
+      "right_dt_s": 0.00025,
+      "common_cells": 14161,
+      "loaded_signed_mean_m": 1.637232162465807e-05,
+      "loaded_rmse_m": 0.00013034659787081182,
+      "loaded_max_abs_m": 0.0009856406832113862,
+      "residual_signed_mean_m": 1.6242744095507078e-05,
+      "residual_rmse_m": 0.00012296631757635623,
+      "residual_max_abs_m": 0.0009504343615844846,
+      "left_sinkage_m": -0.0007732377693988393,
+      "right_sinkage_m": -0.0009033067458309244,
+      "sinkage_abs_difference_m": 0.00013006897643208504,
+      "left_loaded_vertical_speed_mps": -3.161691665809485e-06,
+      "right_loaded_vertical_speed_mps": -3.7171089388721157e-06,
+      "loaded_vertical_speed_abs_difference_mps": 5.554172730626306e-07,
+      "passes_gate": true
+    },
+    {
+      "left": "dt0p25ms",
+      "right": "dt0p125ms",
+      "left_dt_s": 0.00025,
+      "right_dt_s": 0.000125,
+      "common_cells": 14161,
+      "loaded_signed_mean_m": 1.59312166942982e-05,
+      "loaded_rmse_m": 0.00010690605267882347,
+      "loaded_max_abs_m": 0.0005826547276228666,
+      "residual_signed_mean_m": 1.676967804087326e-05,
+      "residual_rmse_m": 0.00011029159213649109,
+      "residual_max_abs_m": 0.0005684614880010486,
+      "left_sinkage_m": -0.0009033067458309244,
+      "right_sinkage_m": -0.00093506088750437,
+      "sinkage_abs_difference_m": 3.17541416734457e-05,
+      "left_loaded_vertical_speed_mps": -3.7171089388721157e-06,
+      "right_loaded_vertical_speed_mps": -1.0474228474777192e-05,
+      "loaded_vertical_speed_abs_difference_mps": 6.757119535905076e-06,
+      "passes_gate": true
+    }
+  ],
+  "interpretation": "The full Newton response path is consistent under the predeclared timestep gates."
+}

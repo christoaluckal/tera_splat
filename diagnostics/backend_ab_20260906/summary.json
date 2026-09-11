@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "experiment": "newton_genesis_backend_ab",
+  "status": "completed_with_reverse_crossover_rejected_at_preparation",
+  "contract": {
+    "chrono_episode": "/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_oracle_guided_offset_5mm_gate6mm_v1",
+    "timestep_s": 0.0005,
+    "particle_spacing_m": 0.005,
+    "voxel_or_grid_cell_m": 0.015625,
+    "loaded_time_s": 3.595,
+    "residual_time_s": 0.25,
+    "valid_cells": 14161,
+    "footprint_cells": 673,
+    "objective": "loaded all-cell RMSE + 0.5 * residual footprint RMSE"
+  },
+  "matched_material": {
+    "young_modulus_pa": 100000.0,
+    "poisson_ratio": 0.2,
+    "density_kg_m3": 1000.0,
+    "newton_friction_coefficient": 0.68,
+    "genesis_friction_angle_deg": 34.2157021324374,
+    "qualification": "nominal scalar match only; constitutive laws, transfer, preparation, and contact discretization differ",
+    "objective_winner": "newton",
+    "newton_objective_mm": 12.638139486312866,
+    "genesis_objective_mm": 14.735684394836426,
+    "newton_stage_wall_s": 376.3253044639714,
+    "genesis_stage_wall_s": 310.55161800794303,
+    "genesis_external_process_wall_s": 315.83
+  },
+  "current_pipeline": {
+    "objective_winner": "genesis_incumbent",
+    "genesis_incumbent_objective_mm": 8.705098390579224,
+    "newton_uncalibrated_objective_mm": 12.638139486312866,
+    "genesis_incumbent_stage_wall_s": 332.1174997058697
+  },
+  "reverse_crossover": {
+    "requested_material": "Genesis incumbent in Newton",
+    "accepted": false,
+    "settled_h0_rmse_mm": 9.808972477912903,
+    "settled_h0_max_abs_mm": 10.241265408694744,
+    "h0_rmse_gate_mm": 5.0,
+    "h0_max_abs_gate_mm": 10.0,
+    "interpretation": "rejected before cylinder contact; direct Genesis parameter transfer is not admissible"
+  },
+  "cases": [
+    {
+      "name": "Newton 100 kPa",
+      "backend": "newton",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/response_convergence_native_proxy_20260906/dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.6033602952957153,
+        "mae_mm": 0.6031652092933655,
+        "mean_mm": -0.6031652092933655,
+        "max_abs_mm": 0.6586098074913025
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 3.7776238918304443,
+        "mae_mm": 0.8700963854789734,
+        "mean_mm": 0.8150565028190613,
+        "max_abs_mm": 20.17090606689453
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 17.13869857788086,
+        "mae_mm": 17.0319766998291,
+        "mean_mm": 17.0319766998291,
+        "max_abs_mm": 20.17090606689453
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.9051380157470703,
+        "mae_mm": 0.8933314085006714,
+        "mean_mm": 0.8523803353309631,
+        "max_abs_mm": 20.824975967407227
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 17.721031188964844,
+        "mae_mm": 17.608570098876953,
+        "mean_mm": 17.608570098876953,
+        "max_abs_mm": 20.824975967407227
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 1.9781125783920288,
+        "mae_mm": 1.9760425090789795,
+        "mean_mm": -1.9760425090789795,
+        "max_abs_mm": 2.06337833404541
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 1.402313232421875,
+        "mae_mm": 1.3994488716125488,
+        "mean_mm": -1.3994488716125488,
+        "max_abs_mm": 1.6609387397766113
+      },
+      "objective_mm": 12.638139486312866
+    },
+    {
+      "name": "Genesis 100 kPa",
+      "backend": "genesis",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/backend_ab_20260906/genesis_newton_smoke_material_dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.1310279369354248,
+        "mae_mm": 0.1181890219449997,
+        "mean_mm": -0.08145603537559509,
+        "max_abs_mm": 0.48796868324279785
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 4.315696716308594,
+        "mae_mm": 1.3925204277038574,
+        "mean_mm": 1.3925204277038574,
+        "max_abs_mm": 22.369915008544922
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 19.380462646484375,
+        "mae_mm": 19.298770904541016,
+        "mean_mm": 19.298770904541016,
+        "max_abs_mm": 22.369915008544922
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 4.6444525718688965,
+        "mae_mm": 1.5376441478729248,
+        "mean_mm": 1.5376441478729248,
+        "max_abs_mm": 24.41303253173828
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 20.839975357055664,
+        "mae_mm": 20.729541778564453,
+        "mean_mm": 20.729541778564453,
+        "max_abs_mm": 24.41303253173828
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 1.6462740898132324,
+        "mae_mm": 1.1084650754928589,
+        "mean_mm": 0.29075291752815247,
+        "max_abs_mm": 4.2618231773376465
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.3247549533843994,
+        "mae_mm": 2.279460906982422,
+        "mean_mm": 1.7215241193771362,
+        "max_abs_mm": 3.621868371963501
+      },
+      "objective_mm": 14.735684394836426
+    },
+    {
+      "name": "Genesis incumbent",
+      "backend": "genesis",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/bayesopt/A0_oracle_guided_offset_5mm_gate6mm_5mm_n128_incumbent_raw_20260830/study_ykep3esa/trials/iteration_000/bridge",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.8762434124946594,
+        "mae_mm": 0.8239611387252808,
+        "mean_mm": -0.8239611387252808,
+        "max_abs_mm": 1.776979923248291
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 1.8642022609710693,
+        "mae_mm": 0.8690615892410278,
+        "mean_mm": 0.7620629668235779,
+        "max_abs_mm": 13.15021800994873
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 7.774735927581787,
+        "mae_mm": 7.373668193817139,
+        "mean_mm": 6.1490936279296875,
+        "max_abs_mm": 13.15021800994873
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.1868419647216797,
+        "mae_mm": 1.3364388942718506,
+        "mean_mm": 1.325074315071106,
+        "max_abs_mm": 17.953781127929688
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 13.681792259216309,
+        "mae_mm": 13.015917778015137,
+        "mean_mm": 12.959309577941895,
+        "max_abs_mm": 17.953781127929688
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 14.116767883300781,
+        "mae_mm": 12.858925819396973,
+        "mean_mm": -12.858925819396973,
+        "max_abs_mm": 29.285079956054688
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 7.7148613929748535,
+        "mae_mm": 6.0856099128723145,
+        "mean_mm": -6.048708915710449,
+        "max_abs_mm": 23.823463439941406
+      },
+      "objective_mm": 8.705098390579224
+    }
+  ],
+  "comparisons": [
+    {
+      "left": "Newton 100 kPa",
+      "right": "Genesis 100 kPa",
+      "cells": 14161,
+      "loaded_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 0.8303401470184326,
+        "mae_mm": 0.5978216528892517,
+        "mean_mm": -0.5774637460708618,
+        "max_abs_mm": 4.575475692749023
+      },
+      "loaded_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.7766358852386475,
+        "mae_mm": 2.695157766342163,
+        "mean_mm": -2.2667953968048096,
+        "max_abs_mm": 4.575475692749023
+      },
+      "residual_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 1.0003457069396973,
+        "mae_mm": 0.6995496153831482,
+        "mean_mm": -0.6852637529373169,
+        "max_abs_mm": 4.956642150878906
+      },
+      "residual_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 3.499554395675659,
+        "mae_mm": 3.4215714931488037,
+        "mean_mm": -3.1209728717803955,
+        "max_abs_mm": 4.956642150878906
+      }
+    },
+    {
+      "left": "Newton 100 kPa",
+      "right": "Genesis incumbent",
+      "cells": 14161,
+      "loaded_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 2.765245199203491,
+        "mae_mm": 1.0231468677520752,
+        "mean_mm": 0.052993591874837875,
+        "max_abs_mm": 27.29117202758789
+      },
+      "loaded_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 12.334202766418457,
+        "mae_mm": 10.882882118225098,
+        "mean_mm": 10.882882118225098,
+        "max_abs_mm": 27.29117202758789
+      },
+      "residual_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 1.7251108884811401,
+        "mae_mm": 0.9360969662666321,
+        "mean_mm": -0.4726940095424652,
+        "max_abs_mm": 22.478002548217773
+      },
+      "residual_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 6.692923545837402,
+        "mae_mm": 4.953194618225098,
+        "mean_mm": 4.6492600440979,
+        "max_abs_mm": 22.478002548217773
+      }
+    }
+  ],
+  "conclusion": "Newton wins the matched 100 kPa map objective and numerical-stability evidence; calibrated Genesis wins current absolute Chrono fit. Newton requires backend-specific calibration after collider-support diagnosis."
+}

@@ -27,9 +27,13 @@ from run_newton_cylinder_diagnostic import (  # noqa: E402
     advance_guided_body,
     circumscribed_cylinder_radius,
     convergence_qualifies_preparation,
+    cylinder_collision_center_offset_z,
     cylinder_projection_thresholds,
     cylinder_penetration,
+    finite_cylinder_signed_distance,
+    guide_constraint_error,
     response_error,
+    summarize_cylinder_contacts,
 )
 
 ANALYZER_SPEC = __import__("importlib.util").util.spec_from_file_location(
@@ -167,6 +171,21 @@ class NewtonCylinderDiagnosticTest(unittest.TestCase):
         self.assertAlmostEqual(facet_radius, analytic_radius)
         self.assertGreater(vertex_radius, analytic_radius)
 
+    def test_collision_proxy_offset_preserves_requested_bottom_inset(self) -> None:
+        analytic_half_height = 0.0254
+        collision_half_height = analytic_half_height + 1.0e-5
+        requested_inset = 0.00975
+        center_offset = cylinder_collision_center_offset_z(
+            requested_inset, analytic_half_height, collision_half_height
+        )
+        proxy_bottom = center_offset - collision_half_height
+        analytic_bottom = -analytic_half_height
+        self.assertAlmostEqual(proxy_bottom - analytic_bottom, requested_inset)
+        with self.assertRaisesRegex(ValueError, "nonnegative"):
+            cylinder_collision_center_offset_z(
+                -1.0e-3, analytic_half_height, collision_half_height
+            )
+
     def test_projection_threshold_override_targets_only_cylinder(self) -> None:
         result = cylinder_projection_thresholds(
             np.array([-1, 3, 7]), cylinder_body=3, threshold_m=0.0
@@ -184,6 +203,31 @@ class NewtonCylinderDiagnosticTest(unittest.TestCase):
         self.assertAlmostEqual(z_forward, 0.999)
         self.assertAlmostEqual(z_semi, 1.0 + vz_semi * 0.01)
 
+    def test_guide_constraint_error_reports_only_forbidden_motion(self) -> None:
+        ideal = guide_constraint_error(
+            np.array([0.0, 0.005, -0.01, 0.0, 0.0, 0.0, 1.0]),
+            np.array([0.0, 0.0, -0.2, 0.0, 0.0, 0.0]),
+            (0.0, 0.005),
+        )
+        self.assertEqual(
+            ideal,
+            {
+                "horizontal_position_error_m": 0.0,
+                "orientation_quaternion_error": 0.0,
+                "horizontal_speed_mps": 0.0,
+                "angular_speed_radps": 0.0,
+            },
+        )
+        shifted = guide_constraint_error(
+            np.array([0.003, 0.001, -0.01, 0.0, 0.0, 0.0, -1.0]),
+            np.array([0.003, 0.004, -0.2, 0.0, 0.0, 0.02]),
+            (0.0, 0.005),
+        )
+        self.assertAlmostEqual(shifted["horizontal_position_error_m"], 0.005)
+        self.assertAlmostEqual(shifted["orientation_quaternion_error"], 0.0)
+        self.assertAlmostEqual(shifted["horizontal_speed_mps"], 0.005)
+        self.assertAlmostEqual(shifted["angular_speed_radps"], 0.02)
+
     def test_penetration_counts_particle_centers(self) -> None:
         points = np.array(
             [[0.0, 0.0, 0.0], [0.02, 0.0, 0.0], [0.0, 0.0, 0.02]],
@@ -198,6 +242,50 @@ class NewtonCylinderDiagnosticTest(unittest.TestCase):
         )
         self.assertEqual(result["inside_particle_centers"], 1)
         self.assertAlmostEqual(result["max_center_penetration_m"], 0.01)
+
+    def test_finite_cylinder_signed_distance_uses_analytic_surface(self) -> None:
+        result = finite_cylinder_signed_distance(
+            np.array(
+                [
+                    [0.0, 0.0, 0.0],
+                    [0.0, 0.0, -0.02],
+                    [0.03, 0.0, 0.0],
+                    [0.03, 0.0, 0.03],
+                ]
+            ),
+            center_xy=(0.0, 0.0),
+            center_z=0.0,
+            radius=0.02,
+            half_height=0.01,
+        )
+        np.testing.assert_allclose(
+            result,
+            np.array([-0.01, 0.01, 0.01, np.sqrt(0.01**2 + 0.02**2)]),
+        )
+
+    def test_contact_summary_separates_assigned_and_impulse_nodes(self) -> None:
+        summary = summarize_cylinder_contacts(
+            impulses=np.array(
+                [[0.0, 0.0, 0.0], [0.0, 0.0, 0.3], [0.0, 0.0, 9.0]]
+            ),
+            positions=np.array(
+                [[0.0, 0.0, -0.02], [0.0, 0.0, -0.012], [0.0, 0.0, 0.0]]
+            ),
+            collider_ids=np.array([1, 1, -1]),
+            collider_body_indices=np.array([-1, 4]),
+            body_index=4,
+            center_xy=(0.0, 0.0),
+            center_z=0.0,
+            radius=0.02,
+            half_height=0.01,
+        )
+        self.assertEqual(summary["assigned_nodes"], 2)
+        self.assertEqual(summary["impulse_nodes"], 1)
+        self.assertAlmostEqual(summary["upward_impulse_ns"], 0.3)
+        self.assertAlmostEqual(summary["assigned_sdf_min_m"], 0.002)
+        self.assertAlmostEqual(summary["assigned_sdf_max_m"], 0.01)
+        self.assertAlmostEqual(summary["impulse_sdf_min_m"], 0.002)
+        self.assertAlmostEqual(summary["impulse_sdf_max_m"], 0.002)
 
     def test_response_error_uses_change_from_each_initial_map(self) -> None:
         initial = np.zeros((2, 2), dtype=np.float32)

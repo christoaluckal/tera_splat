@@ -96,6 +96,7 @@ conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_co
 /data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_prepared_bed.py --help
 /data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_preparation_convergence.py --help
 /data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_cylinder_diagnostic.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_response_convergence.py --help
 ```
 
 Do not create another live status document. Update `docs/current-state.md`;

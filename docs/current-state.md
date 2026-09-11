@@ -1,6 +1,6 @@
 # Current Chrono-to-MPM State
 
-Last verified: 2026-09-06
+Last verified: 2026-09-11
 
 This is the authoritative live handoff for the cylinder calibration. Dated
 investigation history is preserved in
@@ -10,11 +10,46 @@ and is not a source of current next steps.
 ## Current outcome
 
 The Chrono oracle and frozen Genesis baseline remain operational. On the
-Newton branch, PIC preparation convergence and two-way rigid-cylinder response
-are now mechanics-qualified end to end. The uncalibrated response passes the
-speed, H0, map-consistency, finite-state, support, and strict penetration gates.
-Response timestep convergence remains the next prerequisite for calibration or
-a larger evaluation sweep.
+Newton branch, PIC preparation and native Kamino/prismatic coupling are
+qualified. The historical 9.375 mm raised-proxy diagnostic passes a complete
+`0.5/0.25/0.125 ms` response matrix at 100 kPa, but it omits a lower collision
+slice and is not promotable.
+
+The current full-volume S2 contact-activation diagnosis leaves the analytic
+cylinder and zero collision-bottom inset intact.  A Newton-1.5.1,
+process-local, cylinder-only rasterizer adapter changes node activation from
+the native `+0.25` to `-0.25` voxel without changing the signed-distance
+geometry, action, strict particle-center test, external I/O, or gates.  Its
+full three-level matrix is mechanics-qualified: every row has accepted
+preparation, finite 14,161-cell I/O, zero center penetration, and a passed
+guide gate.  Both adjacent map pairs pass.  The result remains
+`not_demonstrated`, however, because coarse-to-medium sinkage is `0.975 mm`
+against the frozen `0.5 mm` gate; medium-to-fine sinkage is `0.480 mm` and
+passes.  Material calibration and large evaluation remain stopped.  Evidence
+is `diagnostics/newton_contact_activation_20260910/`.
+
+A controlled `0.5 ms` backend A/B now uses the same action, grid scale,
+particle spacing, fixed times, support, and score. At the nominally matched
+`E=100 kPa`, `nu=0.2`, density `1000 kg/m^3`, and friction pair
+`mu=0.68`/`phi=atan(mu)=34.216 deg`, corrected Newton scores `12.189 mm`
+versus Genesis `14.736 mm`. The correction improves Newton by `0.449 mm`
+(`3.6%`). Genesis is about 16% faster in the original matched comparison.
+The calibrated Genesis incumbent still has the best absolute score at
+`8.705 mm`; Newton remains uncalibrated. A reverse transfer of that incumbent
+to Newton failed preparation before contact with H0 RMSE/max
+`9.809/10.241 mm`.
+
+The first Newton-specific calibration probe changed only stiffness from 100 to
+25 kPa. Its full preparation matrix passes, and its DEM-only objective improves
+to `11.207 mm`, but the response is invalid: as many as `1,330` particle
+centers enter the analytic cylinder by up to `5.950 mm`, and the guide gate
+also fails. The raised proxy leaves an uncollided lower slice once a softer
+cylinder actually sinks. Therefore the inset is a useful support-location
+diagnostic, not a promotable forward model. Stop material calibration and
+large evaluation until support is corrected without shrinking analytic
+collision coverage. Exact evidence is in
+`diagnostics/newton_collider_support_20260908/` and
+`diagnostics/newton_calibration_20260910/`.
 
 The current best known material candidate is:
 
@@ -430,12 +465,18 @@ The Newton acceptance ladder is now:
 4. complete: full two-way loading/removal passes the strict penetration gate;
 5. complete: loaded/residual maps, masks, timing, gates,
    traces, raw states, PLYs, and provenance are emitted externally;
-6. complete at one timestep: one mechanics-qualified raw response is compared
-   with the unchanged Chrono oracle;
-7. pending: establish response timestep convergence, then begin a fresh Newton
-   calibration/evaluation without importing Genesis observations.
+6. complete: native coupling and the 100 kPa raised-proxy diagnostic pass the
+   full response matrix and are compared with the unchanged Chrono oracle;
+7. complete diagnostic: a 25 kPa stiffness probe passes preparation but fails
+   analytic penetration and guide gates, proving the raised proxy is not
+   promotable;
+8. complete diagnostic: full-volume, cylinder-only `-0.25`-voxel S2 activation
+   passes every mechanics gate, but its three-level response matrix is not
+   demonstrated because coarse/medium sinkage is `0.975 mm`;
+9. pending: diagnose that remaining sinkage sensitivity under the unchanged
+   contract before calibration/evaluation.
 
-The response-convergence experiment is frozen before its remaining runs:
+The response-convergence experiment uses this frozen contract:
 
 1. run the full continuous preparation, `3.595 s` guided load, instantaneous
    removal, and `0.25 s` residual at `0.5`, `0.25`, and `0.125 ms`;
@@ -456,9 +497,39 @@ The response-convergence experiment is frozen before its remaining runs:
 
 Chrono loaded/residual RMSE must be reported for every case, but it measures
 uncalibrated material fit and cannot rescue or reject the numerical-convergence
-decision. Passing this matrix qualifies a consistent Newton forward-model/I/O
-path for larger Newton-only evaluation and calibration; it does not itself
-validate material prediction.
+decision.
+
+The clean matrix from commit `73eb472` is complete. All cases retain accepted
+preparation, finite output, all `14,161` cells, and zero penetration, but the
+matrix status is `not_demonstrated`. Sinkage is `8.854`, `-0.578`, and
+`-5.607 mm`. The coarse pair has loaded/residual response RMSE
+`1.349/1.373 mm` and sinkage difference `9.432 mm`; the fine pair has
+`0.105/0.084 mm` map RMSE but still differs by `5.029 mm` in sinkage.
+
+At steady contact, collected impulse divided by timestep is approximately the
+correct `14.715 N` weight at every level, while endpoint velocity is nearly
+`-g*dt`. Advancing position with that pre-impulse velocity accumulates
+approximately `g*T*dt`: predicted adjacent displacement is `8.817/4.409 mm`,
+close to the measured `9.432/5.029 mm`. This localizes the blocker to the
+explicit guide update rather than preparation or external DEM I/O. Make one
+timestep-consistent guide-integration correction and rerun the unchanged
+matrix. This paragraph records the superseded explicit-coupling diagnosis.
+
+That controlled correction is complete. The native path uses a world-anchored
+prismatic Kamino body, two lagged proxy iterations, four rigid substeps, and
+the unchanged implicit MPM solve. All three rows pass preparation,
+finite/full-support I/O, zero-center penetration, and the new `1e-6` guide
+gate. The subsequent 9.375 mm raised-proxy diagnostic passes the complete
+response matrix: adjacent loaded/residual RMSE is `0.130/0.123 mm` and
+`0.107/0.110 mm`, and sinkage differences are `0.130/0.032 mm`.
+
+The inset is not promotable. At 25 kPa, a qualified preparation leads to 1,330
+particle centers inside the analytic cylinder by up to `5.950 mm` and a guide
+failure.  The subsequent full-volume activation experiment retains collision
+coverage and passes all individual mechanics gates, but its coarse/medium
+sinkage difference is `0.975 mm`, above the frozen `0.5 mm` gate.  Freeze
+material and external I/O until that sensitivity is diagnosed; do not relax
+the gates.
 
 If work instead continues on the Genesis branch, the controlled numerical
 correction described above remains its next experiment. Evidence from the two
@@ -486,6 +557,8 @@ backends must remain separately named and must never be pooled implicitly.
   `tera_splat/scripts/analyze_newton_preparation_convergence.py`
 - Newton guided-cylinder diagnostic:
   `tera_splat/scripts/run_newton_cylinder_diagnostic.py`
+- Newton response convergence analyzer:
+  `tera_splat/scripts/analyze_newton_response_convergence.py`
 - aligned and raw PCD exporter:
   `tera_splat_sim/export_scm_genesis_pcd.py`
 - Genesis / Newton environments:

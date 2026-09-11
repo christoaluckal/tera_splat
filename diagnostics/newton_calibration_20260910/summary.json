@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "experiment": "corrected_newton_stiffness_screen",
+  "status": "candidate_rejected",
+  "frozen_settings": {
+    "timestep_s": 0.0005,
+    "collision_bottom_inset_m": 0.009375,
+    "rigid_solver_tolerance": 1e-06
+  },
+  "preparation_consistency_passed": true,
+  "cases": [
+    {
+      "name": "Newton 100 kPa qualified",
+      "backend": "newton",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/collider_support_inset_20260908/full_strict_kamino/inset9p375mm_dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.6033602985553443,
+        "mae_mm": 0.6031651864759624,
+        "mean_mm": -0.6031651864759624,
+        "max_abs_mm": 0.6586097879335284
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 3.63791361451149,
+        "mae_mm": 0.8450421155430377,
+        "mean_mm": 0.7949164719320834,
+        "max_abs_mm": 19.483106210827827
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 16.50048792362213,
+        "mae_mm": 16.39615371823311,
+        "mean_mm": 16.39615371823311,
+        "max_abs_mm": 19.483106210827827
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.7694228813052177,
+        "mae_mm": 0.8697578450664878,
+        "mean_mm": 0.8334601880051196,
+        "max_abs_mm": 20.185282453894615
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 17.102377489209175,
+        "mae_mm": 16.990233212709427,
+        "mean_mm": 16.990233212709427,
+        "max_abs_mm": 20.185282453894615
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.6155193336308002,
+        "mae_mm": 2.61186552233994,
+        "mean_mm": -2.61186552233994,
+        "max_abs_mm": 2.7439899276942015
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.020120620727539,
+        "mae_mm": 2.0177860278636217,
+        "mean_mm": -2.0177860278636217,
+        "max_abs_mm": 2.2022733464837074
+      },
+      "objective_mm": 12.189102359116077
+    },
+    {
+      "name": "Newton 25 kPa rejected",
+      "backend": "newton",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/calibration_20260910/e25k/response/dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 2.237937180325389,
+        "mae_mm": 2.2374908439815044,
+        "mean_mm": -2.2374908439815044,
+        "max_abs_mm": 2.3672336246818304
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 3.073508618399501,
+        "mae_mm": 0.7302197045646608,
+        "mean_mm": 0.656724616419524,
+        "max_abs_mm": 16.46273210644722
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 13.897697441279888,
+        "mae_mm": 13.810238800942898,
+        "mean_mm": 13.810238800942898,
+        "max_abs_mm": 16.46273210644722
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.5890412982553244,
+        "mae_mm": 0.8233193657360971,
+        "mean_mm": 0.7982027600519359,
+        "max_abs_mm": 20.215684548020363
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 16.267752274870872,
+        "mae_mm": 16.11328125,
+        "mean_mm": 16.11328125,
+        "max_abs_mm": 20.215684548020363
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 5.381963215768337,
+        "mae_mm": 5.197781603783369,
+        "mean_mm": -5.197781603783369,
+        "max_abs_mm": 15.360623598098755
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 3.119494067505002,
+        "mae_mm": 2.8947379905730486,
+        "mean_mm": -2.8947379905730486,
+        "max_abs_mm": 12.417454272508621
+      },
+      "objective_mm": 11.207384755834937
+    }
+  ],
+  "candidate_mechanics": {
+    "accepted": false,
+    "acceptance_blockers": [
+      "The strict zero particle-center penetration gate failed.",
+      "The cylinder violated the ideal vertical prismatic guide constraint."
+    ],
+    "max_inside_particle_centers": 1330,
+    "max_center_penetration_mm": 5.9500690549612045,
+    "guide_constraint_error": {
+      "horizontal_position_error_m": 1.8728990291680992e-08,
+      "orientation_quaternion_error": 6.650506788569076e-09,
+      "horizontal_speed_mps": 2.2512910524707747e-06,
+      "angular_speed_radps": 1.1321933976386925e-06
+    }
+  },
+  "interpretation": "Lower stiffness improves the DEM-only objective but exploits the uncollided analytic slice created by the raised proxy. Stop material calibration until support is corrected without shrinking collision coverage."
+}

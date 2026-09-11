@@ -111,6 +111,27 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--cylinder-collision-bottom-inset-m",
+        type=float,
+        default=0.0,
+        help=(
+            "Raise only the body-local collision proxy so its lower cap is this "
+            "distance above the analytic cylinder bottom. The analytic action, "
+            "body inertia, pose reporting, and penetration gate remain unchanged."
+        ),
+    )
+    parser.add_argument(
+        "--cylinder-contact-activation-distance-voxels",
+        type=float,
+        default=None,
+        help=(
+            "Override only the cylinder's rasterized MPM contact-node activation "
+            "distance, in grid voxels. The Newton S2 default is 0.25 voxel. "
+            "Negative values require nodes to lie inside the signed-distance "
+            "surface; containment and project_outside remain unchanged."
+        ),
+    )
+    parser.add_argument(
         "--cylinder-projection-threshold-m",
         type=float,
         default=0.0,
@@ -120,12 +141,42 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--guide-coupling-mode",
+        choices=("native_proxy", "explicit_impulse"),
+        default="native_proxy",
+        help=(
+            "Use Newton's native Kamino/MPM proxy coupling with a prismatic guide, "
+            "or retain the historical explicit impulse update as a diagnostic control."
+        ),
+    )
+    parser.add_argument(
         "--guided-body-position-update",
         choices=("semi_implicit", "forward_consistent"),
         default="forward_consistent",
         help=(
-            "Position integration for the one-DOF guide. forward_consistent uses "
-            "the pre-impulse velocity, matching Newton's forward collider pose."
+            "Position integration for explicit_impulse mode only. forward_consistent "
+            "uses the pre-impulse velocity, matching Newton's forward collider pose."
+        ),
+    )
+    parser.add_argument(
+        "--proxy-iterations",
+        type=int,
+        default=2,
+        help="Native proxy relaxation passes per MPM step.",
+    )
+    parser.add_argument(
+        "--rigid-substeps",
+        type=int,
+        default=4,
+        help="Kamino substeps per MPM step in native_proxy mode.",
+    )
+    parser.add_argument(
+        "--rigid-solver-tolerance",
+        type=float,
+        default=1.0e-6,
+        help=(
+            "Kamino PADMM primal, dual, and complementarity tolerance in "
+            "native_proxy mode. The default matches the guide acceptance gate."
         ),
     )
     parser.add_argument("--max-fill-distance-m", type=float, default=0.0075)
@@ -147,12 +198,17 @@ def validate_args(args: argparse.Namespace) -> None:
         "loaded_duration_s",
         "residual_duration_s",
         "removal_height_m",
+        "rigid_solver_tolerance",
     ):
         value = float(getattr(args, name))
         if not math.isfinite(value) or value <= 0.0:
             raise ValueError(f"{name} must be finite and positive")
     if args.diagnostic_every <= 0:
         raise ValueError("diagnostic-every must be positive")
+    if args.proxy_iterations <= 0:
+        raise ValueError("proxy-iterations must be positive")
+    if args.rigid_substeps <= 0:
+        raise ValueError("rigid-substeps must be positive")
     if args.cylinder_friction_coefficient < 0.0:
         raise ValueError("cylinder friction coefficient must be nonnegative")
     if args.cylinder_collider_segments < 8:
@@ -167,6 +223,27 @@ def validate_args(args: argparse.Namespace) -> None:
         and args.cylinder_collider_mode != "circumscribed_mesh"
     ):
         raise ValueError("cylinder-collision-guard-m requires circumscribed_mesh mode")
+    if (
+        not math.isfinite(args.cylinder_collision_bottom_inset_m)
+        or args.cylinder_collision_bottom_inset_m < 0.0
+    ):
+        raise ValueError(
+            "cylinder-collision-bottom-inset-m must be finite and nonnegative"
+        )
+    if (
+        args.cylinder_contact_activation_distance_voxels is not None
+        and not math.isfinite(args.cylinder_contact_activation_distance_voxels)
+    ):
+        raise ValueError(
+            "cylinder-contact-activation-distance-voxels must be finite"
+        )
+    if (
+        args.cylinder_contact_activation_distance_voxels is not None
+        and args.cylinder_collision_bottom_inset_m != 0.0
+    ):
+        raise ValueError(
+            "contact activation override requires the full-volume zero-inset cylinder"
+        )
     if args.cylinder_projection_threshold_m is not None and (
         not math.isfinite(args.cylinder_projection_threshold_m)
         or args.cylinder_projection_threshold_m < 0.0
@@ -183,6 +260,22 @@ def circumscribed_cylinder_radius(radius: float, segments: int) -> float:
     if segments < 8:
         raise ValueError("segments must be at least 8")
     return radius / math.cos(math.pi / segments)
+
+
+def cylinder_collision_center_offset_z(
+    bottom_inset_m: float,
+    analytic_half_height_m: float,
+    collision_half_height_m: float,
+) -> float:
+    """Body-local shift that places the proxy bottom at the requested inset."""
+    values = (bottom_inset_m, analytic_half_height_m, collision_half_height_m)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("collision proxy dimensions must be finite")
+    if bottom_inset_m < 0.0:
+        raise ValueError("bottom inset must be nonnegative")
+    if analytic_half_height_m <= 0.0 or collision_half_height_m <= 0.0:
+        raise ValueError("collision proxy half heights must be positive")
+    return bottom_inset_m + collision_half_height_m - analytic_half_height_m
 
 
 def cylinder_projection_thresholds(
@@ -209,6 +302,37 @@ def advance_guided_body(
     new_vz = vz - 9.81 * dt_s + upward_impulse_ns / mass_kg
     position_velocity = vz if position_update == "forward_consistent" else new_vz
     return z + position_velocity * dt_s, new_vz
+
+
+def body_vertical_state(state, body_index: int) -> tuple[float, float]:
+    """Read the cylinder's world-frame vertical position and linear speed."""
+    return (
+        float(state.body_q.numpy()[body_index, 2]),
+        float(state.body_qd.numpy()[body_index, 2]),
+    )
+
+
+def guide_constraint_error(
+    body_pose: np.ndarray,
+    body_velocity: np.ndarray,
+    expected_xy: tuple[float, float],
+) -> dict[str, float]:
+    """Summarize motion forbidden by the ideal vertical prismatic guide."""
+    pose = np.asarray(body_pose, dtype=float)
+    velocity = np.asarray(body_velocity, dtype=float)
+    identity = np.array((0.0, 0.0, 0.0, 1.0))
+    quaternion_error = min(
+        float(np.linalg.norm(pose[3:7] - identity)),
+        float(np.linalg.norm(pose[3:7] + identity)),
+    )
+    return {
+        "horizontal_position_error_m": float(
+            np.linalg.norm(pose[:2] - np.asarray(expected_xy))
+        ),
+        "orientation_quaternion_error": quaternion_error,
+        "horizontal_speed_mps": float(np.linalg.norm(velocity[:2])),
+        "angular_speed_radps": float(np.linalg.norm(velocity[3:6])),
+    }
 
 
 def convergence_qualifies_preparation(
@@ -276,15 +400,98 @@ def cylinder_penetration(
     }
 
 
-def collect_cylinder_impulse(solver, state, body_index: int) -> tuple[float, int]:
-    impulses, _positions, collider_ids = solver.collect_collider_impulses(state)
-    impulses_np = impulses.numpy()
-    collider_ids_np = collider_ids.numpy()
-    body_for_collider = solver.collider_body_index.numpy()
-    valid = (collider_ids_np >= 0) & (collider_ids_np < body_for_collider.size)
-    cylinder = np.zeros(valid.shape, dtype=bool)
-    cylinder[valid] = body_for_collider[collider_ids_np[valid]] == body_index
-    return float(np.sum(impulses_np[cylinder, 2])), int(np.count_nonzero(cylinder))
+def finite_cylinder_signed_distance(
+    points: np.ndarray,
+    center_xy: tuple[float, float],
+    center_z: float,
+    radius: float,
+    half_height: float,
+) -> np.ndarray:
+    """Signed distance to the finite analytic cylinder (negative is inside)."""
+    values = np.asarray(points, dtype=float)
+    radial = np.linalg.norm(values[:, :2] - np.asarray(center_xy), axis=1)
+    q = np.column_stack(
+        (radial - float(radius), np.abs(values[:, 2] - center_z) - half_height)
+    )
+    outside = np.linalg.norm(np.maximum(q, 0.0), axis=1)
+    inside = np.minimum(np.maximum(q[:, 0], q[:, 1]), 0.0)
+    return outside + inside
+
+
+def summarize_cylinder_contacts(
+    impulses: np.ndarray,
+    positions: np.ndarray,
+    collider_ids: np.ndarray,
+    collider_body_indices: np.ndarray,
+    body_index: int,
+    center_xy: tuple[float, float],
+    center_z: float,
+    radius: float,
+    half_height: float,
+) -> dict[str, float | int | None]:
+    """Summarize assigned and impulse-carrying nodes against analytic geometry."""
+    impulse_values = np.asarray(impulses, dtype=float)
+    position_values = np.asarray(positions, dtype=float)
+    ids = np.asarray(collider_ids, dtype=int)
+    body_for_collider = np.asarray(collider_body_indices, dtype=int)
+    valid = (ids >= 0) & (ids < body_for_collider.size)
+    selected = np.zeros(valid.shape, dtype=bool)
+    selected[valid] = body_for_collider[ids[valid]] == int(body_index)
+    selected_count = int(np.count_nonzero(selected))
+    upward_impulse = float(np.sum(impulse_values[selected, 2]))
+    if selected_count == 0:
+        return {
+            "upward_impulse_ns": upward_impulse,
+            "assigned_nodes": 0,
+            "impulse_nodes": 0,
+            "assigned_sdf_min_m": None,
+            "assigned_sdf_max_m": None,
+            "impulse_sdf_min_m": None,
+            "impulse_sdf_max_m": None,
+        }
+
+    sdf = finite_cylinder_signed_distance(
+        position_values[selected], center_xy, center_z, radius, half_height
+    )
+    # Ignore floating-point residue from nominally inactive coupling rows.
+    nonzero = np.linalg.norm(impulse_values[selected], axis=1) > 1.0e-9
+    impulse_sdf = sdf[nonzero]
+    return {
+        "upward_impulse_ns": upward_impulse,
+        "assigned_nodes": selected_count,
+        "impulse_nodes": int(np.count_nonzero(nonzero)),
+        "assigned_sdf_min_m": float(np.min(sdf)),
+        "assigned_sdf_max_m": float(np.max(sdf)),
+        "impulse_sdf_min_m": (
+            float(np.min(impulse_sdf)) if impulse_sdf.size else None
+        ),
+        "impulse_sdf_max_m": (
+            float(np.max(impulse_sdf)) if impulse_sdf.size else None
+        ),
+    }
+
+
+def collect_cylinder_contacts(
+    solver,
+    state,
+    body_index: int,
+    center_xy: tuple[float, float],
+    center_z: float,
+    radius: float,
+    half_height: float,
+) -> dict[str, float | int | None]:
+    impulses, positions, collider_ids = solver.collect_collider_impulses(state)
+    return summarize_cylinder_contacts(
+        impulses.numpy(),
+        positions.numpy(),
+        collider_ids.numpy(),
+        solver.collider_body_index.numpy(),
+        body_index,
+        center_xy,
+        center_z,
+        radius,
+        half_height,
+    )
 
 
 def response_error(
@@ -307,7 +514,8 @@ def response_error(
 
 def write_trace(path: Path, rows: list[dict[str, Any]]) -> None:
     with path.open("w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=list(rows[0]))
+        fieldnames = list(dict.fromkeys(key for row in rows for key in row))
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
@@ -370,6 +578,8 @@ def main() -> None:
     radius = float(action["radius_m"])
     height = float(action["height_m"])
     half_height = 0.5 * height
+    if args.cylinder_collision_bottom_inset_m >= height:
+        raise ValueError("cylinder collision bottom inset must be less than cylinder height")
     mass = float(action["mass_kg"])
     if not math.isclose(
         spacing,
@@ -394,13 +604,16 @@ def main() -> None:
 
     import newton
     import warp as wp
-    from newton.solvers import SolverImplicitMPM
+    from newton.solvers import SolverImplicitMPM, SolverKamino
+    from newton.solvers.experimental.coupled import SolverCoupledProxy
 
     wp.init()
     newton.use_coord_layout_targets = True
     device = wp.get_device(args.device)
     builder = newton.ModelBuilder()
     SolverImplicitMPM.register_custom_attributes(builder)
+    if args.guide_coupling_mode == "native_proxy":
+        SolverKamino.register_custom_attributes(builder)
     count = prepared_points.shape[0]
     particle_mass = particle_mass_kg(config.material.density_kg_m3, spacing)
     builder.add_particles(
@@ -422,7 +635,12 @@ def main() -> None:
     )
     inertia_xy = mass * (3.0 * radius * radius + height * height) / 12.0
     inertia_z = 0.5 * mass * radius * radius
-    cylinder_body = builder.add_body(
+    add_cylinder_body = (
+        builder.add_link
+        if args.guide_coupling_mode == "native_proxy"
+        else builder.add_body
+    )
+    cylinder_body = add_cylinder_body(
         xform=wp.transform(
             wp.vec3(center_xy[0], center_xy[1], pre_settle_center_z),
             wp.quat_identity(),
@@ -436,6 +654,26 @@ def main() -> None:
         label="newton_guided_cylinder",
         lock_inertia=True,
     )
+    guide_joint = None
+    if args.guide_coupling_mode == "native_proxy":
+        guide_joint = builder.add_joint_prismatic(
+            parent=-1,
+            child=cylinder_body,
+            parent_xform=wp.transform(
+                wp.vec3(center_xy[0], center_xy[1], pre_settle_center_z),
+                wp.quat_identity(),
+            ),
+            child_xform=wp.transform(wp.vec3(0.0), wp.quat_identity()),
+            axis=wp.vec3(0.0, 0.0, 1.0),
+            damping=0.0,
+            friction=0.0,
+            limit_lower=-2.0,
+            limit_upper=2.0,
+            label="newton_vertical_guide",
+        )
+        builder.add_articulation(
+            [guide_joint], label="newton_vertical_guide_articulation"
+        )
     cylinder_cfg = newton.ModelBuilder.ShapeConfig(
         mu=args.cylinder_friction_coefficient,
         density=0.0,
@@ -457,15 +695,33 @@ def main() -> None:
             compute_uvs=False,
             compute_inertia=False,
         )
+        collision_center_offset_z = cylinder_collision_center_offset_z(
+            args.cylinder_collision_bottom_inset_m,
+            half_height,
+            collision_half_height,
+        )
         builder.add_shape_mesh(
             cylinder_body,
+            xform=wp.transform(
+                wp.vec3(0.0, 0.0, collision_center_offset_z),
+                wp.quat_identity(),
+            ),
             mesh=cylinder_mesh,
             cfg=cylinder_cfg,
             label="newton_guided_cylinder_shape",
         )
     else:
+        collision_center_offset_z = cylinder_collision_center_offset_z(
+            args.cylinder_collision_bottom_inset_m,
+            half_height,
+            collision_half_height,
+        )
         builder.add_shape_cylinder(
             cylinder_body,
+            xform=wp.transform(
+                wp.vec3(0.0, 0.0, collision_center_offset_z),
+                wp.quat_identity(),
+            ),
             radius=radius,
             half_height=half_height,
             cfg=cylinder_cfg,
@@ -491,13 +747,100 @@ def main() -> None:
     )
     state = model.state()
     set_body_state(state, cylinder_body, center_xy, pre_settle_center_z, 0.0)
-    solver = SolverImplicitMPM(model, config=solver_config)
+    control = None
+    cylinder_collider_body = cylinder_body
+    if args.guide_coupling_mode == "native_proxy":
+        assert guide_joint is not None
+        kamino_config = SolverKamino.Config()
+        kamino_config.use_collision_detector = False
+        kamino_config.use_fk_solver = False
+        kamino_config.dynamics.preconditioning = True
+        kamino_config.padmm.max_iterations = 120
+        kamino_config.padmm.primal_tolerance = args.rigid_solver_tolerance
+        kamino_config.padmm.dual_tolerance = args.rigid_solver_tolerance
+        kamino_config.padmm.compl_tolerance = args.rigid_solver_tolerance
+        kamino_config.padmm.rho_0 = 0.1
+        kamino_config.padmm.use_acceleration = True
+        kamino_config.padmm.warmstart_mode = "containers"
+        solver = SolverCoupledProxy(
+            model=model,
+            entries=[
+                SolverCoupledProxy.Entry(
+                    name="kamino",
+                    solver=lambda view: SolverKamino(
+                        model=view,
+                        config=kamino_config,
+                    ),
+                    bodies=[cylinder_body],
+                    joints=[guide_joint],
+                    substeps=args.rigid_substeps,
+                ),
+                SolverCoupledProxy.Entry(
+                    name="mpm",
+                    solver=lambda view: SolverImplicitMPM(
+                        model=view,
+                        config=solver_config,
+                    ),
+                    particles=list(range(model.particle_count)),
+                    in_place=True,
+                ),
+            ],
+            coupling=SolverCoupledProxy.Config(
+                proxies=[
+                    SolverCoupledProxy.Proxy(
+                        source="kamino",
+                        destination="mpm",
+                        bodies=[cylinder_body],
+                        mass_scale=1.0,
+                        mode="lagged",
+                        collision_pipeline=lambda _model: None,
+                    )
+                ],
+                iterations=args.proxy_iterations,
+            ),
+        )
+        mpm_solver = solver.solver("mpm")
+        control = model.control()
+        cylinder_collider_body = 0
+    else:
+        solver = SolverImplicitMPM(model, config=solver_config)
+        mpm_solver = solver
     if args.cylinder_projection_threshold_m is not None:
-        solver.setup_collider(
+        mpm_solver.setup_collider(
             collider_projection_threshold=cylinder_projection_thresholds(
-                solver.collider_body_index.numpy(),
-                cylinder_body,
+                mpm_solver.collider_body_index.numpy(),
+                cylinder_collider_body,
                 args.cylinder_projection_threshold_m,
+            )
+        )
+    collider_basis_degree = {"Q1": 1, "S2": 2, "S3": 3}.get(
+        config.solver.collider_basis
+    )
+    default_activation_distance_voxels = (
+        0.5 / collider_basis_degree if collider_basis_degree else None
+    )
+    contact_activation = {
+        "implementation": "Newton package default",
+        "requested_activation_distance_voxels": None,
+        "newton_default_activation_distance_voxels": (
+            default_activation_distance_voxels
+        ),
+        "containment_uses_newton_default": True,
+        "signed_distance_geometry_unchanged": True,
+        "project_outside_geometry_unchanged": True,
+    }
+    if args.cylinder_contact_activation_distance_voxels is not None:
+        from newton_collider_activation import (
+            install_per_collider_activation_override,
+        )
+
+        contact_activation.update(
+            install_per_collider_activation_override(
+                mpm_solver,
+                body_index=cylinder_collider_body,
+                activation_distance_voxels=(
+                    args.cylinder_contact_activation_distance_voxels
+                ),
             )
         )
     solver.reset(state)
@@ -513,8 +856,9 @@ def main() -> None:
     pre_settle_final_speed: dict[str, float] | None = None
     for step in range(1, pre_settle_steps + 1):
         set_body_state(state, cylinder_body, center_xy, pre_settle_center_z, 0.0)
-        solver.step(state, state, None, None, args.dt_s)
-        solver.project_outside(state, state, args.dt_s)
+        state.clear_forces()
+        solver.step(state, state, control, None, args.dt_s)
+        mpm_solver.project_outside(state, state, args.dt_s)
         pre_settle_final_speed = speed_summary(state.particle_qd.numpy())
         if pre_settle_final_speed["p99_mps"] <= args.particle_speed_threshold_mps:
             low_speed_steps += 1
@@ -565,24 +909,83 @@ def main() -> None:
     max_inside = 0
     max_penetration = 0.0
     max_contact_nodes = 0
+    max_impulse_contact_nodes = 0
     max_upward_impulse = 0.0
+    assigned_sdf_min = None
+    assigned_sdf_max = None
+    impulse_sdf_min = None
+    impulse_sdf_max = None
+    first_impulse_step = None
+    first_impulse_bottom_relative_to_surface = None
+    set_body_state(state, cylinder_body, center_xy, cylinder_z, cylinder_vz)
     for step in range(1, loaded_steps + 1):
-        cylinder_z, cylinder_vz = set_body_state(
-            state, cylinder_body, center_xy, cylinder_z, cylinder_vz
-        )
-        solver.step(state, state, None, None, args.dt_s)
-        impulse_z, contact_nodes = collect_cylinder_impulse(solver, state, cylinder_body)
-        solver.project_outside(state, state, args.dt_s)
-        cylinder_z, cylinder_vz = advance_guided_body(
+        if args.guide_coupling_mode == "explicit_impulse":
+            cylinder_z, cylinder_vz = set_body_state(
+                state, cylinder_body, center_xy, cylinder_z, cylinder_vz
+            )
+        state.clear_forces()
+        solver.step(state, state, control, None, args.dt_s)
+        if args.guide_coupling_mode == "native_proxy":
+            cylinder_z, cylinder_vz = body_vertical_state(state, cylinder_body)
+        contacts = collect_cylinder_contacts(
+            mpm_solver,
+            state,
+            cylinder_collider_body,
+            center_xy,
             cylinder_z,
-            cylinder_vz,
-            impulse_z,
-            mass,
-            args.dt_s,
-            args.guided_body_position_update,
+            radius,
+            half_height,
         )
+        impulse_z = float(contacts["upward_impulse_ns"])
+        contact_nodes = int(contacts["assigned_nodes"])
+        impulse_nodes = int(contacts["impulse_nodes"])
+        mpm_solver.project_outside(state, state, args.dt_s)
+        if args.guide_coupling_mode != "native_proxy":
+            cylinder_z, cylinder_vz = advance_guided_body(
+                cylinder_z,
+                cylinder_vz,
+                impulse_z,
+                mass,
+                args.dt_s,
+                args.guided_body_position_update,
+            )
         max_contact_nodes = max(max_contact_nodes, contact_nodes)
+        max_impulse_contact_nodes = max(max_impulse_contact_nodes, impulse_nodes)
         max_upward_impulse = max(max_upward_impulse, impulse_z)
+        for key, use_min in (
+            ("assigned_sdf_min_m", True),
+            ("assigned_sdf_max_m", False),
+            ("impulse_sdf_min_m", True),
+            ("impulse_sdf_max_m", False),
+        ):
+            value = contacts[key]
+            if value is None:
+                continue
+            variable_name = key.removesuffix("_m")
+            current = {
+                "assigned_sdf_min": assigned_sdf_min,
+                "assigned_sdf_max": assigned_sdf_max,
+                "impulse_sdf_min": impulse_sdf_min,
+                "impulse_sdf_max": impulse_sdf_max,
+            }[variable_name]
+            updated = (
+                float(value)
+                if current is None
+                else (min(current, float(value)) if use_min else max(current, float(value)))
+            )
+            if variable_name == "assigned_sdf_min":
+                assigned_sdf_min = updated
+            elif variable_name == "assigned_sdf_max":
+                assigned_sdf_max = updated
+            elif variable_name == "impulse_sdf_min":
+                impulse_sdf_min = updated
+            else:
+                impulse_sdf_max = updated
+        if abs(impulse_z) > 1.0e-4 and first_impulse_step is None:
+            first_impulse_step = step
+            first_impulse_bottom_relative_to_surface = (
+                cylinder_z - half_height - initial_surface_z
+            )
         if step % args.diagnostic_every == 0 or step == loaded_steps:
             points = state.particle_q.numpy()
             penetration = cylinder_penetration(
@@ -602,15 +1005,23 @@ def main() -> None:
                     "cylinder_vertical_speed_mps": cylinder_vz,
                     "cylinder_upward_impulse_ns": impulse_z,
                     "cylinder_contact_nodes": contact_nodes,
+                    "cylinder_impulse_nodes": impulse_nodes,
+                    "contact_assigned_sdf_min_m": contacts["assigned_sdf_min_m"],
+                    "contact_assigned_sdf_max_m": contacts["assigned_sdf_max_m"],
+                    "contact_impulse_sdf_min_m": contacts["impulse_sdf_min_m"],
+                    "contact_impulse_sdf_max_m": contacts["impulse_sdf_max_m"],
                     "inside_particle_centers": penetration["inside_particle_centers"],
                     "max_center_penetration_m": penetration["max_center_penetration_m"],
                     "particle_speed_p99_mps": speeds["p99_mps"],
                 }
             )
 
-    cylinder_z, cylinder_vz = set_body_state(
-        state, cylinder_body, center_xy, cylinder_z, cylinder_vz
-    )
+    if args.guide_coupling_mode == "explicit_impulse":
+        cylinder_z, cylinder_vz = set_body_state(
+            state, cylinder_body, center_xy, cylinder_z, cylinder_vz
+        )
+    loaded_body_pose = state.body_q.numpy()[cylinder_body].copy()
+    loaded_body_velocity = state.body_qd.numpy()[cylinder_body].copy()
     loaded_arrays = state_arrays(state)
     loaded_speed = speed_summary(loaded_arrays["velocity_mps"])
     loaded_map, loaded_supported = project_surface(
@@ -630,8 +1041,9 @@ def main() -> None:
     set_body_state(state, cylinder_body, center_xy, cylinder_z, cylinder_vz)
     for step in range(1, residual_steps + 1):
         set_body_state(state, cylinder_body, center_xy, cylinder_z, 0.0)
-        solver.step(state, state, None, None, args.dt_s)
-        solver.project_outside(state, state, args.dt_s)
+        state.clear_forces()
+        solver.step(state, state, control, None, args.dt_s)
+        mpm_solver.project_outside(state, state, args.dt_s)
         if step % args.diagnostic_every == 0 or step == residual_steps:
             speeds = speed_summary(state.particle_qd.numpy())
             trace_rows.append(
@@ -691,6 +1103,12 @@ def main() -> None:
         max_inside == 0
         and int(loaded_penetration["inside_particle_centers"]) == 0
     )
+    guide_error = guide_constraint_error(
+        loaded_body_pose, loaded_body_velocity, center_xy
+    )
+    guide_constraint_passed = all(
+        value <= 1.0e-6 for value in guide_error.values()
+    )
     acceptance_blockers = []
     if not preparation_convergence_passed:
         acceptance_blockers.append(
@@ -702,8 +1120,15 @@ def main() -> None:
         )
     if not finite:
         acceptance_blockers.append("The coupled state contains non-finite values.")
+    if not guide_constraint_passed:
+        acceptance_blockers.append(
+            "The cylinder violated the ideal vertical prismatic guide constraint."
+        )
     mechanics_qualified = bool(
-        preparation_convergence_passed and strict_penetration_passed and finite
+        preparation_convergence_passed
+        and strict_penetration_passed
+        and guide_constraint_passed
+        and finite
     )
     manifest = {
         "schema_version": 1,
@@ -746,7 +1171,33 @@ def main() -> None:
             **config.raw["solver"],
             "dt_s": args.dt_s,
             "collider_velocity_mode": "forward",
-            "coupling": "explicit vertically constrained body update from collected MPM impulses",
+            "coupling": (
+                "Newton SolverCoupledProxy: Kamino prismatic rigid body to implicit MPM"
+                if args.guide_coupling_mode == "native_proxy"
+                else "explicit vertically constrained body update from collected MPM impulses"
+            ),
+            "guide_coupling_mode": args.guide_coupling_mode,
+            "proxy_mode": (
+                "lagged" if args.guide_coupling_mode == "native_proxy" else None
+            ),
+            "proxy_iterations": (
+                args.proxy_iterations
+                if args.guide_coupling_mode == "native_proxy"
+                else None
+            ),
+            "rigid_solver": (
+                "kamino" if args.guide_coupling_mode == "native_proxy" else None
+            ),
+            "rigid_substeps": (
+                args.rigid_substeps
+                if args.guide_coupling_mode == "native_proxy"
+                else None
+            ),
+            "rigid_solver_tolerance": (
+                args.rigid_solver_tolerance
+                if args.guide_coupling_mode == "native_proxy"
+                else None
+            ),
         },
         "action": {
             **action,
@@ -759,6 +1210,7 @@ def main() -> None:
         },
         "cylinder": {
             "body_index": cylinder_body,
+            "guide_joint_index": guide_joint,
             "friction_coefficient": args.cylinder_friction_coefficient,
             "collider_mode": args.cylinder_collider_mode,
             "collider_segments": (
@@ -770,8 +1222,19 @@ def main() -> None:
             "collision_mesh_vertex_radius_m": collision_radius,
             "collision_mesh_half_height_m": collision_half_height,
             "collision_guard_m": args.cylinder_collision_guard_m,
+            "collision_bottom_inset_m": args.cylinder_collision_bottom_inset_m,
+            "collision_center_offset_z_m": collision_center_offset_z,
             "projection_threshold_m": args.cylinder_projection_threshold_m,
-            "guided_body_position_update": args.guided_body_position_update,
+            "guided_body_position_update": (
+                "native_kamino_prismatic"
+                if args.guide_coupling_mode == "native_proxy"
+                else args.guided_body_position_update
+            ),
+            "loaded_body_pose_xyzw": loaded_body_pose.tolist(),
+            "loaded_body_velocity_linear_angular": loaded_body_velocity.tolist(),
+            "guide_constraint_error": guide_error,
+            "guide_constraint_tolerance": 1.0e-6,
+            "guide_constraint_passed": guide_constraint_passed,
             "loaded_center_z_m": loaded_center_z,
             "loaded_vertical_speed_mps": loaded_vertical_speed,
             "center_drop_m": initial_center_z - loaded_center_z,
@@ -783,7 +1246,26 @@ def main() -> None:
             ),
             "loaded_particle_speed": loaded_speed,
             "max_contact_nodes": max_contact_nodes,
+            "max_impulse_contact_nodes": max_impulse_contact_nodes,
             "max_upward_impulse_ns": max_upward_impulse,
+        },
+        "contact_activation": {
+            **contact_activation,
+            "distance_unit": "grid voxels",
+            "voxel_size_m": config.solver.voxel_size_m,
+            "first_impulse_step": first_impulse_step,
+            "first_impulse_time_s": (
+                first_impulse_step * args.dt_s
+                if first_impulse_step is not None
+                else None
+            ),
+            "first_impulse_threshold_ns": 1.0e-4,
+            "first_impulse_analytic_bottom_relative_to_initial_surface_m": (
+                first_impulse_bottom_relative_to_surface
+            ),
+            "assigned_node_sdf_range_m": [assigned_sdf_min, assigned_sdf_max],
+            "impulse_node_sdf_range_m": [impulse_sdf_min, impulse_sdf_max],
+            "sdf_sign_convention": "negative inside analytic cylinder",
         },
         "penetration": {
             "sample_every_steps": args.diagnostic_every,

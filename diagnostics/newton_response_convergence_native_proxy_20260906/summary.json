@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "backend": "newton",
+  "status": "not_demonstrated",
+  "matrix_complete": true,
+  "invariant_settings_passed": true,
+  "invariant_mismatches": [],
+  "all_cases_mechanics_qualified": true,
+  "consistency_passed": false,
+  "required_timesteps_s": [
+    0.0005,
+    0.00025,
+    0.000125
+  ],
+  "gates": {
+    "response_rmse_m": 0.0005,
+    "response_max_abs_m": 0.001,
+    "loaded_sinkage_abs_difference_m": 0.0005
+  },
+  "comparison": {
+    "loaded": "loaded_heightmap_m - initial_heightmap_m",
+    "residual": "residual_heightmap_m - initial_heightmap_m",
+    "scope": "pairwise common valid finite cells",
+    "chrono_error_is_gate": false
+  },
+  "observed_timestep_order": {
+    "loaded": 0.09906774641397147,
+    "residual": 0.11218870966331843
+  },
+  "source_provenance": {
+    "git_commit": "73eb472028ef8492cf50c455273ed0088c81d4cc",
+    "forward_model_files_match_commit": false,
+    "forward_model_status": [
+      "M scripts/run_newton_cylinder_diagnostic.py"
+    ],
+    "file_sha256": {
+      "configs/newton_sand_smoke.json": "00c44c7a31ca579cb061765cc973af4132f61577c5c5ca0e746b7e4124debd6a",
+      "scripts/newton_contract.py": "6c95d48cbc8132da09bce03a1a92678bc598557c2b9e9b4d29928bb9ec26460d",
+      "scripts/run_newton_prepared_bed.py": "c6690811991ea20ffd8b34fec6d4251e41ce34fd8c0906720c80401845aa80a8",
+      "scripts/run_newton_cylinder_diagnostic.py": "eb863730ecc25b02cd9af524204ef3e43aa7ae561c357634a87c1e486f0573ea"
+    }
+  },
+  "cases": [
+    {
+      "label": "dt0p5ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/response_convergence_native_proxy_20260906/dt0p5ms",
+      "dt_s": 0.0005,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 0.00016588994185440242,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.009795251984987409,
+      "loaded_vertical_speed_mps": -1.9272299596195808e-06,
+      "loaded_chrono_rmse_m": 0.003777623875066638,
+      "residual_chrono_rmse_m": 0.003905138000845909,
+      "residual_particle_speed_p99_mps": 0.00016258862160611898,
+      "max_contact_nodes": 852,
+      "max_upward_impulse_ns": 0.029746152460575104,
+      "wall_time_s": 376.3253044639714
+    },
+    {
+      "label": "dt0p25ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/response_convergence_native_proxy_20260906/dt0p25ms",
+      "dt_s": 0.00025,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 2.345171424167347e-06,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.010259041779581458,
+      "loaded_vertical_speed_mps": -2.382590992056066e-06,
+      "loaded_chrono_rmse_m": 0.0038501948583871126,
+      "residual_chrono_rmse_m": 0.003979321103543043,
+      "residual_particle_speed_p99_mps": 2.4129149096552283e-05,
+      "max_contact_nodes": 850,
+      "max_upward_impulse_ns": 0.024081550538539886,
+      "wall_time_s": 752.896183068864
+    },
+    {
+      "label": "dt0p125ms",
+      "path": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/response_convergence_native_proxy_20260906/dt0p125ms",
+      "dt_s": 0.000125,
+      "status": "mechanics_qualified_uncalibrated",
+      "accepted": true,
+      "mechanics_qualified": true,
+      "finite": true,
+      "preparation_convergence_passed": true,
+      "preparation_final_speed_p99_mps": 6.547159046021989e-06,
+      "valid_cells": 14161,
+      "zero_center_penetration_passed": true,
+      "max_inside_particle_centers": 0,
+      "max_center_penetration_m": 0.0,
+      "guide_constraint_passed": true,
+      "loaded_sinkage_m": -0.01084586045043543,
+      "loaded_vertical_speed_mps": -9.588038665242493e-06,
+      "loaded_chrono_rmse_m": 0.003926318604499102,
+      "residual_chrono_rmse_m": 0.004056278150528669,
+      "residual_particle_speed_p99_mps": 1.0238622053293511e-05,
+      "max_contact_nodes": 848,
+      "max_upward_impulse_ns": 0.022325260564684868,
+      "wall_time_s": 1507.007980054943
+    }
+  ],
+  "pairwise": [
+    {
+      "left": "dt0p5ms",
+      "right": "dt0p25ms",
+      "left_dt_s": 0.0005,
+      "right_dt_s": 0.00025,
+      "common_cells": 14161,
+      "loaded_signed_mean_m": 1.9509216144797392e-05,
+      "loaded_rmse_m": 8.809915016172454e-05,
+      "loaded_max_abs_m": 0.0007441490306518972,
+      "residual_signed_mean_m": 2.0937555746058933e-05,
+      "residual_rmse_m": 8.911323675420135e-05,
+      "residual_max_abs_m": 0.0007349915686063468,
+      "left_sinkage_m": -0.009795251984987409,
+      "right_sinkage_m": -0.010259041779581458,
+      "sinkage_abs_difference_m": 0.00046378979459404945,
+      "left_loaded_vertical_speed_mps": -1.9272299596195808e-06,
+      "right_loaded_vertical_speed_mps": -2.382590992056066e-06,
+      "loaded_vertical_speed_abs_difference_mps": 4.553610324364854e-07,
+      "passes_gate": true
+    },
+    {
+      "left": "dt0p25ms",
+      "right": "dt0p125ms",
+      "left_dt_s": 0.00025,
+      "right_dt_s": 0.000125,
+      "common_cells": 14161,
+      "loaded_signed_mean_m": 1.0995383490808308e-05,
+      "loaded_rmse_m": 8.225254714488983e-05,
+      "loaded_max_abs_m": 0.0004215019289404154,
+      "residual_signed_mean_m": 1.127229643316241e-05,
+      "residual_rmse_m": 8.244608761742711e-05,
+      "residual_max_abs_m": 0.0004082988016307354,
+      "left_sinkage_m": -0.010259041779581458,
+      "right_sinkage_m": -0.01084586045043543,
+      "sinkage_abs_difference_m": 0.0005868186708539724,
+      "left_loaded_vertical_speed_mps": -2.382590992056066e-06,
+      "right_loaded_vertical_speed_mps": -9.588038665242493e-06,
+      "loaded_vertical_speed_abs_difference_mps": 7.205447673186427e-06,
+      "passes_gate": false
+    }
+  ],
+  "interpretation": "Newton response convergence is not demonstrated under the predeclared timestep gates."
+}

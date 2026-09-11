@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "experiment": "newton_genesis_backend_ab",
+  "status": "completed_corrected_newton_ab",
+  "contract": {
+    "chrono_episode": "/data/christoa/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A0_oracle_guided_offset_5mm_gate6mm_v1",
+    "timestep_s": 0.0005,
+    "particle_spacing_m": 0.005,
+    "voxel_or_grid_cell_m": 0.015625,
+    "loaded_time_s": 3.595,
+    "residual_time_s": 0.25,
+    "valid_cells": 14161,
+    "footprint_cells": 673,
+    "objective": "loaded all-cell RMSE + 0.5 * residual footprint RMSE"
+  },
+  "matched_material": {
+    "young_modulus_pa": 100000.0,
+    "poisson_ratio": 0.2,
+    "density_kg_m3": 1000.0,
+    "newton_friction_coefficient": 0.68,
+    "genesis_friction_angle_deg": 34.2157021324374,
+    "qualification": "nominal scalar match only; constitutive laws, transfer, preparation, and contact discretization differ",
+    "objective_winner": "newton",
+    "newton_objective_mm": 12.189102359116077,
+    "genesis_objective_mm": 14.735684730112553,
+    "newton_stage_wall_s": 376.377186962869,
+    "genesis_stage_wall_s": 310.55161800794303,
+    "genesis_external_process_wall_s": 315.83
+  },
+  "current_pipeline": {
+    "objective_winner": "genesis_incumbent",
+    "genesis_incumbent_objective_mm": 8.705098531208932,
+    "newton_uncalibrated_objective_mm": 12.189102359116077,
+    "genesis_incumbent_stage_wall_s": 332.1174997058697
+  },
+  "reverse_crossover": {
+    "requested_material": "Genesis incumbent in Newton",
+    "accepted": false,
+    "settled_h0_rmse_mm": 9.808972477912903,
+    "settled_h0_max_abs_mm": 10.241265408694744,
+    "h0_rmse_gate_mm": 5.0,
+    "h0_max_abs_gate_mm": 10.0,
+    "interpretation": "rejected before cylinder contact; direct Genesis parameter transfer is not admissible"
+  },
+  "cases": [
+    {
+      "name": "Newton 100 kPa",
+      "backend": "newton",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/collider_support_inset_20260908/full_strict_kamino/inset9p375mm_dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.6033602985553443,
+        "mae_mm": 0.6031651864759624,
+        "mean_mm": -0.6031651864759624,
+        "max_abs_mm": 0.6586097879335284
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 3.63791361451149,
+        "mae_mm": 0.8450421155430377,
+        "mean_mm": 0.7949164719320834,
+        "max_abs_mm": 19.483106210827827
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 16.50048792362213,
+        "mae_mm": 16.39615371823311,
+        "mean_mm": 16.39615371823311,
+        "max_abs_mm": 19.483106210827827
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.7694228813052177,
+        "mae_mm": 0.8697578450664878,
+        "mean_mm": 0.8334601880051196,
+        "max_abs_mm": 20.185282453894615
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 17.102377489209175,
+        "mae_mm": 16.990233212709427,
+        "mean_mm": 16.990233212709427,
+        "max_abs_mm": 20.185282453894615
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.6155193336308002,
+        "mae_mm": 2.61186552233994,
+        "mean_mm": -2.61186552233994,
+        "max_abs_mm": 2.7439899276942015
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.020120620727539,
+        "mae_mm": 2.0177860278636217,
+        "mean_mm": -2.0177860278636217,
+        "max_abs_mm": 2.2022733464837074
+      },
+      "objective_mm": 12.189102359116077
+    },
+    {
+      "name": "Genesis 100 kPa",
+      "backend": "genesis",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/backend_ab_20260906/genesis_newton_smoke_material_dt0p5ms",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.13102793309371918,
+        "mae_mm": 0.11818902567029,
+        "mean_mm": -0.08145603351294994,
+        "max_abs_mm": 0.4879686748608947
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 4.315696656703949,
+        "mae_mm": 1.3925203820690513,
+        "mean_mm": 1.3925203820690513,
+        "max_abs_mm": 22.36991561949253
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 19.380463287234306,
+        "mae_mm": 19.298771396279335,
+        "mean_mm": 19.298771396279335,
+        "max_abs_mm": 22.36991561949253
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 4.644452594220638,
+        "mae_mm": 1.5376441879197955,
+        "mean_mm": 1.5376441879197955,
+        "max_abs_mm": 24.413032457232475
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 20.839976146817207,
+        "mae_mm": 20.729541778564453,
+        "mean_mm": 20.729541778564453,
+        "max_abs_mm": 24.413032457232475
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 1.6462741186842322,
+        "mae_mm": 1.1084650177508593,
+        "mean_mm": 0.2907529124058783,
+        "max_abs_mm": 4.261823371052742
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 2.324755070731044,
+        "mae_mm": 2.279460895806551,
+        "mean_mm": 1.72152416780591,
+        "max_abs_mm": 3.621868323534727
+      },
+      "objective_mm": 14.735684730112553
+    },
+    {
+      "name": "Genesis incumbent",
+      "backend": "genesis",
+      "root": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/bayesopt/A0_oracle_guided_offset_5mm_gate6mm_5mm_n128_incumbent_raw_20260830/study_ykep3esa/trials/iteration_000/bridge",
+      "valid_cells": 14161,
+      "initial": {
+        "cells": 14161,
+        "rmse_mm": 0.8762434008531272,
+        "mae_mm": 0.823961163405329,
+        "mean_mm": -0.823961163405329,
+        "max_abs_mm": 1.7769798869267106
+      },
+      "loaded_all": {
+        "cells": 14161,
+        "rmse_mm": 1.8642022041603923,
+        "mae_mm": 0.8690615650266409,
+        "mean_mm": 0.762062962166965,
+        "max_abs_mm": 13.150217942893505
+      },
+      "loaded_footprint": {
+        "cells": 673,
+        "rmse_mm": 7.774735800921917,
+        "mae_mm": 7.3736682534217834,
+        "mean_mm": 6.149093620479107,
+        "max_abs_mm": 13.150217942893505
+      },
+      "residual_all": {
+        "cells": 14161,
+        "rmse_mm": 3.1868419609963894,
+        "mae_mm": 1.336438930593431,
+        "mean_mm": 1.3250743504613638,
+        "max_abs_mm": 17.95378141105175
+      },
+      "residual_footprint": {
+        "cells": 673,
+        "rmse_mm": 13.68179265409708,
+        "mae_mm": 13.015917502343655,
+        "mean_mm": 12.959309853613377,
+        "max_abs_mm": 17.95378141105175
+      },
+      "loaded_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 14.116767793893814,
+        "mae_mm": 12.858925387263298,
+        "mean_mm": -12.858925387263298,
+        "max_abs_mm": 29.28508073091507
+      },
+      "residual_response_footprint": {
+        "cells": 673,
+        "rmse_mm": 7.714861538261175,
+        "mae_mm": 6.085610017180443,
+        "mean_mm": -6.048709154129028,
+        "max_abs_mm": 23.823464289307594
+      },
+      "objective_mm": 8.705098531208932
+    }
+  ],
+  "comparisons": [
+    {
+      "left": "Newton 100 kPa",
+      "right": "Genesis 100 kPa",
+      "cells": 14161,
+      "loaded_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 0.9249804425053298,
+        "mae_mm": 0.6118296296335757,
+        "mean_mm": -0.597603851929307,
+        "max_abs_mm": 5.157198756933212
+      },
+      "loaded_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 3.3007212914526463,
+        "mae_mm": 3.197873942553997,
+        "mean_mm": -2.9026183765381575,
+        "max_abs_mm": 5.157198756933212
+      },
+      "residual_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 1.1014798656105995,
+        "mae_mm": 0.7125545525923371,
+        "mean_mm": -0.704183999914676,
+        "max_abs_mm": 5.522103048861027
+      },
+      "residual_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 4.05287416651845,
+        "mae_mm": 3.9154398255050182,
+        "mean_mm": -3.739310195669532,
+        "max_abs_mm": 5.522103048861027
+      }
+    },
+    {
+      "left": "Newton 100 kPa",
+      "right": "Genesis incumbent",
+      "cells": 14161,
+      "loaded_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 2.6401770301163197,
+        "mae_mm": 0.9805677691474557,
+        "mean_mm": 0.03285349521320313,
+        "max_abs_mm": 26.598189026117325
+      },
+      "loaded_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 11.754889041185379,
+        "mae_mm": 10.247060097754002,
+        "mean_mm": 10.247060097754002,
+        "max_abs_mm": 26.598189026117325
+      },
+      "residual_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 1.6465308144688606,
+        "mae_mm": 0.9027845808304846,
+        "mean_mm": -0.49161416245624423,
+        "max_abs_mm": 21.818043664097786
+      },
+      "residual_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 6.259304005652666,
+        "mae_mm": 4.4800578616559505,
+        "mean_mm": 4.030922893434763,
+        "max_abs_mm": 21.818043664097786
+      }
+    }
+  ],
+  "conclusion": "The support correction is mechanics-qualified and timestep-consistent. Use corrected Newton for backend-specific calibration; Genesis incumbent remains the current absolute-fit reference.",
+  "support_correction": {
+    "collision_bottom_inset_mm": 9.375,
+    "rigid_solver_tolerance": 1e-06,
+    "original_objective_mm": 12.638139305636287,
+    "corrected_objective_mm": 12.189102359116077,
+    "objective_change_mm": -0.4490369465202093,
+    "response_delta": {
+      "left": "Newton corrected support",
+      "right": "Newton original support",
+      "cells": 14161,
+      "loaded_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 0.14732807176187634,
+        "mae_mm": 0.05127040276420303,
+        "mean_mm": -0.020140081687713973,
+        "max_abs_mm": 0.7069518323987722
+      },
+      "loaded_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 0.6394542288035154,
+        "mae_mm": 0.6358228856697679,
+        "mean_mm": -0.6358228856697679,
+        "max_abs_mm": 0.7069518323987722
+      },
+      "residual_response_delta_all": {
+        "cells": 14161,
+        "rmse_mm": 0.1432331628166139,
+        "mae_mm": 0.05063767821411602,
+        "mean_mm": -0.018920229194918647,
+        "max_abs_mm": 0.7347508799284697
+      },
+      "residual_response_delta_footprint": {
+        "cells": 673,
+        "rmse_mm": 0.6214948371052742,
+        "mae_mm": 0.6183371879160404,
+        "mean_mm": -0.6183371879160404,
+        "max_abs_mm": 0.7347508799284697
+      }
+    }
+  }
+}

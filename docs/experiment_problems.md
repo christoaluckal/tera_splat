@@ -1,6 +1,6 @@
 # Calibration Problems, Evidence, and Corrective Actions
 
-Last reviewed: 2026-09-06
+Last reviewed: 2026-09-11
 
 This document separates resolved setup failures from the current response
 calibration problem. The historical 2026-08-18 diagnosis is archived in
@@ -164,3 +164,36 @@ residual-minus-initial DEMs must stay within `0.5 mm` RMSE and `1.0 mm`
 maximum error, loaded sinkage within `0.5 mm`, and every case must retain all
 mechanics gates. Chrono RMSE remains a reported calibration metric, not a
 convergence criterion.
+
+The complete clean-commit matrix fails that gate. Every individual case remains
+mechanics-qualified, but sinkage changes `8.854 -> -0.578 -> -5.607 mm`.
+Collected impulse still balances the cylinder weight; endpoint velocity scales
+as `-g*dt`, and the current pre-impulse position update accumulates a
+first-order `g*T*dt` displacement. This guided-body integrator is now the
+specific Newton blocker. Correct it before changing material or gate values.
+
+The controlled native-coupling correction is complete. A Kamino rigid body on
+a world-anchored prismatic joint now couples through `SolverCoupledProxy` with
+two lagged iterations. It eliminates the first-order drift: endpoint speed is
+below `0.010 mm/s`, guide and penetration gates pass, and both adjacent DEM
+pairs pass. A subsequent 9.375 mm raised-proxy diagnostic also passes all
+response and sinkage gates across `0.5/0.25/0.125 ms`, with fine sinkage
+difference `0.032 mm`.
+
+The proxy offset is not a solution. A 25 kPa stiffness-only candidate passes
+its preparation matrix and improves DEM-only score, but then 1,330 particle
+centers enter the analytic cylinder by as much as `5.950 mm`; its guide gate
+also fails. Raising the proxy removed collision coverage from the lower
+analytic cylinder.
+
+A follow-up full-volume activation diagnosis keeps that geometry intact.  A
+version-locked Newton-1.5.1, cylinder-only S2 rasterizer adapter changes the
+contact-node activation band from `+0.25` to `-0.25` voxel; signed-distance
+geometry, particle-center containment, action, Chrono I/O, loss, and gates do
+not change.  All three response rows pass preparation, full-support I/O,
+guide, and zero-center-penetration gates.  Both map comparisons pass, but the
+`0.5 -> 0.25 ms` sinkage difference is `0.975 mm` above the predeclared
+`0.5 mm` limit (`0.25 -> 0.125 ms` is `0.480 mm`).  Thus it restores a viable
+full-volume mechanics basis but does not demonstrate complete numerical
+response convergence.  Diagnose that remaining sensitivity before resuming
+material calibration; do not change Chrono I/O, loss, or acceptance gates.

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "backend": "newton",
+  "status": "cross_backend_diagnostic_configuration",
+  "material": {
+    "density_kg_m3": 1000.0,
+    "young_modulus_pa": 20432.828380658964,
+    "poisson_ratio": 0.10189453643386188,
+    "friction_coefficient": 0.26284981112313377,
+    "damping_s": 0.0,
+    "yield_pressure_pa": 1000000000000.0,
+    "tensile_yield_ratio": 0.0,
+    "yield_stress_pa": 0.0,
+    "hardening": 0.0,
+    "dilatancy": 0.0,
+    "viscosity": 0.0
+  },
+  "solver": {
+    "voxel_size_m": 0.015625,
+    "grid_type": "sparse",
+    "grid_padding": 2,
+    "transfer_scheme": "pic",
+    "integration_scheme": "pic",
+    "strain_basis": "P0",
+    "collider_basis": "S2",
+    "velocity_basis": "Q1",
+    "max_iterations": 50,
+    "tolerance": 0.0001,
+    "air_drag": 1.0,
+    "critical_fraction": 0.0
+  },
+  "contact": {
+    "ground_friction_coefficient": 0.2,
+    "wall_friction_coefficient": 0.2,
+    "wall_height_m": 0.2,
+    "wall_thickness_m": 0.02
+  },
+  "provenance": {
+    "material_note": "Cross-backend diagnostic using the Genesis incumbent E, nu, and density.",
+    "friction_note": "Newton friction is explicitly tan(Genesis friction_angle_deg); this matches the nominal scalar but does not make the constitutive models equivalent.",
+    "genesis_friction_angle_deg": 14.727052951461,
+    "transfer_note": "PIC remains the qualified Newton preparation transfer."
+  }
+}

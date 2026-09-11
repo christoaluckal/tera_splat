@@ -1,6 +1,6 @@
 # Chrono Oracle and BayesOpt Run Contract
 
-Last verified: 2026-09-03
+Last verified: 2026-09-11
 
 This document defines the active experiment contract. Historical contracts are
 archived in
@@ -224,3 +224,28 @@ more than `0.5 mm`. Each case must independently retain preparation
 acceptance, finite full-support I/O, and zero analytic center penetration.
 Absolute Chrono error is diagnostic/calibration evidence and is not part of
 this numerical gate.
+
+The clean `73eb472` matrix completed at all three levels. Every case retained
+its mechanics gates, but response convergence is `not_demonstrated`: sinkage
+changed `8.854 -> -0.578 -> -5.607 mm`. The dominant error is the explicit
+guide's pre-impulse position update, which leaves velocity near `-g*dt` and
+accumulates approximately `g*T*dt` displacement. Correct only that integration
+path and rerun this unchanged contract before calibration or larger evaluation.
+
+The controlled rerun now uses native Newton coupling: a Kamino cylinder on a
+world-anchored prismatic joint, two lagged proxy iterations, and four rigid
+substeps. Every case passes preparation, finite/full-support I/O, zero-center
+penetration, and a `1e-6` guide constraint. Both adjacent loaded/residual DEM
+pairs pass. A later 9.375 mm raised-proxy diagnostic passes the full matrix,
+including sinkage, with adjacent loaded/residual RMSE `0.130/0.123 mm` and
+`0.107/0.110 mm`, and sinkage differences `0.130/0.032 mm`.
+
+The offset does not satisfy the production contract. A 25 kPa candidate with a
+passed preparation matrix puts up to 1,330 particle centers inside the analytic
+cylinder by `5.950 mm` because the raised proxy omits its lower collision
+slice.  A subsequent full-volume, cylinder-only S2 activation diagnostic keeps
+the analytic geometry, projection, action, I/O, and gates fixed.  Its `-0.25`
+voxel setting passes all individual mechanics gates and both map comparisons,
+but coarse/medium sinkage is `0.975 mm`, above the frozen `0.5 mm` limit
+(medium/fine is `0.480 mm`).  Keep the contract fixed and diagnose this
+remaining sensitivity before calibration or larger evaluation.

@@ -2,10 +2,12 @@
 
 Chrono-to-MPM terrain calibration for a mass-controlled rigid-cylinder
 experiment. Genesis remains the frozen calibration baseline. The active Newton
-branch now has a converged PIC cylinder-free preparation and one
-mechanics-qualified, continuous-state rigid-cylinder response against the same
-Chrono SCM oracle. Its engineering material is uncalibrated; three-level
-response timestep convergence is the active gate.
+branch has qualified PIC preparation and native Kamino/prismatic coupling. A
+full-volume, cylinder-only S2 contact-activation diagnostic preserves the
+analytic cylinder and passes all mechanics gates at `0.5/0.25/0.125 ms`, but
+the full convergence matrix is still `not_demonstrated`: coarse/medium sinkage
+is `0.975 mm` against the frozen `0.5 mm` gate.  The engineering material
+remains uncalibrated; diagnosing that sensitivity is the next gate.
 
 ## Start here
 
@@ -55,15 +57,24 @@ instructions and intentionally retain superseded hypotheses and next steps.
 - Newton mechanics are qualified at the frozen action: continuous in-process
   preparation, guided 1.5 kg cylinder loading for `3.595 s`, instantaneous
   removal, and `0.25 s` residual output are finite with full I/O and zero
-  analytic particle-center penetration. The material is still uncalibrated;
-  response timestep convergence is the next gate before a larger evaluation.
-- The response gate uses the fixed uncalibrated smoke material
-  (`rho=1000 kg/m^3`, `E=100 kPa`, `nu=0.2`, friction coefficient `0.68`) at
-  `0.5/0.25/0.125 ms`. It compares loaded-minus-initial and
-  residual-minus-initial DEMs on the common valid mask; adjacent levels must
-  stay within `0.5 mm` RMSE and `1.0 mm` maximum error, while loaded cylinder
-  sinkage must stay within `0.5 mm`. Chrono fit is reported separately and
-  cannot make a numerically inconsistent case pass.
+  analytic particle-center penetration. Native coupling additionally passes a
+  `1e-6` prismatic-guide constraint gate. The material is still uncalibrated.
+- A 9.375 mm raised-proxy diagnostic at the fixed 100 kPa smoke material passes
+  the complete response matrix after Kamino tolerance is aligned with the
+  `1e-6` guide gate. Adjacent loaded/residual DEM RMSE is `0.130/0.123` and
+  `0.107/0.110 mm`; sinkage differences are `0.130/0.032 mm`.
+- The corrected shared A/B objective is `12.189 mm`, versus `14.736 mm` for
+  matched Genesis and `8.705 mm` for the calibrated Genesis incumbent.
+- The inset is diagnostic, not promotable: a qualified 25 kPa preparation
+  improves DEM-only score to `11.207 mm`, but its response puts up to 1,330
+  particle centers inside the analytic cylinder by `5.950 mm` and fails the
+  guide gate. Stop calibration until support can be corrected without removing
+  analytic collision coverage.
+- The full-volume `-0.25`-voxel contact-activation diagnostic restores that
+  coverage and passes every individual mechanics gate, but only its
+  `0.25 -> 0.125 ms` pair passes all convergence gates.  Its
+  `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
+  stopped.  See `diagnostics/newton_contact_activation_20260910/`.
 - Newton state arrays are archival I/O, not qualified restart checkpoints.
   Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
   prepare continuously in-process.
@@ -113,6 +124,7 @@ conda run -n chrono_splat python scripts/diagnose_chrono_genesis_model_form.py -
 /data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_prepared_bed.py --help
 /data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_preparation_convergence.py --help
 /data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_cylinder_diagnostic.py --help
+/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_response_convergence.py --help
 ```
 
 Do not launch a new study until its target, prepared bed, resolution, seed

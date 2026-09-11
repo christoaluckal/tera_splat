@@ -21,6 +21,28 @@ namespace and are not continuations of Genesis state or calibration evidence.
 
 Current bundles:
 
+- `newton_contact_activation_20260910/`: version-locked full-volume S2
+  contact-activation diagnosis.  The `-0.25`-voxel cylinder-only setting makes
+  every mechanics row pass and the medium/fine pair pass; coarse/medium
+  sinkage is `0.975 mm` against the unchanged `0.5 mm` gate, so calibration
+  remains blocked;
+- `newton_calibration_20260910/`: qualified 25 kPa preparation and rejected
+  response screen; its better DEM-only score exploits the raised proxy's
+  uncollided analytic slice, so material calibration is stopped;
+- `newton_collider_support_20260908/`: collider-basis controls, qualified
+  9.375 mm support-inset timestep matrix at 100 kPa, corrected shared A/B, and
+  the explicit boundary that the inset is diagnostic rather than a promotable
+  collision model;
+- `backend_ab_20260906/`: matched-material Newton/Genesis A/B, current-best
+  comparison, and rejected reverse parameter-transfer diagnostic;
+- `newton_response_convergence_native_proxy_20260906/`: complete native
+  Kamino/prismatic proxy-coupling matrix; all map and mechanics gates pass,
+  while the fine sinkage difference is `0.586819 mm` and misses its frozen
+  gate by `0.086819 mm`;
+- `newton_response_convergence_20260906/`: complete clean-commit three-level
+  full-response matrix; all cases pass mechanics individually, but response
+  convergence fails because the explicit guide accumulates an approximately
+  `g*T*dt` position drift;
 - `newton_failure_resolution_20260906/`: controlled APIC/PIC and collider
   ablations, passed PIC preparation matrix, and the first mechanics-qualified
   uncalibrated full Newton response;
