@@ -2,12 +2,11 @@
 
 Chrono-to-MPM terrain calibration for a mass-controlled rigid-cylinder
 experiment. Genesis remains the frozen calibration baseline. The active Newton
-branch has qualified PIC preparation and native Kamino/prismatic coupling. A
-full-volume, cylinder-only S2 contact-activation diagnostic preserves the
-analytic cylinder and passes all mechanics gates at `0.5/0.25/0.125 ms`, but
-the full convergence matrix is still `not_demonstrated`: coarse/medium sinkage
-is `0.975 mm` against the frozen `0.5 mm` gate.  The engineering material
-remains uncalibrated; diagnosing that sensitivity is the next gate.
+direction now uses stock contact and public solver settings only. `4/8`
+proxy/substep coupling is timestep-consistent at the original grid but has a
+10--11 mm contact-location bias; a public half-voxel grid reduces the bias to
+2.2--3.5 mm but fails coarse/medium sinkage convergence. Newton remains
+uncalibrated and is not ready for a BayesOpt study.
 
 ## Start here
 
@@ -75,6 +74,9 @@ instructions and intentionally retain superseded hypotheses and next steps.
   `0.25 -> 0.125 ms` pair passes all convergence gates.  Its
   `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
   stopped.  See `diagnostics/newton_contact_activation_20260910/`.
+- Private activation overrides are now diagnostic-only. The active public
+  stock-contact evidence and next `8/16` coupling test are recorded in
+  `diagnostics/newton_public_contact_20260914/`.
 - Newton state arrays are archival I/O, not qualified restart checkpoints.
   Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
   prepare continuously in-process.

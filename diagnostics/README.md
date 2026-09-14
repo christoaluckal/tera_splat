@@ -21,6 +21,11 @@ namespace and are not continuations of Genesis state or calibration evidence.
 
 Current bundles:
 
+- `newton_public_contact_20260914/`: active stock-Newton/public-setting
+  direction. `4/8` coupling passes the coarse/medium response pair at the
+  original grid but leaves a 10--11 mm contact bias; halving the voxel size
+  reduces bias to 2.2--3.5 mm but fails sinkage convergence. No BayesOpt is
+  admissible yet;
 - `newton_contact_activation_20260910/`: version-locked full-volume S2
   contact-activation diagnosis.  The `-0.25`-voxel cylinder-only setting makes
   every mechanics row pass and the medium/fine pair pass; coarse/medium

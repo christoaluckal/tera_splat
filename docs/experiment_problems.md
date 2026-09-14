@@ -197,3 +197,15 @@ guide, and zero-center-penetration gates.  Both map comparisons pass, but the
 full-volume mechanics basis but does not demonstrate complete numerical
 response convergence.  Diagnose that remaining sensitivity before resuming
 material calibration; do not change Chrono I/O, loss, or acceptance gates.
+
+## Stock contact is the active Newton path
+
+The private activation adapter is evidence about rasterization sensitivity, not
+a solver change to promote.  With unmodified Newton contact, public `4/8`
+coupling at `15.625 mm` voxel size passes the `0.5/0.25 ms` response pair but
+holds the cylinder 10--11 mm high. Halving the public voxel size to `7.8125
+mm` reduces the bias to `2.195/3.535 mm` and retains mechanics/map agreement,
+but coarse/medium sinkage becomes `1.339 mm` and fails the unchanged gate.
+The direct next test is `8/16` public coupling at the refined grid. Material
+search and BayesOpt remain blocked until one configuration clears both
+contact-location and full three-level timestep qualification.

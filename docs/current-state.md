@@ -1,6 +1,6 @@
 # Current Chrono-to-MPM State
 
-Last verified: 2026-09-11
+Last verified: 2026-09-14
 
 This is the authoritative live handoff for the cylinder calibration. Dated
 investigation history is preserved in
@@ -15,7 +15,7 @@ qualified. The historical 9.375 mm raised-proxy diagnostic passes a complete
 `0.5/0.25/0.125 ms` response matrix at 100 kPa, but it omits a lower collision
 slice and is not promotable.
 
-The current full-volume S2 contact-activation diagnosis leaves the analytic
+The historical full-volume S2 contact-activation diagnosis leaves the analytic
 cylinder and zero collision-bottom inset intact.  A Newton-1.5.1,
 process-local, cylinder-only rasterizer adapter changes node activation from
 the native `+0.25` to `-0.25` voxel without changing the signed-distance
@@ -27,6 +27,24 @@ guide gate.  Both adjacent map pairs pass.  The result remains
 against the frozen `0.5 mm` gate; medium-to-fine sinkage is `0.480 mm` and
 passes.  Material calibration and large evaluation remain stopped.  Evidence
 is `diagnostics/newton_contact_activation_20260910/`.
+
+That private activation override is diagnostic only and is not a forward-model
+candidate.  The active direction uses stock Newton contact and explicit public
+settings.  At the original `15.625 mm` voxel size, `4` proxy iterations and
+`8` rigid substeps pass the `0.5/0.25 ms` mechanics, map (`0.053/0.053 mm`
+RMSE), and sinkage (`0.192 mm`) pairwise gates, but leave the analytic cylinder
+bottom `10.632/10.823 mm` above the initial surface.  It is numerically stable
+but has an unacceptable contact-location bias for calibration.
+
+Halving only the public voxel size to `7.8125 mm` passes a fresh complete PIC
+preparation/tolerance matrix and reduces that stock-contact bias to
+`2.195/3.535 mm`.  Its `0.5/0.25 ms` cylinder pair remains mechanics-qualified
+and passes map gates, but sinkage differs by `1.339 mm`, failing the unchanged
+`0.5 mm` requirement.  Stop that response matrix before the fine level.  The
+next predeclared test is `8` proxy iterations and `16` rigid substeps at the
+refined grid; no internal Newton computation, private rasterizer override,
+material calibration, or BayesOpt study is authorized by current evidence.
+Evidence is `diagnostics/newton_public_contact_20260914/`.
 
 A controlled `0.5 ms` backend A/B now uses the same action, grid scale,
 particle spacing, fixed times, support, and score. At the nominally matched

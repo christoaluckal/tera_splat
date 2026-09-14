@@ -6,6 +6,20 @@ are not part of the Git diff unless explicitly stated.
 
 ## Unreleased — changes since `0f30de26bdd151f822a2e691924b15e98e20b09d`
 
+### Newton public contact and spatial resolution — 2026-09-14
+
+- Reclassified private S2 activation overrides as diagnostic-only; no internal
+  Newton contact computation is a forward-model candidate.
+- Stock contact at public `4/8` proxy/substep coupling passes its `0.5/0.25 ms`
+  mechanics and response pair (`0.053/0.053 mm` map RMSE; `0.192 mm` sinkage),
+  but has a 10--11 mm analytic contact-location bias.
+- Added the public `7.8125 mm` voxel configuration and qualified its fresh
+  preparation/tolerance matrix. It reduces stock-contact bias to 2.2--3.5 mm,
+  but its response pair fails sinkage convergence (`1.339 mm`).
+- Stopped the refined-grid response before its fine level. The next public-only
+  test is `8/16` coupling at the refined grid; calibration and BayesOpt remain
+  blocked. Compact interpretation: `diagnostics/newton_public_contact_20260914/`.
+
 ### Newton full-volume contact activation — 2026-09-11
 
 - Added a process-local, cylinder-only, Newton-1.5.1-locked S2 rasterizer
