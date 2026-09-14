@@ -16,9 +16,15 @@ are not part of the Git diff unless explicitly stated.
 - Added the public `7.8125 mm` voxel configuration and qualified its fresh
   preparation/tolerance matrix. It reduces stock-contact bias to 2.2--3.5 mm,
   but its response pair fails sinkage convergence (`1.339 mm`).
-- Stopped the refined-grid response before its fine level. The next public-only
-  test is `8/16` coupling at the refined grid; calibration and BayesOpt remain
-  blocked. Compact interpretation: `diagnostics/newton_public_contact_20260914/`.
+- Public `8/16` coupling at the refined grid now passes the complete
+  `0.5/0.25/0.125 ms` response matrix. Every case passes preparation, guide,
+  finite/full-support, and zero-center-penetration gates. Adjacent response
+  RMSE is `0.035/0.058 mm`, maxima are `0.218/0.310 mm`, and sinkage
+  differences are `0.331/0.422 mm`.
+- This qualifies a fixed, stock-contact Newton numerical domain for a separate
+  sim-only BayesOpt study; it does not calibrate the 100 kPa smoke material or
+  validate transfer outside that domain. Compact interpretation:
+  `diagnostics/newton_public_contact_20260914/`.
 
 ### Newton full-volume contact activation — 2026-09-11
 

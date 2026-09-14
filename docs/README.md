@@ -2,11 +2,10 @@
 
 Chrono-to-MPM terrain calibration for a mass-controlled rigid-cylinder
 experiment. Genesis remains the frozen calibration baseline. The active Newton
-direction now uses stock contact and public solver settings only. `4/8`
-proxy/substep coupling is timestep-consistent at the original grid but has a
-10--11 mm contact-location bias; a public half-voxel grid reduces the bias to
-2.2--3.5 mm but fails coarse/medium sinkage convergence. Newton remains
-uncalibrated and is not ready for a BayesOpt study.
+direction uses stock contact and public solver settings only. At a `7.8125 mm`
+voxel size, `8/16` proxy/substep coupling passes the complete
+`0.5/0.25/0.125 ms` response matrix. It defines an uncalibrated, fixed
+simulator domain that is eligible for a separate sim-only BayesOpt study.
 
 ## Start here
 
@@ -20,6 +19,8 @@ uncalibrated and is not ready for a BayesOpt study.
    current residual-response blocker.
 5. [Contributor Guidance](contributor-guidance.md) — workspace and editing
    rules.
+6. [Newton Fixed-Domain Contract](newton-fixed-domain.md) — qualified public
+   Newton configuration, numerical evidence, permitted scope, and next work.
 
 Files under [archive/](archive/) are dated provenance. They are not active
 instructions and intentionally retain superseded hypotheses and next steps.
@@ -74,9 +75,10 @@ instructions and intentionally retain superseded hypotheses and next steps.
   `0.25 -> 0.125 ms` pair passes all convergence gates.  Its
   `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
   stopped.  See `diagnostics/newton_contact_activation_20260910/`.
-- Private activation overrides are now diagnostic-only. The active public
-  stock-contact evidence and next `8/16` coupling test are recorded in
-  `diagnostics/newton_public_contact_20260914/`.
+- The public stock-contact `7.8125 mm`, `8/16` Newton configuration passes the
+  full `0.5/0.25/0.125 ms` response matrix. It is eligible for a separate,
+  fixed-domain sim-only BayesOpt study; its 100 kPa smoke material is not a
+  calibrated parameter set. See [Newton Fixed-Domain Contract](newton-fixed-domain.md).
 - Newton state arrays are archival I/O, not qualified restart checkpoints.
   Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
   prepare continuously in-process.

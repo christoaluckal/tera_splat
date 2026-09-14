@@ -37,14 +37,28 @@ bottom `10.632/10.823 mm` above the initial surface.  It is numerically stable
 but has an unacceptable contact-location bias for calibration.
 
 Halving only the public voxel size to `7.8125 mm` passes a fresh complete PIC
-preparation/tolerance matrix and reduces that stock-contact bias to
-`2.195/3.535 mm`.  Its `0.5/0.25 ms` cylinder pair remains mechanics-qualified
-and passes map gates, but sinkage differs by `1.339 mm`, failing the unchanged
-`0.5 mm` requirement.  Stop that response matrix before the fine level.  The
-next predeclared test is `8` proxy iterations and `16` rigid substeps at the
-refined grid; no internal Newton computation, private rasterizer override,
-material calibration, or BayesOpt study is authorized by current evidence.
-Evidence is `diagnostics/newton_public_contact_20260914/`.
+preparation/tolerance matrix. The original refined-grid `4/8` coupling pair
+is mechanics-qualified but misses the sinkage gate by `1.339 mm`; that failed
+configuration remains diagnostic evidence only.
+
+Increasing only public coupling effort to `8` proxy iterations and `16` rigid
+substeps produces the active stock-contact Newton domain. Its complete
+`0.5/0.25/0.125 ms` response matrix passes all mechanics gates and both
+adjacent numerical gates. Loaded/residual map RMSE is `0.035/0.035 mm` and
+`0.058/0.054 mm`; maximum map differences are at most `0.218/0.310 mm`; and
+sinkage differences are `0.331/0.422 mm`, all within the frozen
+`0.5/1.0/0.5 mm` thresholds. The loaded cylinder bottom remains
+`4.110/4.440/4.862 mm` above its initial surface level, with first significant
+contact at `5.701/5.828/5.959 mm`; these are declared numerical-domain
+properties, not claims of physical calibration.
+
+No internal Newton computation or private rasterizer override is part of this
+domain. A separate sim-only BayesOpt study may now be built using one fixed
+validated timestep and this configuration for every candidate. It must keep
+the Chrono I/O, action, mask, timing, score, and candidate validity gates
+fixed; it cannot reuse Genesis observations, states, or material semantics.
+Evidence is `diagnostics/newton_public_contact_20260914/` and
+`docs/newton-fixed-domain.md`.
 
 A controlled `0.5 ms` backend A/B now uses the same action, grid scale,
 particle spacing, fixed times, support, and score. At the nominally matched

@@ -251,12 +251,13 @@ but coarse/medium sinkage is `0.975 mm`, above the frozen `0.5 mm` limit
 remaining sensitivity before calibration or larger evaluation.
 
 Private rasterizer activation overrides are diagnostic only. The active Newton
-path uses stock contact. With public `4/8` proxy/substep coupling, the original
-`15.625 mm` grid passes the coarse/medium map and sinkage pair but holds the
-analytic cylinder 10--11 mm high. A public `7.8125 mm` grid passes its fresh
-preparation matrix and reduces that bias to 2.2--3.5 mm, but its coarse/medium
-sinkage difference is `1.339 mm`; do not continue it to the fine response
-level. The next admissible change is public coupling resolution (`8/16`) at
-that refined grid. Do not start material calibration or Newton BayesOpt until a
-single stock-contact configuration passes the full three-level response matrix
-and a predeclared contact-location bound.
+path uses stock contact. The original-grid `4/8` and refined-grid `4/8`
+results are retained as diagnostic evidence, including the refined-grid
+`1.339 mm` sinkage failure. The refined public `8/16` configuration now passes
+the complete `0.5/0.25/0.125 ms` response matrix under the frozen map and
+sinkage gates. It establishes the numerical domain described in
+[`newton-fixed-domain.md`](newton-fixed-domain.md): one fixed qualified
+timestep/configuration per Newton study, unchanged Chrono I/O and score, and
+no private contact override. This authorizes a separate sim-only Newton
+BayesOpt implementation, not a claim of material calibration or transfer
+outside that numerical domain.
