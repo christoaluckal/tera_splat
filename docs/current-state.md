@@ -60,6 +60,18 @@ fixed; it cannot reuse Genesis observations, states, or material semantics.
 Evidence is `diagnostics/newton_public_contact_20260914/` and
 `docs/newton-fixed-domain.md`.
 
+
+The isolated local Newton BayesOpt driver is now implemented and has completed
+a baseline plus four fresh candidates at `0.25 ms`, `8/16`. Every observation
+passes its candidate preparation and response mechanics gates. The current best
+Newton-native point is `E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`: objective
+`11.610 mm` (`3.502 mm` loaded RMSE; `16.216 mm` residual-footprint RMSE), an
+`1.087 mm` improvement over the `12.698 mm` baseline. This is five-observation
+local initialization, not optimizer convergence or material calibration. It
+requires an independent replay before further interpretation; NVS geometry and
+pre-traversal decision utility remain untested. Evidence is under
+`outputs/validity_experiment/newton_bayesopt/`.
+
 A controlled `0.5 ms` backend A/B now uses the same action, grid scale,
 particle spacing, fixed times, support, and score. At the nominally matched
 `E=100 kPa`, `nu=0.2`, density `1000 kg/m^3`, and friction pair

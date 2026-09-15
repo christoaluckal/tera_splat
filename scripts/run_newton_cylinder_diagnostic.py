@@ -70,6 +70,15 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_PREPARATION_CONVERGENCE,
     )
+    parser.add_argument(
+        "--candidate-preparation",
+        action="store_true",
+        help=(
+            "Accept one freshly qualified, same-material preparation as a BayesOpt "
+            "candidate preflight. The response still performs fresh in-process "
+            "preparation; this does not claim a candidate-specific timestep matrix."
+        ),
+    )
     parser.add_argument("--chrono-episode", type=Path, default=DEFAULT_ORACLE)
     parser.add_argument(
         "--config",
@@ -529,11 +538,18 @@ def main() -> None:
     prepared_manifest = json.loads(
         (prepared_root / "newton_prepared_bed_manifest.json").read_text(encoding="utf-8")
     )
-    convergence_path = args.preparation_convergence_summary.resolve()
-    convergence = json.loads(convergence_path.read_text(encoding="utf-8"))
-    preparation_convergence_passed = convergence_qualifies_preparation(
-        convergence, prepared_root
+    convergence_path = (
+        None
+        if args.candidate_preparation
+        else args.preparation_convergence_summary.resolve()
     )
+    if convergence_path is None:
+        preparation_convergence_passed = bool(prepared_manifest.get("accepted"))
+    else:
+        convergence = json.loads(convergence_path.read_text(encoding="utf-8"))
+        preparation_convergence_passed = convergence_qualifies_preparation(
+            convergence, prepared_root
+        )
     if prepared_manifest.get("backend") != "newton" or not prepared_manifest.get("accepted"):
         raise ValueError("cylinder diagnostics require an accepted Newton preparation")
     if not math.isclose(
@@ -1145,8 +1161,13 @@ def main() -> None:
         "acceptance_blockers": acceptance_blockers,
         "preparation": {
             "contract_path": str(prepared_root),
-            "convergence_summary": str(convergence_path),
+            "convergence_summary": (
+                str(convergence_path) if convergence_path is not None else None
+            ),
             "convergence_passed": preparation_convergence_passed,
+            "qualification_mode": (
+                "candidate_preflight" if args.candidate_preparation else "timestep_matrix"
+            ),
             "source_particles_ply": str(source_ply),
             "source_metadata_json": str(source_metadata_path),
             "mode": "fresh in-process preparation before cylinder loading",

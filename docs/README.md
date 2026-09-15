@@ -76,9 +76,10 @@ instructions and intentionally retain superseded hypotheses and next steps.
   `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
   stopped.  See `diagnostics/newton_contact_activation_20260910/`.
 - The public stock-contact `7.8125 mm`, `8/16` Newton configuration passes the
-  full `0.5/0.25/0.125 ms` response matrix. It is eligible for a separate,
-  fixed-domain sim-only BayesOpt study; its 100 kPa smoke material is not a
-  calibrated parameter set. See [Newton Fixed-Domain Contract](newton-fixed-domain.md).
+  full `0.5/0.25/0.125 ms` response matrix. Its local five-observation study
+  currently improves the 100 kPa baseline from `12.698` to `11.610 mm`; this is
+  uncalibrated initialization pending an independent best-point replay. See
+  [Newton Fixed-Domain Contract](newton-fixed-domain.md).
 - Newton state arrays are archival I/O, not qualified restart checkpoints.
   Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
   prepare continuously in-process.

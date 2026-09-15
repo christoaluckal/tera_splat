@@ -61,7 +61,22 @@ the smoke material's all-cell Chrono response RMSE is `3.822--3.905 mm`, and
 first significant cylinder contact is `5.701--5.959 mm` above the initial
 surface. Newton state arrays remain archival output, not restart checkpoints.
 
-The next engineering task is an isolated Newton BayesOpt runner: candidate
-configuration, fresh in-process PIC preparation, frozen cylinder action,
-existing external maps/score and mechanics gates, and backend-labelled
-observations in a separate Genesis/W&B namespace.
+## Initial local BayesOpt result
+
+`scripts/run_newton_bayesopt.py` now implements the isolated local study path.
+It writes a candidate configuration, runs a fresh full-bed preparation preflight,
+then independently runs the fresh continuous preparation/loading/removal response
+with the frozen action and external maps. The preflight is deliberately not a
+restart shortcut; saved Newton state remains archival only.
+
+The completed initialization study contains the 100 kPa baseline plus four new
+valid candidates in the fixed `0.25 ms`, `8/16` domain. The current best is
+`E=116.7 kPa`, `nu=0.1955`, and `mu=0.4409`, with objective `11.610 mm`
+(`3.502 mm` loaded RMSE and `16.216 mm` residual-footprint RMSE), improving the
+baseline objective `12.698 mm` by `1.087 mm`. The first three new points are
+initial design; the fourth is the first expected-improvement proposal.
+
+This is a local, uncalibrated initialization result. It is not an optimizer
+convergence claim, an independent repeatability result, a real-sand validation,
+or NVS/decision-use validation. Next: replay the current best independently,
+then add proposals only if the replay is consistent.

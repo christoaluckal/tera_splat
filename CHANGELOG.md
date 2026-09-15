@@ -6,6 +6,20 @@ are not part of the Git diff unless explicitly stated.
 
 ## Unreleased — changes since `0f30de26bdd151f822a2e691924b15e98e20b09d`
 
+### Newton fixed-domain BayesOpt initialization — 2026-09-15
+
+- Added `scripts/run_newton_bayesopt.py`, an isolated local study driver. Each
+  Newton-native material candidate receives a fresh full-bed preflight and a
+  separate fresh in-process preparation/loading/removal response; no Newton
+  state or Genesis observation is reused.
+- A baseline smoke and a four-candidate sequential study complete with five
+  valid observations in the fixed `7.8125 mm`, `0.25 ms`, stock-contact `8/16`
+  domain. The best current point is `E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`,
+  objective `11.610 mm`, versus the `12.698 mm` baseline.
+- This is local BayesOpt initialization, not an optimizer-converged material
+  calibration: the best point still requires an independent replay, further
+  proposals, and a separate NVS/decision-use validation.
+
 ### Newton public contact and spatial resolution — 2026-09-14
 
 - Reclassified private S2 activation overrides as diagnostic-only; no internal

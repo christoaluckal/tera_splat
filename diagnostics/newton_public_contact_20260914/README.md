@@ -49,6 +49,17 @@ Raw preparation output remains under
 response output and the machine-readable convergence summary are under
 `outputs/validity_experiment/newton/public_spatial_contact_20260914/voxel7p8125mm/stock_contact_8x16/`.
 
+
+## Downstream local BayesOpt initialization
+
+The qualified domain now has a local five-observation material study at `0.25 ms`
+and `8/16`: one baseline plus four fresh candidates, all mechanics-valid. Its
+best current point (`E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`) scores `11.610 mm`
+versus baseline `12.698 mm`. This is initial numerical evidence only; it is not
+a converged optimization, independent replay, real-sand calibration, or NVS
+validation. Raw study evidence is under
+`outputs/validity_experiment/newton_bayesopt/initial_multi_20260915/`.
+
 Raw manifests, maps, arrays, traces, and PLYs remain under
 `outputs/validity_experiment/newton/public_coupling_ab_20260912/` and
 `outputs/validity_experiment/newton/public_spatial_contact_20260913/`.
