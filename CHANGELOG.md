@@ -6,6 +6,46 @@ are not part of the Git diff unless explicitly stated.
 
 ## Unreleased — changes since `0f30de26bdd151f822a2e691924b15e98e20b09d`
 
+### Newton 3 kg held-out action timing diagnosis — 2026-09-22
+
+- Generated the frozen guided 3 kg A1 Chrono episode. Its initial heightmap
+  exactly matches A0 on the 14,161 valid cells; Chrono accepted loading at
+  `2.417 s`.
+- The no-retuning incumbent response passed preparation but failed strict
+  zero-center penetration (31 centers; `1.326 um` maximum). It is diagnostic
+  only: the local Newton runner still used A0's `3.595 s` loading default while
+  comparing to A1's `2.417 s` loaded map.
+- Paused the matching 100 kPa control and any transfer claim. The runner must
+  propagate and validate per-episode loaded time before the action can be
+  requalified and scored. Compact evidence:
+  `diagnostics/newton_mass3kg_holdout_20260922/`.
+
+### Time-aligned 3 kg held-out action result — 2026-09-28
+
+- Changed the local Newton runners to derive loaded/residual observation time
+  from the supplied Chrono manifest, pass and record it explicitly, and reject
+  any mismatch. This changes I/O orchestration only, not Newton physics.
+- The corrected 3 kg A1 comparison uses `2.417 s` loaded and `0.25 s` residual
+  in both backends. The 100 kPa baseline passes all mechanics gates and scores
+  `16.289 mm`; the 1.5 kg-selected incumbent fails strict zero-center
+  penetration (31 centers; `1.332 um` maximum) and has no valid score.
+- The fixed domain supports the 3 kg action, but that selected material point
+  is not an admissible higher-load forward-model candidate. This is bounded
+  transfer evidence, not calibration or NVS/decision validation.
+
+### Newton fixed-domain material-study expansion — 2026-09-21
+
+- Expanded the local, validity-gated study to 21 Newton candidate evaluations
+  in the fixed public `7.8125 mm`, `0.25 ms`, stock-contact `8/16` domain.
+  Nineteen are mechanics-valid observations; two candidates at `mu≈0.273`
+  failed strict zero particle-center penetration and remain excluded.
+- The broad-continuation incumbent is `E=70.46 kPa`, `nu=0.237231507`, and
+  `mu=0.305497980`, objective `8.823 mm` versus the `12.698 mm` baseline.
+  Its fresh independent replay scored `8.815 mm`, a `0.008 mm` difference.
+- This records repeatable local objective improvement only. It does not claim
+  optimizer convergence, calibrated material inference, held-out action
+  transfer, real-sand validation, or NVS/decision use.
+
 ### Newton fixed-domain BayesOpt initialization — 2026-09-15
 
 - Added `scripts/run_newton_bayesopt.py`, an isolated local study driver. Each
@@ -14,11 +54,12 @@ are not part of the Git diff unless explicitly stated.
   state or Genesis observation is reused.
 - A baseline smoke and a four-candidate sequential study complete with five
   valid observations in the fixed `7.8125 mm`, `0.25 ms`, stock-contact `8/16`
-  domain. The best current point is `E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`,
-  objective `11.610 mm`, versus the `12.698 mm` baseline.
-- This is local BayesOpt initialization, not an optimizer-converged material
-  calibration: the best point still requires an independent replay, further
-  proposals, and a separate NVS/decision-use validation.
+  domain. At that initialization milestone, the best point was `E=116.7 kPa`,
+  `nu=0.1955`, `mu=0.4409`, objective `11.610 mm`, versus the `12.698 mm`
+  baseline.
+- This was local BayesOpt initialization, not an optimizer-converged material
+  calibration. The subsequent expansion and independent replay are recorded
+  above; NVS/decision-use validation remains separate.
 
 ### Newton public contact and spatial resolution — 2026-09-14
 

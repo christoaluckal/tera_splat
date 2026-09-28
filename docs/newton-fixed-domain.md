@@ -1,6 +1,6 @@
 # Newton Fixed-Domain Contract
 
-Last verified: 2026-09-14
+Last verified: 2026-09-21
 
 This document defines the Newton configuration qualified for a separate sim-only
 BayesOpt-style study. It does not supersede the frozen Genesis baseline, transfer
@@ -61,22 +61,40 @@ the smoke material's all-cell Chrono response RMSE is `3.822--3.905 mm`, and
 first significant cylinder contact is `5.701--5.959 mm` above the initial
 surface. Newton state arrays remain archival output, not restart checkpoints.
 
-## Initial local BayesOpt result
+## Local material-study campaign (through 2026-09-21)
 
-`scripts/run_newton_bayesopt.py` now implements the isolated local study path.
-It writes a candidate configuration, runs a fresh full-bed preparation preflight,
-then independently runs the fresh continuous preparation/loading/removal response
+`scripts/run_newton_bayesopt.py` implements the isolated local study path. It
+writes a candidate configuration, runs a fresh full-bed preparation preflight,
+then independently runs a fresh continuous preparation/loading/removal response
 with the frozen action and external maps. The preflight is deliberately not a
 restart shortcut; saved Newton state remains archival only.
 
-The completed initialization study contains the 100 kPa baseline plus four new
-valid candidates in the fixed `0.25 ms`, `8/16` domain. The current best is
-`E=116.7 kPa`, `nu=0.1955`, and `mu=0.4409`, with objective `11.610 mm`
-(`3.502 mm` loaded RMSE and `16.216 mm` residual-footprint RMSE), improving the
-baseline objective `12.698 mm` by `1.087 mm`. The first three new points are
-initial design; the fourth is the first expected-improvement proposal.
+The study executed 21 candidate evaluations: the 100 kPa baseline, four
+initialization candidates, four refinement candidates, four lower-bound
+extension candidates, and eight broad-continuation candidates. Nineteen passed
+all candidate-preparation and response mechanics gates and are valid
+observations. The two failures, both at `mu≈0.273`, failed strict zero
+particle-center penetration and are excluded rather than converted into a loss.
+The current bounded material-search domain is `log10(E)=[4.8,5.2]`,
+`nu=[0.1,0.3]`, and `mu=[0.3,0.9]`; numerical settings and external I/O stayed
+fixed throughout.
 
-This is a local, uncalibrated initialization result. It is not an optimizer
-convergence claim, an independent repeatability result, a real-sand validation,
-or NVS/decision-use validation. Next: replay the current best independently,
-then add proposals only if the replay is consistent.
+The best valid candidate from the broad continuation is `log10(E)=4.847943757`
+(`E=70.46 kPa`), `nu=0.237231507`, `mu=0.305497980`. Its discovery objective is
+`8.823 mm` (`2.643 mm` loaded RMSE and `12.360 mm` residual-footprint RMSE), an
+improvement of `3.875 mm` over the `12.698 mm` 100 kPa baseline. A separate
+fresh replay with exactly that candidate scored `8.815 mm` (`2.641 mm` loaded;
+`12.348 mm` residual-footprint), a `0.008 mm` difference. The replay is
+validation evidence, not a duplicate optimizer observation.
+
+This establishes repeatable local objective improvement inside the fixed
+simulator domain. It is not optimizer convergence, calibrated material
+inference, real-sand validation, held-out action transfer, or NVS/decision-use
+validation. The local runners now derive, record, and assert the supplied
+Chrono episode's loaded/residual time. In the aligned 3 kg A1 action, the
+unchanged 100 kPa baseline is mechanically valid and scores `16.289 mm`; the
+1.5 kg-selected incumbent is mechanically invalid (31 sampled particle centers
+inside the cylinder, `1.332 um` maximum) and therefore has no valid transfer
+score. The fixed public domain supports this higher-load action, but the
+selected material point does not transfer as an admissible 3 kg candidate. See
+`diagnostics/newton_mass3kg_holdout_20260922/`.

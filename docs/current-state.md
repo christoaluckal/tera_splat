@@ -61,16 +61,39 @@ Evidence is `diagnostics/newton_public_contact_20260914/` and
 `docs/newton-fixed-domain.md`.
 
 
-The isolated local Newton BayesOpt driver is now implemented and has completed
-a baseline plus four fresh candidates at `0.25 ms`, `8/16`. Every observation
-passes its candidate preparation and response mechanics gates. The current best
-Newton-native point is `E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`: objective
-`11.610 mm` (`3.502 mm` loaded RMSE; `16.216 mm` residual-footprint RMSE), an
-`1.087 mm` improvement over the `12.698 mm` baseline. This is five-observation
-local initialization, not optimizer convergence or material calibration. It
-requires an independent replay before further interpretation; NVS geometry and
-pre-traversal decision utility remain untested. Evidence is under
-`outputs/validity_experiment/newton_bayesopt/`.
+The isolated local Newton BayesOpt driver has now completed 21 candidate
+evaluations in this fixed `0.25 ms`, `8/16` domain. Nineteen are
+mechanics-valid observations: the 100 kPa baseline, four initialization points,
+four refinement points, two lower-bound-extension points, and eight broad
+continuation points. Two lower-bound candidates at `mu≈0.273` failed the strict
+zero particle-center penetration gate and are explicitly excluded from the
+surrogate observations.
+
+The independently replayed Newton-native incumbent is `E=70.46 kPa`
+(`log10(E)=4.847943757`), `nu=0.237231507`, and `mu=0.305497980`. Its discovery
+objective was `8.823 mm` (`2.643 mm` loaded RMSE; `12.360 mm`
+residual-footprint RMSE); its fresh replay scored `8.815 mm` (`2.641 mm` loaded;
+`12.348 mm` residual-footprint), a `0.008 mm` difference. This is repeatable
+local objective improvement of `3.875 mm` over the `12.698 mm` baseline, not
+optimizer convergence, material calibration, or a predictive claim outside the
+fixed domain. NVS geometry and pre-traversal decision utility remain untested.
+Evidence is under `outputs/validity_experiment/newton_bayesopt/`.
+
+### Time-aligned 3 kg held-out result
+
+The runners now derive and assert loaded/residual timing from the supplied
+Chrono manifest; A1 records `2.417 s` loaded and `0.25 s` residual in both
+Chrono and Newton. The frozen 3 kg A1 episode has the same geometry, location,
+SCM grid, guide, and initial map as A0 (exact equality on 14,161 valid cells).
+The 1.5 kg-selected incumbent passes fresh preparation but is rejected by the
+strict penetration gate (31 sampled centers; `1.332 um` maximum), so it has no
+valid 3 kg objective. The unchanged 100 kPa / `nu=0.2` / `mu=0.68` baseline
+passes all mechanics gates at the same aligned time and scores `16.289 mm`
+(`4.884 mm` loaded RMSE; `22.810 mm` residual-footprint RMSE). Thus the public
+Newton domain supports the 3 kg action, but the selected 1.5 kg material point
+does not transfer as a mechanically usable high-load candidate. This is a
+bounded transfer failure, not calibration or NVS evidence; see
+`diagnostics/newton_mass3kg_holdout_20260922/`.
 
 A controlled `0.5 ms` backend A/B now uses the same action, grid scale,
 particle spacing, fixed times, support, and score. At the nominally matched

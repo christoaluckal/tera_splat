@@ -94,10 +94,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--loaded-duration-s",
         type=float,
-        default=3.595,
-        help="Fixed Newton loading observation time; default matches the Chrono accepted time.",
+        default=None,
+        help=(
+            "Newton loading observation time. Defaults to the supplied Chrono "
+            "episode's recorded loaded sample time and must match it exactly."
+        ),
     )
-    parser.add_argument("--residual-duration-s", type=float, default=0.25)
+    parser.add_argument(
+        "--residual-duration-s",
+        type=float,
+        default=None,
+        help=(
+            "Newton post-removal observation duration. Defaults to the supplied "
+            "Chrono episode's recorded residual duration and must match it exactly."
+        ),
+    )
     parser.add_argument("--diagnostic-every", type=int, default=10)
     parser.add_argument("--cylinder-friction-coefficient", type=float, default=0.2)
     parser.add_argument(
@@ -204,8 +215,6 @@ def validate_args(args: argparse.Namespace) -> None:
         "pre_settle_duration_s",
         "pre_settle_required_duration_s",
         "particle_speed_threshold_mps",
-        "loaded_duration_s",
-        "residual_duration_s",
         "removal_height_m",
         "rigid_solver_tolerance",
     ):
@@ -260,6 +269,24 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError(
             "cylinder-projection-threshold-m must be finite and nonnegative"
         )
+
+
+def oracle_observation_times(manifest: dict[str, Any]) -> tuple[float, float]:
+    """Return the loaded and residual Chrono observation times for one episode."""
+    try:
+        loading = manifest["chrono"]["loading_convergence"]
+        loaded = float(loading["final_sample_time_s"])
+        residual = float(manifest["chrono"]["residual_recovery"]["fixed_duration_s"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(
+            "Chrono episode must record chrono.loading_convergence.final_sample_time_s "
+            "and chrono.residual_recovery.fixed_duration_s"
+        ) from error
+    if not math.isfinite(loaded) or loaded <= 0.0:
+        raise ValueError("Chrono loaded observation time must be finite and positive")
+    if not math.isfinite(residual) or residual <= 0.0:
+        raise ValueError("Chrono residual observation duration must be finite and positive")
+    return loaded, residual
 
 
 def circumscribed_cylinder_radius(radius: float, segments: int) -> float:
@@ -581,6 +608,30 @@ def main() -> None:
                 f"cylinder contact field {key} differs from the accepted preparation contract"
             )
     oracle_manifest, chrono_initial, chrono_valid = load_oracle(args.chrono_episode.resolve())
+    chrono_loaded_duration_s, chrono_residual_duration_s = oracle_observation_times(
+        oracle_manifest
+    )
+    loaded_duration_s = (
+        chrono_loaded_duration_s
+        if args.loaded_duration_s is None
+        else float(args.loaded_duration_s)
+    )
+    residual_duration_s = (
+        chrono_residual_duration_s
+        if args.residual_duration_s is None
+        else float(args.residual_duration_s)
+    )
+    for name, requested, recorded in (
+        ("loaded", loaded_duration_s, chrono_loaded_duration_s),
+        ("residual", residual_duration_s, chrono_residual_duration_s),
+    ):
+        if not math.isfinite(requested) or requested <= 0.0:
+            raise ValueError(f"{name} observation duration must be finite and positive")
+        if not math.isclose(requested, recorded, rel_tol=0.0, abs_tol=1.0e-12):
+            raise ValueError(
+                f"Newton {name} observation duration {requested} s differs from "
+                f"the Chrono episode record {recorded} s"
+            )
     action = json.loads(
         (args.chrono_episode.resolve() / oracle_manifest["action"]).read_text(encoding="utf-8")
     )
@@ -918,8 +969,16 @@ def main() -> None:
     write_particle_ply(initial_arrays["position_m"], output / "particles_initial_mpm.ply")
     write_state(output / "newton_state_initial.npz", state)
 
-    loaded_steps = int(round(args.loaded_duration_s / args.dt_s))
-    residual_steps = int(round(args.residual_duration_s / args.dt_s))
+    loaded_steps = int(round(loaded_duration_s / args.dt_s))
+    residual_steps = int(round(residual_duration_s / args.dt_s))
+    if not math.isclose(
+        loaded_steps * args.dt_s, loaded_duration_s, rel_tol=0.0, abs_tol=1.0e-12
+    ):
+        raise ValueError("Chrono loaded observation time is not representable at Newton dt")
+    if not math.isclose(
+        residual_steps * args.dt_s, residual_duration_s, rel_tol=0.0, abs_tol=1.0e-12
+    ):
+        raise ValueError("Chrono residual observation duration is not representable at Newton dt")
     cylinder_z = initial_center_z
     cylinder_vz = 0.0
     max_inside = 0
@@ -1182,6 +1241,12 @@ def main() -> None:
             },
         },
         "chrono_episode": str(args.chrono_episode.resolve()),
+        "observation_timing_s": {
+            "chrono_loaded": chrono_loaded_duration_s,
+            "chrono_residual": chrono_residual_duration_s,
+            "newton_loaded": loaded_steps * args.dt_s,
+            "newton_residual": residual_steps * args.dt_s,
+        },
         "environment": {
             "python": platform.python_version(),
             "newton": newton.__version__,

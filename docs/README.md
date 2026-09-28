@@ -9,17 +9,19 @@ simulator domain that is eligible for a separate sim-only BayesOpt study.
 
 ## Start here
 
-1. [Current state](current-state.md) — authoritative result, incumbent,
+1. [Newton sim-only handoff](newton-handoff.md) — current scope, contract,
+   artifacts, and the next permissible experiment.
+2. [Current state](current-state.md) — authoritative result, incumbent,
    observation set, actions, and next experiment.
-2. [Chrono Oracle and BayesOpt Run Contract](chrono-oracle-run-contract.md) —
+3. [Chrono Oracle and BayesOpt Run Contract](chrono-oracle-run-contract.md) —
    frozen target, preparation, gates, timing, loss, and observation policy.
-3. [Chrono SCM Oracle Diagnostics](chrono-oracle-diagnostics.md) — evidence
+4. [Chrono SCM Oracle Diagnostics](chrono-oracle-diagnostics.md) — evidence
    that qualifies the target.
-4. [Calibration Problems](experiment_problems.md) — resolved failures and the
+5. [Calibration Problems](experiment_problems.md) — resolved failures and the
    current residual-response blocker.
-5. [Contributor Guidance](contributor-guidance.md) — workspace and editing
+6. [Contributor Guidance](contributor-guidance.md) — workspace and editing
    rules.
-6. [Newton Fixed-Domain Contract](newton-fixed-domain.md) — qualified public
+7. [Newton Fixed-Domain Contract](newton-fixed-domain.md) — qualified public
    Newton configuration, numerical evidence, permitted scope, and next work.
 
 Files under [archive/](archive/) are dated provenance. They are not active
@@ -76,9 +78,13 @@ instructions and intentionally retain superseded hypotheses and next steps.
   `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
   stopped.  See `diagnostics/newton_contact_activation_20260910/`.
 - The public stock-contact `7.8125 mm`, `8/16` Newton configuration passes the
-  full `0.5/0.25/0.125 ms` response matrix. Its local five-observation study
-  currently improves the 100 kPa baseline from `12.698` to `11.610 mm`; this is
-  uncalibrated initialization pending an independent best-point replay. See
+  full `0.5/0.25/0.125 ms` response matrix. Its 19-valid-observation local
+  material study improves the 100 kPa baseline from `12.698` to `8.823 mm`;
+  an independent replay scored `8.815 mm` (a `0.008 mm` difference). This is
+  repeatable sim-only objective improvement, not calibration or NVS/decision
+  validation. A time-aligned 3 kg hold-out shows the 100 kPa baseline remains
+  mechanics-valid (`16.289 mm`), while the selected 1.5 kg incumbent fails the
+  strict penetration gate and has no valid 3 kg score. See
   [Newton Fixed-Domain Contract](newton-fixed-domain.md).
 - Newton state arrays are archival I/O, not qualified restart checkpoints.
   Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore

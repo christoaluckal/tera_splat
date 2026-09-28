@@ -162,25 +162,74 @@ def residual_footprint_rmse(response: Path, episode: Path) -> float:
     return float(np.sqrt(np.mean(error[mask] ** 2)))
 
 
+def episode_observation_times(episode: Path) -> tuple[float, float]:
+    """Read required Chrono loaded/residual observation timing from its manifest."""
+    manifest = yaml.safe_load((episode / "manifest.yaml").read_text())
+    try:
+        loaded = float(manifest["chrono"]["loading_convergence"]["final_sample_time_s"])
+        residual = float(manifest["chrono"]["residual_recovery"]["fixed_duration_s"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(
+            "Chrono episode must record loaded and residual observation timing"
+        ) from error
+    if not math.isfinite(loaded) or loaded <= 0.0:
+        raise ValueError("Chrono loaded observation time must be finite and positive")
+    if not math.isfinite(residual) or residual <= 0.0:
+        raise ValueError("Chrono residual observation duration must be finite and positive")
+    return loaded, residual
+
+
 def evaluate(args: argparse.Namespace, candidate: dict[str, float], trial: Path) -> dict[str, Any]:
     trial.mkdir(parents=True, exist_ok=False)
     config = trial / "candidate_config.json"
     write_config(args.base_config.resolve(), candidate, config)
     prepared, response = trial / "prepared", trial / "response"
+    chrono_loaded_duration_s, chrono_residual_duration_s = episode_observation_times(
+        args.chrono_episode.resolve()
+    )
     python = sys.executable
     prep_ok = command([python, str(REPO_ROOT / "scripts" / "run_newton_prepared_bed.py"), "--config", str(config), "--particles-ply", str(args.particles_ply.resolve()), "--metadata-json", str(args.metadata_json.resolve()), "--chrono-episode", str(args.chrono_episode.resolve()), "--output-dir", str(prepared), "--device", args.device, "--dt-s", str(args.dt_s), "--duration-s", str(args.pre_settle_duration_s), "--center-crop-half-width-m", "0", "--speed-check-every", "1", "--qualification-run"], trial / "preparation.log")
-    result: dict[str, Any] = {"candidate": candidate, "valid": False, "backend": "newton", "numerical_domain": {"dt_s": args.dt_s, "proxy_iterations": args.proxy_iterations, "rigid_substeps": args.rigid_substeps}, "paths": {"prepared": str(prepared), "response": str(response)}}
+    result: dict[str, Any] = {
+        "candidate": candidate,
+        "valid": False,
+        "backend": "newton",
+        "numerical_domain": {
+            "dt_s": args.dt_s,
+            "proxy_iterations": args.proxy_iterations,
+            "rigid_substeps": args.rigid_substeps,
+        },
+        "observation_timing_s": {
+            "chrono_loaded": chrono_loaded_duration_s,
+            "chrono_residual": chrono_residual_duration_s,
+            "newton_requested_loaded": chrono_loaded_duration_s,
+            "newton_requested_residual": chrono_residual_duration_s,
+        },
+        "paths": {"prepared": str(prepared), "response": str(response)},
+    }
     manifest_path = prepared / "newton_prepared_bed_manifest.json"
     if not prep_ok or not manifest_path.is_file() or not json.loads(manifest_path.read_text()).get("accepted"):
         result["failure_type"] = "candidate_preparation"
     else:
-        response_ok = command([python, str(REPO_ROOT / "scripts" / "run_newton_cylinder_diagnostic.py"), "--config", str(config), "--prepared-dir", str(prepared), "--candidate-preparation", "--chrono-episode", str(args.chrono_episode.resolve()), "--output-dir", str(response), "--device", args.device, "--dt-s", str(args.dt_s), "--pre-settle-duration-s", str(args.pre_settle_duration_s), "--proxy-iterations", str(args.proxy_iterations), "--rigid-substeps", str(args.rigid_substeps)], trial / "response.log")
+        response_ok = command([python, str(REPO_ROOT / "scripts" / "run_newton_cylinder_diagnostic.py"), "--config", str(config), "--prepared-dir", str(prepared), "--candidate-preparation", "--chrono-episode", str(args.chrono_episode.resolve()), "--output-dir", str(response), "--device", args.device, "--dt-s", str(args.dt_s), "--pre-settle-duration-s", str(args.pre_settle_duration_s), "--loaded-duration-s", str(chrono_loaded_duration_s), "--residual-duration-s", str(chrono_residual_duration_s), "--proxy-iterations", str(args.proxy_iterations), "--rigid-substeps", str(args.rigid_substeps)], trial / "response.log")
         response_manifest = response / "newton_cylinder_manifest.json"
         if not response_ok or not response_manifest.is_file():
             result["failure_type"] = "response_execution"
         else:
             data = json.loads(response_manifest.read_text())
-            if not data.get("accepted"):
+            actual_loaded = float(data["action"]["loaded_duration_s"])
+            actual_residual = float(data["action"]["residual_duration_s"])
+            result["observation_timing_s"].update(
+                newton_loaded=actual_loaded, newton_residual=actual_residual
+            )
+            if not (
+                math.isclose(actual_loaded, chrono_loaded_duration_s, rel_tol=0.0, abs_tol=1.0e-12)
+                and math.isclose(actual_residual, chrono_residual_duration_s, rel_tol=0.0, abs_tol=1.0e-12)
+            ):
+                result["failure_type"] = "response_timing_contract"
+                result["acceptance_blockers"] = [
+                    "Newton observation timing differs from the supplied Chrono episode."
+                ]
+            elif not data.get("accepted"):
                 result["failure_type"] = "response_mechanics"
                 result["acceptance_blockers"] = data.get("acceptance_blockers", [])
             else:

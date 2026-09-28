@@ -52,13 +52,16 @@ response output and the machine-readable convergence summary are under
 
 ## Downstream local BayesOpt initialization
 
-The qualified domain now has a local five-observation material study at `0.25 ms`
-and `8/16`: one baseline plus four fresh candidates, all mechanics-valid. Its
-best current point (`E=116.7 kPa`, `nu=0.1955`, `mu=0.4409`) scores `11.610 mm`
-versus baseline `12.698 mm`. This is initial numerical evidence only; it is not
-a converged optimization, independent replay, real-sand calibration, or NVS
-validation. Raw study evidence is under
-`outputs/validity_experiment/newton_bayesopt/initial_multi_20260915/`.
+The qualified domain now has a 19-valid-observation local material study at
+`0.25 ms` and `8/16`. Across 21 candidate evaluations, the two candidates near
+`mu=0.273` were rejected by the strict zero particle-center penetration gate;
+they are not observations. The best valid point is `E=70.46 kPa`,
+`nu=0.237231507`, `mu=0.305497980`, with discovery objective `8.823 mm` versus
+baseline `12.698 mm`. A fresh independent replay scored `8.815 mm`, only
+`0.008 mm` different. This is repeatable local numerical evidence only; it is
+not optimizer convergence, real-sand calibration, held-out action transfer, or
+NVS validation. Raw study evidence is under
+`outputs/validity_experiment/newton_bayesopt/`.
 
 Raw manifests, maps, arrays, traces, and PLYs remain under
 `outputs/validity_experiment/newton/public_coupling_ab_20260912/` and
