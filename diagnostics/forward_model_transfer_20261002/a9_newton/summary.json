@@ -1,0 +1,73 @@
+[
+  {
+    "label": "A9_incumbent",
+    "chrono_episode": "/eng/home/christoa/Workspace/splatting/Chrono/tera_splat_sim/validity_experiment/chrono_episodes/A9_oracle_mass1p625kg_lateral_yplus50mm_gate6mm_v1",
+    "newton_response": "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton_holdout/mass1p625kg_lateral_yplus50mm_incumbent_timealigned_20261003/study_1791072040_20260914/trials/iteration_000/response",
+    "candidate": {
+      "log10_e": 4.847943757,
+      "nu": 0.237231507,
+      "friction_coefficient": 0.30549798
+    },
+    "objective_mm": 8.489720989018679,
+    "loaded_rmse_mm": 2.5426349602639675,
+    "residual_footprint_rmse_mm": 11.894172057509422,
+    "loaded": {
+      "chrono": {
+        "max_depression_mm": 22.31680043041706,
+        "mean_depression_mm": 0.9525352509857846,
+        "footprint_max_depression_mm": 22.31680043041706,
+        "footprint_mean_depression_mm": 19.23884403785306,
+        "depression_volume_cm3": 323.6935509368778,
+        "depression_centroid_x_mm": -0.047490734262014916,
+        "depression_centroid_y_mm": 50.0467326817084
+      },
+      "newton": {
+        "max_depression_mm": 37.046790414024144,
+        "mean_depression_mm": 0.4569824891795174,
+        "footprint_max_depression_mm": 37.046790414024144,
+        "footprint_mean_depression_mm": 8.611096371325733,
+        "depression_volume_cm3": 144.88169644755544,
+        "depression_centroid_x_mm": -0.0012087608783432069,
+        "depression_centroid_y_mm": 49.78825318603463
+      },
+      "error": {
+        "max_depression_mm": 14.729989983607084,
+        "mean_depression_mm": -0.49555276180626723,
+        "footprint_max_depression_mm": 14.729989983607084,
+        "footprint_mean_depression_mm": -10.627747666527327,
+        "depression_volume_cm3": -178.81185448932234,
+        "depression_centroid_x_mm": 0.04628197338367171,
+        "depression_centroid_y_mm": -0.25847949567376816
+      }
+    },
+    "residual": {
+      "chrono": {
+        "max_depression_mm": 22.31680043041706,
+        "mean_depression_mm": 0.9525352509857846,
+        "footprint_max_depression_mm": 22.31680043041706,
+        "footprint_mean_depression_mm": 19.23884403785306,
+        "depression_volume_cm3": 323.6935509368778,
+        "depression_centroid_x_mm": -0.047490734262014916,
+        "depression_centroid_y_mm": 50.0467326817084
+      },
+      "newton": {
+        "max_depression_mm": 36.98302849079482,
+        "mean_depression_mm": 0.42600104354843354,
+        "footprint_max_depression_mm": 36.98302849079482,
+        "footprint_mean_depression_mm": 8.02279277339669,
+        "depression_volume_cm3": 134.9834884123993,
+        "depression_centroid_x_mm": 0.08063676560956308,
+        "depression_centroid_y_mm": 49.76965795822829
+      },
+      "error": {
+        "max_depression_mm": 14.666228060377762,
+        "mean_depression_mm": -0.5265342074373511,
+        "footprint_max_depression_mm": 14.666228060377762,
+        "footprint_mean_depression_mm": -11.21605126445637,
+        "depression_volume_cm3": -188.71006252447847,
+        "depression_centroid_x_mm": 0.128127499871578,
+        "depression_centroid_y_mm": -0.2770747234801121
+      }
+    }
+  }
+]

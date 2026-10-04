@@ -1,0 +1,47 @@
+{
+  "query": {
+    "mass_kg": 1.625,
+    "radius_m": 0.073025,
+    "center_x_m": 0.0,
+    "center_y_m": 0.05
+  },
+  "training_episode_count": 9,
+  "in_training_bounds": false,
+  "training_bounds": {
+    "mass_kg": [
+      1.5,
+      3.0
+    ],
+    "radius_m": [
+      0.055,
+      0.073025
+    ],
+    "center_x_m": [
+      -0.05,
+      0.05
+    ],
+    "center_y_m": [
+      0.0,
+      0.005
+    ]
+  },
+  "warning": "query extrapolates beyond at least one accepted Chrono feature bound",
+  "loaded": {
+    "max_depression_mm": 113.73548051555369,
+    "mean_depression_mm": 5.979865145473051,
+    "footprint_max_depression_mm": 113.73548051555369,
+    "footprint_mean_depression_mm": 119.71663894092545,
+    "depression_volume_cm3": 2010.1129373950725,
+    "depression_centroid_x_mm": 3.765190817929028,
+    "depression_centroid_y_mm": 49.788098125425975
+  },
+  "residual": {
+    "max_depression_mm": 113.73548051555369,
+    "mean_depression_mm": 5.979865145473051,
+    "footprint_max_depression_mm": 113.73548051555369,
+    "footprint_mean_depression_mm": 119.71663894092545,
+    "depression_volume_cm3": 2010.1129373950725,
+    "depression_centroid_x_mm": 3.7651908179290285,
+    "depression_centroid_y_mm": 49.788098125425975
+  }
+}
