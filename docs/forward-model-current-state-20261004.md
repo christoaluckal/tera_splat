@@ -27,3 +27,12 @@ The linear Chrono-only characteristic surrogate remains diagnostic only. A0-A9
 leave-one-out peak and volume errors are 30.688 mm and 565.574 cm3; it must not
 be used as a terrain predictor. The original [Newton handoff](newton-handoff.md)
 predates A2-A9 and is background, not the current complete record.
+
+## A10 update
+
+A10 (1.625 kg, canonical radius, y=+25 mm) is a prospective interior spatial
+holdout. Both materials are mechanics-valid; the incumbent wins the scalar
+objective (8.146 versus 12.244 mm) yet has +10.624 mm loaded-peak and -171.121
+cm3 loaded-volume error. This independently retains the A9 conclusion:
+mechanics validity and scalar improvement do not establish characteristic
+fidelity.

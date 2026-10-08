@@ -52,3 +52,14 @@ as a boundary or mixed-fidelity result rather than hidden by a scalar score.
 * Analysis:
   `tera_splat/diagnostics/forward_model_transfer_20261002/a10_newton/`
 
+
+## Completion record
+
+A10-v2 is complete. It uses explicit 1 ms, 5 mm, 0.6 m Chrono settings and
+accepted at 2.289 s. Both frozen Newton responses passed all hard gates. The
+incumbent wins scalar terms against the unchanged control but is mixed-fidelity
+because it overpredicts peak and underpredicts volume; see
+`diagnostics/forward_model_transfer_20261002/a10_newton/`.
+
+A10-v1 is retained only as a rejected provenance artifact because it used
+noncanonical runner defaults; it was never given a Newton score.

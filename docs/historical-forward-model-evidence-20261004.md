@@ -156,3 +156,29 @@ Next scientific work needs purpose-designed GT coverage around the observed
 mass, radius, and spatial boundaries and a prospectively defined multimetric
 acceptance rule. The present evidence does not support a general terrain
 deformation predictor claim.
+
+## A10 prospective interior spatial holdout — 2026-10-04
+
+A10-v2 is the canonical 1.625 kg, 73.025 mm guided cylinder at `(0,+25) mm`.
+Chrono accepted it at `2.289 s` with a `0.25 s` residual phase. Its 5 mm,
+14,161-cell support and initial terrain are bitwise equal to A9. Both fresh
+Newton evaluations passed exact timing, finite/full-support I/O, guide, and
+strict zero analytic particle-center penetration gates.
+
+| candidate | objective / loaded / residual-footprint (mm) |
+| --- | ---: |
+| frozen incumbent | 8.146293 / 2.450837 / 11.390910 |
+| unchanged 100 kPa control | 12.244222 / 3.704543 / 17.079357 |
+
+The incumbent wins every scalar map term. Its loaded peak is 32.200 mm versus
+Chrono 21.577 mm (+10.624 mm), while its loaded depression volume is 140.135
+versus 311.256 cm3 (-171.121 cm3). The control's corresponding errors are
+-19.577 mm and -280.960 cm3. The control has a smaller loaded centroid-vector
+error (0.068 versus 0.191 mm). Therefore A10 is a mechanics-valid,
+scalar-improving but **mixed-fidelity** result, not evidence of full
+characteristic fidelity or a general predictor.
+
+The first A10-v1 episode is excluded from all analysis: it accidentally used
+0.5 ms, 10 mm, 1.2 m runner defaults rather than the fixed 1 ms, 5 mm, 0.6 m
+contract. Canonical A10-v2 analysis is
+`diagnostics/forward_model_transfer_20261002/a10_newton/`.
