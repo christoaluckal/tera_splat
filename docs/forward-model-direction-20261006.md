@@ -135,6 +135,9 @@ multi-characteristic profile.
 
 ## Recommended direction after the stop/go test
 
+The implementation and validation contract for this direction is now recorded
+in [Hybrid Chrono-MPM residual model for Gaussian terrain and planning](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md).
+
 1. Record the Newton stop/go result as a bounded negative result for further
    broad parameter-only search.
 2. Resolve or explicitly bound Genesis preparation/response convergence.
@@ -170,9 +173,11 @@ Not supported:
 
 ## Authoritative records
 
-* [Historical Chrono-to-Newton evidence](historical-forward-model-evidence-20261004.md)
-* [Current Newton state](forward-model-current-state-20261004.md)
-* [A10 protocol](forward-model-a10-protocol-20261004.md)
+* [Newton documentation index](newton/README.md)
+* [Current Newton handoff](newton/handoff.md)
+* [Historical Chrono-to-Newton evidence](newton/historical-evidence-20261004.md)
+* [A10 protocol](newton/a10-protocol-and-result-20261004.md)
+* [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
 * [Chrono overview and Genesis status](../../tera_splat_sim/docs/overview-and-status.md)
 * [Chrono limitations and claims](../../tera_splat_sim/docs/limitations-and-claims.md)
 * [Chrono-to-MPM roadmap](../../tera_splat_sim/docs/roadmap-and-extensions.md)

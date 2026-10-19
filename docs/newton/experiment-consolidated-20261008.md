@@ -176,36 +176,37 @@ its convergence limitations must not be silently merged with Newton evidence.
 
 ### Canonical summaries
 
-* [Newton fixed-domain contract](newton-fixed-domain.md)
-* [Chrono→Newton model card](chrono_newton_forward_model_card_20261002.md)
-* [Forward-model current state](forward-model-current-state-20261004.md)
-* [Historical Chrono→Newton ledger](historical-forward-model-evidence-20261004.md)
-* [A5 addendum](newton-handoff-a5-addendum-20261002.md)
-* [A10 protocol/results](forward-model-a10-protocol-20261004.md)
-* [Stop/go direction](forward-model-direction-20261006.md)
+* [Current handoff](handoff.md)
+* [Newton fixed-domain contract](fixed-domain.md)
+* [Chrono→Newton model card](forward-model-card-20261002.md)
+* [Forward-model current state](current-state-20261004.md)
+* [Historical Chrono→Newton ledger](historical-evidence-20261004.md)
+* [A5 addendum](a5-spatial-transfer-20261002.md)
+* [A10 protocol/results](a10-protocol-and-result-20261004.md)
+* [Stop/go direction](../forward-model-direction-20261006.md)
 
 ### Numerical diagnostics
 
-* [`newton_convergence_coupling_20260906`](../diagnostics/newton_convergence_coupling_20260906/README.md)
-* [`newton_failure_resolution_20260906`](../diagnostics/newton_failure_resolution_20260906/README.md)
-* [`newton_response_convergence_20260906`](../diagnostics/newton_response_convergence_20260906/README.md)
-* [`newton_response_convergence_native_proxy_20260906`](../diagnostics/newton_response_convergence_native_proxy_20260906/README.md)
-* [`newton_collider_support_20260908`](../diagnostics/newton_collider_support_20260908/README.md)
-* [`newton_contact_activation_20260910`](../diagnostics/newton_contact_activation_20260910/README.md)
-* [`newton_calibration_20260910`](../diagnostics/newton_calibration_20260910/README.md)
-* [`newton_public_contact_20260914`](../diagnostics/newton_public_contact_20260914/README.md)
-* [`newton_preparation_20260903`](../diagnostics/newton_preparation_20260903/README.md)
+* [`newton_convergence_coupling_20260906`](../../diagnostics/newton_convergence_coupling_20260906/README.md)
+* [`newton_failure_resolution_20260906`](../../diagnostics/newton_failure_resolution_20260906/README.md)
+* [`newton_response_convergence_20260906`](../../diagnostics/newton_response_convergence_20260906/README.md)
+* [`newton_response_convergence_native_proxy_20260906`](../../diagnostics/newton_response_convergence_native_proxy_20260906/README.md)
+* [`newton_collider_support_20260908`](../../diagnostics/newton_collider_support_20260908/README.md)
+* [`newton_contact_activation_20260910`](../../diagnostics/newton_contact_activation_20260910/README.md)
+* [`newton_calibration_20260910`](../../diagnostics/newton_calibration_20260910/README.md)
+* [`newton_public_contact_20260914`](../../diagnostics/newton_public_contact_20260914/README.md)
+* [`newton_preparation_20260903`](../../diagnostics/newton_preparation_20260903/README.md)
 
 ### Transfer and stop/go artifacts
 
-* [`forward_model_transfer_20261002`](../diagnostics/forward_model_transfer_20261002/README.md)
-* [`newton_mass1p625kg_holdout_20261001`](../diagnostics/newton_mass1p625kg_holdout_20261001/README.md)
-* [`newton_mass1p75kg_holdout_20260930`](../diagnostics/newton_mass1p75kg_holdout_20260930/README.md)
-* [`newton_mass2kg_holdout_20260930`](../diagnostics/newton_mass2kg_holdout_20260930/README.md)
-* [`newton_mass3kg_holdout_20260922`](../diagnostics/newton_mass3kg_holdout_20260922/README.md)
-* [`newton_lateral_x50mm_holdout_20261001`](../diagnostics/newton_lateral_x50mm_holdout_20261001/README.md)
-* [`forward_model_stopgo_20261006_A10`](../diagnostics/forward_model_stopgo_20261006_A10/summary.json)
-* [`stop/go multi-characteristic scores`](../diagnostics/forward_model_stopgo_20261006_A10/multicharacteristic_scores.csv)
+* [`forward_model_transfer_20261002`](../../diagnostics/forward_model_transfer_20261002/README.md)
+* [`newton_mass1p625kg_holdout_20261001`](../../diagnostics/newton_mass1p625kg_holdout_20261001/README.md)
+* [`newton_mass1p75kg_holdout_20260930`](../../diagnostics/newton_mass1p75kg_holdout_20260930/README.md)
+* [`newton_mass2kg_holdout_20260930`](../../diagnostics/newton_mass2kg_holdout_20260930/README.md)
+* [`newton_mass3kg_holdout_20260922`](../../diagnostics/newton_mass3kg_holdout_20260922/README.md)
+* [`newton_lateral_x50mm_holdout_20261001`](../../diagnostics/newton_lateral_x50mm_holdout_20261001/README.md)
+* [`forward_model_stopgo_20261006_A10`](../../diagnostics/forward_model_stopgo_20261006_A10/summary.json)
+* [`stop/go multi-characteristic scores`](../../diagnostics/forward_model_stopgo_20261006_A10/multicharacteristic_scores.csv)
 
 Superseded diagnostics remain useful for failure provenance, but only the
 public 7.8125 mm, PIC/PIC, P0/S2/Q1, stock-contact, 8/16 domain is active for

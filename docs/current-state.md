@@ -1,11 +1,139 @@
 # Current Chrono-to-MPM State
 
-Last verified: 2026-09-14
+Last verified: 2026-10-19
 
 This is the authoritative live handoff for the cylinder calibration. Dated
 investigation history is preserved in
 [calibration-history-through-2026-08-29.md](archive/calibration-history-through-2026-08-29.md)
 and is not a source of current next steps.
+
+## 2026-10-17 fresh-only reset
+
+The 2026-10-09/16 static-proxy outputs are quarantined as historical
+diagnostics. They are not admissible for current qualification, training,
+validation, or test claims because same-build determinism and complete
+provenance were not established before reuse.
+
+The active campaign is
+[fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md).
+It now has 7/15 complete matrix Chrono and 7/15 usable matrix Newton cases; the sentinel
+duplicates are qualification evidence, not training rows. Sequential fresh
+repeats of Chrono, particle-bed generation, and Newton now characterize
+same-build numerical variation. Matrix expansion is permitted. Exact equality
+is reported but is not a gate. No old PLY, prepared state, response, or surface
+map may enter the new output roots.
+
+The active hierarchy keeps provenance and numerical integrity as hard gates.
+Repeat variation is an uncertainty measurement. Particle overlap is recorded
+as an interaction artifact unless it
+is gross. Footprint and twice-radius skill relative to a no-deformation
+baseline are the primary Phase 0 utility gates.
+
+The centered 31 N fresh sentinel is complete. Chrono maps and the independently
+generated beds match exactly. Newton is compatible but non-identical: loaded
+repeat RMSE is 0.0083 mm in the footprint and 0.0050 mm within 2r; residual
+footprint repeat RMSE is 0.0090 mm. One residual cell just outside the footprint
+differs by 10.552 mm, raising raw 2r repeat RMSE to 0.426 mm even though 2r p95
+absolute difference is 0.0117 mm and residual particle-position RMSE is only
+0.00059 mm. Both responses have eight transient inside centers below 3.92
+micrometers and zero at the loaded observation. The raw prior has positive
+footprint and 2r skill against no deformation, so the next action is fresh
+matrix generation rather than more sentinel optimization.
+
+All three canonical 31 N training rows—center and ±100 mm x—are complete and
+pass every numerical, artifact, and local positive-skill check. Loaded
+footprint/2r skill is 0.889/0.724 at center, 0.833/0.629 at +x, and 0.828/0.625
+at -x. Their physical post-unload states also retain positive local skill. The
+off-center post-unload maps have 38.945/39.023 mm maximum-error tails, retained
+instead of hidden by RMSE. The first learning rung is the full five-position
+31 N slice (3 train / 1 validation / 1 test), now complete at 5/5. The small v1
+residual code and fixed hyperparameters were written before holdout generation;
+the fit is now frozen with model SHA-256
+`242fa879c1d7eda443f4277d82a41dcfea5828cdb7b66ccae357b633d99a15af`.
+The training record proves that both holdout summaries were absent and hashes
+the learner plus all inputs. Training-only particle-lift RMSE is
+1.446-1.838 mm in-foot and 1.034-1.173 mm within 2r, a fit sanity result only.
+The model was not refit after either holdout. Higher loads remain the next
+expansion rungs.
+
+The +y validation action is now complete and was never available during fit.
+The frozen particle correction improves loaded footprint/2r RMSE from
+5.784/3.971 mm to 2.077/2.211 mm and post-unload RMSE from 5.665/3.820 mm to
+2.267/2.335 mm. It beats raw Newton and no deformation on all four local
+checks, while preserving 307,461 finite particle positions and the frozen
+model/source hashes. The subsequent -y result below completes the rung.
+
+The -y independent test is now complete. The same frozen model improves loaded
+footprint/2r RMSE from 5.706/3.936 mm to 2.158/2.252 mm and post-unload from
+5.601/3.791 mm to 2.359/2.382 mm. Validation and test both pass every local
+improvement check; the joint held-out summary is true. Post-holdout fitting is
+actively refused, 50 relevant tests pass, and corrected test particles retain
+finite 307,461-particle states whose projected surfaces exactly match the
+learned corrected fields. The 31 N spatial rung is therefore 5/5 and complete.
+This is single-load spatial transfer; fresh 46 N evidence remains required for
+the multiple-load Phase 0 goal. The protected 61 N rung is a robustness
+decision after the two-load result, not an automatic prerequisite.
+
+Multi-load v2 is prospectively fixed before the first 46 N result. It reuses
+the tested v1 geometry/particle path without modifying v1, retains identical
+hyperparameters, and will fit only the six center/±x actions at 31 N and 46 N.
+Its fit lock protects both 46 N y-holdouts and all 61 N actions. The first
+46 N center action is complete and usable: loaded footprint/2r RMSE is
+13.340/8.226 mm with skill 0.608/0.419, and post-unload RMSE is
+10.160/6.666 mm with skill 0.773/0.618. The +x 46 N training action is also
+complete and usable: loaded footprint/2r RMSE is 13.912/8.659 mm with skill
+0.580/0.370, and post-unload RMSE is 10.275/6.337 mm with skill 0.771/0.663.
+It records 31 transient centers to 9.837 micrometers and seven at the loaded
+state; that remains a contact artifact rather than a strict-mechanics pass,
+but it is inside the frozen gross-artifact limits and passes every local
+utility check. The 46 N rung is 2/5; only -x remains before v2 fitting,
+followed by the untouched +y/-y holdouts.
+
+## 2026-10-16 bounded static-prior update
+
+The frozen 35 mm static proxy test began as a 15-case matrix over five
+positions and 30.656, 45.984, and 61.313 N loads. Its lowest-load center case
+was the expansion sentinel.
+
+The centered 31 N timestep matrix is complete. Every row fails strict zero
+penetration and the response is not timestep-converged, so the 35 mm domain is
+not strictly mechanics-qualified. A separate policy,
+`bounded_static_prior_v2_20261016`, permits offline residual-pilot data only
+when preparation, finite state, guide, support, and loaded-state clearance
+pass and trajectory-only overlap is at most 10 micrometers and 0.02% of
+particles.
+
+The centered 31 N and 46 N actions pass the bounded gate and fail strict
+mechanics. Policy v2 was frozen after those two training actions and before
+the 61 N and spatial cases. A later failure shrinks the pilot domain; the
+limits must not move again. Residual training remains locked until all actions
+in the final domain have accepted Chrono GT and bounded-admissible Newton
+states. See the [strict report](newton/static-proxy-qualification-20261009.md)
+and [bounded admission report](newton/coarse-prior-admission-20261016.md).
+
+The frozen policy rejects centered 61.313 N because 38 centers remain inside
+at the loaded observation. The initial domain is capped at 30.656--45.984 N
+and reissued as 10 actions: six train (center and plus/minus x), two validation
+(plus y), and two test (minus y). The rejected high load remains explicit
+out-of-domain evidence.
+
+## 2026-10-08 handoff update
+
+The bounded Newton A10 stop/go set is complete. Broad parameter-only search of
+the current Newton model form is stopped. Newton is retained as a
+mechanics-gated physics prior for an offline Chrono-supervised residual model.
+
+The current operational sources are:
+
+- [Newton handoff](newton/handoff.md);
+- [Newton running analysis](newton/running-analysis.md);
+- [consolidated Newton report](newton/experiment-consolidated-20261008.md);
+- [hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md).
+
+The 35 mm proxy foot lies outside the qualified historical Newton geometry and
+must pass a new mechanics/load-domain qualification. Any material fit for that
+domain is performed once across training actions and frozen for held-out
+position and weight evaluation.
 
 ## Current outcome
 
@@ -58,7 +186,7 @@ validated timestep and this configuration for every candidate. It must keep
 the Chrono I/O, action, mask, timing, score, and candidate validity gates
 fixed; it cannot reuse Genesis observations, states, or material semantics.
 Evidence is `diagnostics/newton_public_contact_20260914/` and
-`docs/newton-fixed-domain.md`.
+`docs/newton/fixed-domain.md`.
 
 
 The isolated local Newton BayesOpt driver has now completed 21 candidate

@@ -129,7 +129,7 @@ The evidence supports these bounded conclusions:
 
 | need | canonical source |
 | --- | --- |
-| detailed dated results | `tera_splat/docs/forward-model-*.md` and `newton-handoff-a5-addendum-20261002.md` |
+| detailed dated results | `tera_splat/docs/newton/` |
 | A0 fit and re-score | `tera_splat/diagnostics/forward_model_transfer_20261002/a0-recalibration.md` and `a0_candidate_scores.csv` |
 | state-level A2-A7 metrics | `tera_splat/diagnostics/forward_model_transfer_20261002/characteristics.csv` |
 | A6-A9 special results | `.../a6-results.md`, `a7-results.md`, `a8-results.md`, `a9-newton-results.md` |
@@ -143,8 +143,8 @@ Older unsuffixed or `_v2` transfer-analysis drafts are not canonical.
 
 ## Resumption protocol
 
-Read this ledger, [Newton handoff](newton-handoff.md),
-[fixed-domain contract](newton-fixed-domain.md), and the source episode manifest
+Read this ledger, [current Newton handoff](handoff.md),
+[fixed-domain contract](fixed-domain.md), and the source episode manifest
 before work. Freeze the numerical/contact setup, generate GT first, pass the
 manifest times exactly, evaluate frozen incumbent and unchanged control when
 meaningful, then gate before scoring. Report timing, all hard-gate status,

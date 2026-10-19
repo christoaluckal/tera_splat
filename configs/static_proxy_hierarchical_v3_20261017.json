@@ -1,0 +1,153 @@
+{
+  "schema_version": 2,
+  "qualification_id": "static_proxy_hierarchical_v3_20261017",
+  "purpose": "Fresh numerical-variation characterization and hierarchical utility qualification for a static 35 mm robot-foot proxy; no prior episode, particle bed, preparation, or response is admissible.",
+  "reuse_policy": {
+    "prior_experiment_outputs_admissible": false,
+    "prior_outputs_role": "historical failure-mode context only",
+    "require_fresh_chrono_h0": true,
+    "require_fresh_metric_particle_bed_from_chrono_h0": true,
+    "require_fresh_newton_preparation_per_response": true
+  },
+  "action": {
+    "load_mode": "static_gravity_equivalent_mass",
+    "dynamic_loads_excluded": true,
+    "robot_mass_kg": 12.5,
+    "gravity_mps2": 9.81,
+    "support_weight_fractions": [0.25, 0.375, 0.5],
+    "radius_m": 0.035,
+    "height_m": 0.035,
+    "start_clearance_m": 0.02,
+    "positions": [
+      {"label": "center", "xy_m": [0.0, 0.0]},
+      {"label": "xplus100", "xy_m": [0.1, 0.0]},
+      {"label": "xminus100", "xy_m": [-0.1, 0.0]},
+      {"label": "yplus100", "xy_m": [0.0, 0.1]},
+      {"label": "yminus100", "xy_m": [0.0, -0.1]}
+    ]
+  },
+  "repeatability": {
+    "role": "characterize same-build numerical variation; bitwise identity is diagnostic, not an admission requirement",
+    "required_before_matrix": false,
+    "sentinel_case_id": "center_f031n",
+    "sequential_repeats": 2,
+    "reuse_repeat_as_training_data": false,
+    "chrono": {
+      "require_both_actions_accepted": true,
+      "require_compatible_state_shapes_and_support": true,
+      "report_acceptance_time_difference": true,
+      "report_heightmap_variation": true,
+      "report_bitwise_identity": true
+    },
+    "newton": {
+      "require_same_device_and_software": true,
+      "require_fresh_metric_bed_each_repeat": true,
+      "require_fresh_in_process_preparation_each_repeat": true,
+      "require_compatible_state_shapes_and_support": true,
+      "report_surface_and_particle_variation": true,
+      "report_bitwise_identity": true,
+      "failure_action": "record numerical variation; block only incomplete, non-finite, environment-incompatible, or structurally incompatible outputs"
+    }
+  },
+  "chrono": {
+    "repo": "../tera_splat_sim",
+    "command": ["conda", "run", "-n", "chrono_splat", "python"],
+    "output_root": "../tera_splat_sim/validity_experiment/chrono_episodes/static_proxy_hierarchical_v3_20261017",
+    "timestep_s": 0.001,
+    "scm_grid_spacing_m": 0.005,
+    "scm_pit_size_m": [0.6, 0.6],
+    "max_loading_time_s": 5.0,
+    "min_loading_time_s": 0.25,
+    "loading_linear_speed_threshold_mps": 0.006,
+    "loading_angular_speed_threshold_radps": 0.01,
+    "loading_hold_time_s": 0.1,
+    "residual_duration_s": 0.25,
+    "vertical_guide": true,
+    "thread_environment": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    }
+  },
+  "newton": {
+    "python": "/data/christoa/conda/envs/newton_splat/bin/python",
+    "output_root": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017",
+    "base_config": "configs/newton_sand_smoke_voxel7p8125mm.json",
+    "metric_bed_source": {
+      "mode": "build_from_fresh_chrono_h0",
+      "bed_depth_m": 0.1,
+      "particle_spacing_m": 0.005
+    },
+    "device": "cuda:0",
+    "selected_dt_s": 0.00025,
+    "pre_settle_duration_s": 2.0,
+    "pre_settle_required_duration_s": 0.02,
+    "particle_speed_threshold_mps": 0.0005,
+    "proxy_iterations": 8,
+    "rigid_substeps": 16,
+    "cylinder_friction_coefficient": 0.2,
+    "collider_mode": "circumscribed_mesh",
+    "collider_segments": 128,
+    "collision_guard_m": 0.00001,
+    "projection_threshold_m": 0.0
+  },
+  "hierarchical_admission": {
+    "policy_id": "hierarchical_residual_prior_v3_20261017",
+    "strict_mechanics_claim_permitted": false,
+    "level_0_provenance": {
+      "require_fresh_campaign_paths": true,
+      "require_contract_and_source_hashes": true,
+      "require_variation_characterization": true,
+      "bitwise_repeatability_required": false
+    },
+    "level_1_numerical_integrity": {
+      "require_preparation_convergence": true,
+      "require_finite_state": true,
+      "require_guide_constraint": true,
+      "min_surface_valid_cells": 14161,
+      "min_initial_surface_valid_fraction": 0.95
+    },
+    "level_2_interaction_artifact": {
+      "role": "classification and uncertainty; not a strict zero-overlap gate",
+      "gross_penetration_fraction_of_particle_spacing": 0.1,
+      "gross_inside_particle_fraction": 0.01,
+      "loaded_overlap_may_be_labeled_artifact": true
+    },
+    "level_3_geometric_utility": {
+      "primary_masks": ["footprint", "local_2r"],
+      "background_mask": "all_valid_bed",
+      "baseline": "no_deformation",
+      "min_loaded_footprint_mse_skill": 0.0,
+      "min_residual_footprint_mse_skill": 0.0,
+      "min_loaded_local_2r_mse_skill": 0.0,
+      "min_residual_local_2r_mse_skill": 0.0,
+      "report_characteristics": [
+        "peak_depression",
+        "mean_footprint_depression",
+        "displaced_volume",
+        "deformation_footprint",
+        "deformation_centroid"
+      ]
+    },
+    "level_4_residual_exit": {
+      "whole_episode_split_required": true,
+      "require_improvement_over_raw_mpm_on_each_held_out_episode": true,
+      "require_improvement_over_no_deformation_baseline": true,
+      "primary_masks": ["footprint", "local_2r"]
+    }
+  },
+  "episode_split": {
+    "policy": "position-held-out; all three loads occur in training and whole positions are held out",
+    "train": [
+      "center_f031n", "center_f046n", "center_f061n",
+      "xplus100_f031n", "xplus100_f046n", "xplus100_f061n",
+      "xminus100_f031n", "xminus100_f046n", "xminus100_f061n"
+    ],
+    "validation": [
+      "yplus100_f031n", "yplus100_f046n", "yplus100_f061n"
+    ],
+    "test": [
+      "yminus100_f031n", "yminus100_f046n", "yminus100_f061n"
+    ]
+  }
+}

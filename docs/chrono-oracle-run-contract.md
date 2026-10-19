@@ -256,7 +256,7 @@ results are retained as diagnostic evidence, including the refined-grid
 `1.339 mm` sinkage failure. The refined public `8/16` configuration now passes
 the complete `0.5/0.25/0.125 ms` response matrix under the frozen map and
 sinkage gates. It establishes the numerical domain described in
-[`newton-fixed-domain.md`](newton-fixed-domain.md): one fixed qualified
+[`newton/fixed-domain.md`](newton/fixed-domain.md): one fixed qualified
 timestep/configuration per Newton study, unchanged Chrono I/O and score, and
 no private contact override. This authorizes a separate sim-only Newton
 BayesOpt implementation, not a claim of material calibration or transfer

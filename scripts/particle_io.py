@@ -8,8 +8,6 @@ from pathlib import Path
 
 import numpy as np
 
-from view_iteration_7000 import load_3dgs_ply
-
 
 def load_material_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
@@ -287,6 +285,8 @@ def parse_float_list(value: str | None) -> list[float] | None:
 
 
 def build_particles(args: Namespace, config: dict) -> tuple[np.ndarray, dict]:
+    from view_iteration_7000 import load_3dgs_ply
+
     grid_lim = float(args.grid_lim if args.grid_lim is not None else config.get("grid_lim", 2.0))
     ground_quantile = float(getattr(args, "ground_quantile", 0.0))
     trim_quantile = float(getattr(args, "trim_quantile", 0.0))

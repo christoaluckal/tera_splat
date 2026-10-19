@@ -1,7 +1,9 @@
 # Forward-model current state — 2026-10-04
 
+Status: dated snapshot; superseded by the [current handoff](handoff.md).
+
 This concise operational note is the companion to the
-[historical evidence ledger](historical-forward-model-evidence-20261004.md).
+[historical evidence ledger](historical-evidence-20261004.md).
 
 The active objective is a **sim-only** forward model: Chrono generates GT
 terrain maps and stock Newton predicts them. The frozen Newton contract is
@@ -25,7 +27,7 @@ Every future valid action report must include:
 
 The linear Chrono-only characteristic surrogate remains diagnostic only. A0-A9
 leave-one-out peak and volume errors are 30.688 mm and 565.574 cm3; it must not
-be used as a terrain predictor. The original [Newton handoff](newton-handoff.md)
+be used as a terrain predictor. The original [Newton handoff](handoff-20260928.md)
 predates A2-A9 and is background, not the current complete record.
 
 ## A10 update

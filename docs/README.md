@@ -1,142 +1,211 @@
-# Tera Splat
+# Tera Splat documentation
 
-Chrono-to-MPM terrain calibration for a mass-controlled rigid-cylinder
-experiment. Genesis remains the frozen calibration baseline. The active Newton
-direction uses stock contact and public solver settings only. At a `7.8125 mm`
-voxel size, `8/16` proxy/substep coupling passes the complete
-`0.5/0.25/0.125 ms` response matrix. It defines an uncalibrated, fixed
-simulator domain that is eligible for a separate sim-only BayesOpt study.
+Last updated: 2026-10-17
+
+Tera Splat studies a planning-oriented hybrid terrain model:
+
+    Chrono synthetic ground truth
+        -> mechanics-gated MPM prior
+        -> learned discrepancy and uncertainty
+        -> Gaussian terrain update
+        -> open-loop robot planning
+
+Chrono is the synthetic oracle. Newton is the recommended first offline MPM
+prior because its public numerical/contact domain and state export are already
+qualified. Genesis remains a separate comparator and possible future
+differentiable backend.
 
 ## Start here
 
-1. [Newton sim-only handoff](newton-handoff.md) — current scope, contract,
-   artifacts, and the next permissible experiment.
-2. [Current state](current-state.md) — authoritative result, incumbent,
-   observation set, actions, and next experiment.
-3. [Chrono Oracle and BayesOpt Run Contract](chrono-oracle-run-contract.md) —
-   frozen target, preparation, gates, timing, loss, and observation policy.
-4. [Chrono SCM Oracle Diagnostics](chrono-oracle-diagnostics.md) — evidence
-   that qualifies the target.
-5. [Calibration Problems](experiment_problems.md) — resolved failures and the
-   current residual-response blocker.
-6. [Contributor Guidance](contributor-guidance.md) — workspace and editing
-   rules.
-7. [Newton Fixed-Domain Contract](newton-fixed-domain.md) — qualified public
-   Newton configuration, numerical evidence, permitted scope, and next work.
+1. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+   — complete proposed architecture, backend decision, data split, losses,
+   latent-state ablations, Gaussian transfer, and planner validation.
+2. [Current repository state](current-state.md) — authoritative live state for
+   Chrono, Genesis, Newton, artifacts, and execution constraints.
+3. [Newton documentation index](newton/README.md) — all Newton contracts,
+   reports, boundaries, and dated provenance.
+4. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+   — current fresh-only variation-characterization and geometric-utility protocol.
+5. [Current Newton handoff](newton/handoff.md) — active Newton conclusion and
+   next permitted work.
+6. [Newton running analysis](newton/running-analysis.md) — chronological
+   decision log for tracking new evidence.
+7. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+   project moved from parameter-only fitting to a hybrid residual model.
+8. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+   timing, support, preparation, and scoring rules.
+9. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+   evidence-maintenance rules.
 
-Files under [archive/](archive/) are dated provenance. They are not active
-instructions and intentionally retain superseded hypotheses and next steps.
+Files in [archive](archive/) are historical provenance. They are not current
+instructions.
 
-## Current status
+## Topic index
 
-- Active oracle: `A0_oracle_guided_offset_5mm_gate6mm_v1`.
-- Active Genesis bed: 307,461 particles at 5 mm on n128.
-- Current incumbent: `E=20.433 kPa`, `phi=14.727 deg`, `nu=0.101895`.
-- Confirmed n128 result: objective `8.704 mm`, loaded RMSE `1.864 mm`,
-  residual-footprint RMSE `13.678 mm`.
-- Retained raw/visual replay: W&B `ykep3esa`; 78 sampled rollout PLYs,
-  initial/loaded/residual MPM states, aligned surface PCDs, comparison arrays,
-  and loaded/residual point-cloud plus DEM-error figures.
-- Non-learned diagnosis complete: four-point loaded/residual Pareto front,
-  recovery and `F`/`Jp` localization, and a 2x2 resolution/timestep matrix.
-- Current blocker: Genesis recovers too much after removal, but halving the
-  timestep changes residual-footprint RMSE by `1.525--2.325 mm`; numerical
-  convergence is not demonstrated, so model-form failure is not yet isolated.
-- Third n128 level: `0.125 ms` preparations with 2 and 4 s caps both failed
-  the unchanged speed gate; accepted-state reuse also failed candidate
-  relaxation before contact. No third score is eligible.
-- Same-state 4 s traces explain that failure: the fast mode shifts from
-  wall/ground at `0.5 ms`, through wall/surface at `0.25 ms`, to
-  free-surface uplift at `0.125 ms`. Fine-step p50/p95/p99 are
-  `0.291/0.764/0.986 mm/s`; this is timestep-dependent preparation, not
-  uniform bulk compaction or a one-percent wall artifact.
-- Lightweight reports are tracked under `diagnostics/`; large beds, states,
-  PLY/PCD sequences, and evaluation runs remain under `outputs/`.
-- Newton preparation is now qualified with PIC transfer at `0.5`, `0.25`, and
-  `0.125 ms` over a common 2 s horizon. All speed/H0 gates pass; adjacent DEM
-  RMSE is `0.023/0.031 mm`, and the `1e-4 -> 1e-5` tolerance result is
-  identical. The rejected APIC fine-step state was a top-layer transfer mode.
-- Newton mechanics are qualified at the frozen action: continuous in-process
-  preparation, guided 1.5 kg cylinder loading for `3.595 s`, instantaneous
-  removal, and `0.25 s` residual output are finite with full I/O and zero
-  analytic particle-center penetration. Native coupling additionally passes a
-  `1e-6` prismatic-guide constraint gate. The material is still uncalibrated.
-- A 9.375 mm raised-proxy diagnostic at the fixed 100 kPa smoke material passes
-  the complete response matrix after Kamino tolerance is aligned with the
-  `1e-6` guide gate. Adjacent loaded/residual DEM RMSE is `0.130/0.123` and
-  `0.107/0.110 mm`; sinkage differences are `0.130/0.032 mm`.
-- The corrected shared A/B objective is `12.189 mm`, versus `14.736 mm` for
-  matched Genesis and `8.705 mm` for the calibrated Genesis incumbent.
-- The inset is diagnostic, not promotable: a qualified 25 kPa preparation
-  improves DEM-only score to `11.207 mm`, but its response puts up to 1,330
-  particle centers inside the analytic cylinder by `5.950 mm` and fails the
-  guide gate. Stop calibration until support can be corrected without removing
-  analytic collision coverage.
-- The full-volume `-0.25`-voxel contact-activation diagnostic restores that
-  coverage and passes every individual mechanics gate, but only its
-  `0.25 -> 0.125 ms` pair passes all convergence gates.  Its
-  `0.5 -> 0.25 ms` sinkage difference is `0.975 mm`; calibration remains
-  stopped.  See `diagnostics/newton_contact_activation_20260910/`.
-- The public stock-contact `7.8125 mm`, `8/16` Newton configuration passes the
-  full `0.5/0.25/0.125 ms` response matrix. Its 19-valid-observation local
-  material study improves the 100 kPa baseline from `12.698` to `8.823 mm`;
-  an independent replay scored `8.815 mm` (a `0.008 mm` difference). This is
-  repeatable sim-only objective improvement, not calibration or NVS/decision
-  validation. A time-aligned 3 kg hold-out shows the 100 kPa baseline remains
-  mechanics-valid (`16.289 mm`), while the selected 1.5 kg incumbent fails the
-  strict penetration gate and has no valid 3 kg score. See
-  [Newton Fixed-Domain Contract](newton-fixed-domain.md).
-- Newton state arrays are archival I/O, not qualified restart checkpoints.
-  Reconstructing the solver adds `1.157 mm` DEM RMSE; coupled runs therefore
-  prepare continuously in-process.
+| Topic | Entry point |
+| --- | --- |
+| Current status | [current-state.md](current-state.md) |
+| Hybrid architecture | [hybrid-chrono-mpm-residual-gaussian-planning-20261008.md](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md) |
+| Backend decision | [forward-model-direction-20261006.md](forward-model-direction-20261006.md) |
+| Newton current handoff | [newton/handoff.md](newton/handoff.md) |
+| Newton dated analysis | [newton/running-analysis.md](newton/running-analysis.md) |
+| Newton full experiment record | [newton/experiment-consolidated-20261008.md](newton/experiment-consolidated-20261008.md) |
+| Static 35 mm proxy qualification | [newton/static-proxy-qualification-20261009.md](newton/static-proxy-qualification-20261009.md) |
+| Bounded coarse-prior admission | [newton/coarse-prior-admission-20261016.md](newton/coarse-prior-admission-20261016.md) |
+| Fresh hierarchical Phase 0 | [newton/fresh-hierarchical-phase0-20261017.md](newton/fresh-hierarchical-phase0-20261017.md) |
+| Newton fixed numerical domain | [newton/fixed-domain.md](newton/fixed-domain.md) |
+| Newton A0-A10 evidence | [newton/historical-evidence-20261004.md](newton/historical-evidence-20261004.md) |
+| Chrono target definition | [chrono-oracle-run-contract.md](chrono-oracle-run-contract.md) |
+| Chrono oracle qualification | [chrono-oracle-diagnostics.md](chrono-oracle-diagnostics.md) |
+| Genesis numerical blocker | [experiment_problems.md](experiment_problems.md) |
+| Chrono-only surrogate | [chrono-characteristic-surrogate-20261003.md](chrono-characteristic-surrogate-20261003.md) |
+| Diagnostics inventory | [../diagnostics/README.md](../diagnostics/README.md) |
+| Simulation, NVS, and planning | [tera_splat_sim documentation](../../tera_splat_sim/docs/README.md) |
+| RGB-D and Gaussian capture | [splat RGB-D capture](../../tera_splat_sim/docs/splat-rgbd-capture.md) |
+| Planner outputs | [planning and outputs](../../tera_splat_sim/docs/planning-and-outputs.md) |
 
-The raw visualization replay is not a replacement confirmation: aggregate
-metrics and p99 map agreement were stable, but four residual cells exceeded
-the frozen three-cell sparse projection-bin allowance. The authoritative
-confirmation remains `r2at0vvb`.
+## Current decision snapshot
 
-## Environment
+- No pre-2026-10-17 Chrono episode, particle bed, MPM preparation, or response
+  is admissible for the current Phase 0 dataset or model score.
+- The fresh matrix is at 1/15 complete and usable cases. The separate
+  centered-31 N duplicate sentinel is qualification evidence rather than
+  training data. It found exact
+  Chrono/bed output and small, compatible Newton variation, so matrix expansion
+  is permitted. Exact equality remains diagnostic, not a requirement.
+- The first progressive rung is the five-position 31 N slice with a 3/1/1
+  whole-position train/validation/test split. Canonical `center_f031n` is
+  complete and passes all local positive-skill checks; the rung is 1/5.
+- The current hard gates are provenance and numerical integrity.
+  Contact overlap is classified as an artifact unless it is gross; local
+  geometric skill in the footprint and twice-radius region is the primary
+  physics-utility gate.
 
-Use the existing environment for Genesis instrumentation:
+- Chrono SCM supplies accepted surface maps and support outcomes. It is
+  reproducible synthetic ground truth, not real-sand measurement.
+- Broad parameter-only tuning of the current Newton model form is stopped.
+  Newton is retained as a bounded mechanics prior.
+- The first learned model is an offline, post-rollout displacement residual.
+  It is supervised through Chrono-observable surfaces and renders.
+- Corrected particle position is the primary output. Local orientation and
+  Gaussian covariance come from a compatible deformation gradient, not an
+  independent particle quaternion.
+- MPM material parameters are fit once across training actions and frozen for
+  held-out position and load evaluation.
+- Stress, deformation, plastic, and velocity-gradient features are ablated as
+  privileged MPM inputs; they are not treated as real-world observations.
+- Historical 35 mm runs failed strict zero penetration and were not declared
+  converged. In the fresh campaign, overlap is measured and classified; only
+  gross interaction failure blocks geometric-utility evaluation.
+- The old centered-load and bounded-gate results are quarantined historical
+  diagnostics. They do not admit or exclude any load in the fresh 15-action
+  campaign.
+- Gaussian transfer updates terrain means, covariance, and orientation without
+  retraining the scene.
+- Initial planning is offline and open loop. Candidate contacts are independent
+  counterfactuals from the same initial terrain.
 
-`conda env: chrono_splat`
+## Evidence snapshot
 
-Use the separately pinned Newton environment for the Newton runner:
+### Chrono
 
-`/data/christoa/conda/envs/newton_splat`
+- Active A0 oracle: A0_oracle_guided_offset_5mm_gate6mm_v1.
+- Map spacing: 5 mm.
+- Fixed valid support: 14,161 cells.
+- Loaded time: 3.595 s for A0.
+- Residual observation: 0.25 s after removal.
 
-CUDA Genesis runs require a shell where the host GPU is visible. Generated
-calibration outputs belong under
-`/data/christoa/Chrono/tera_splat/outputs`, not the home-workspace quota.
+### Genesis
+
+- Accepted bed: 307,461 particles at 5 mm on n128.
+- Confirmed incumbent: E=20.433 kPa, friction angle=14.727 degrees,
+  Poisson ratio=0.101895.
+- Loaded RMSE: 1.864 mm.
+- Residual-footprint RMSE: 13.678 mm.
+- Residual recovery remains too high and response convergence is unresolved.
+
+### Newton
+
+- Qualified domain: 7.8125 mm, PIC/PIC, P0/S2/Q1, public stock contact,
+  0.25 ms, 8 proxy iterations, and 16 rigid substeps.
+- A0 incumbent: E=70.46 kPa, Poisson ratio=0.237231507, friction
+  coefficient=0.305497980.
+- A0 objective improved from 12.698 to 8.823 mm and replayed at 8.815 mm.
+- The incumbent is invalid at tested 1.75-3.0 kg actions and 55/65 mm radii.
+- Valid A9/A10 responses still have approximately 10-15 mm peak error and
+  171-179 cm3 displaced-volume error.
+- The 35 mm, 31 N center sentinel is not mechanics-qualified at 0.25 ms:
+  eight transient particle centers penetrated by at most 3.759 micrometers.
+- Bounded policy v2 admits that action and the centered 46 N action for
+  residual-pilot data only; it does not change their strict status.
+- The 61 N boundary passes depth/fraction limits but fails loaded-state
+  clearance and is retained only as out-of-domain evidence.
+
+The supported conclusion is local, mechanics-gated sim-to-sim improvement.
+General terrain prediction, real material identification, Gaussian-transfer
+accuracy, and planner benefit are not yet demonstrated.
 
 ## Repository boundaries
 
-```text
-EDGS input:       ../EDGS/output/point_cloud/iteration_7000/point_cloud.ply
-PhysGaussian ref: ../PhysGaussian/
-RealSense source: ../lamp/ros2_ws/src/realsense_splat/
-Chrono oracle:   ../tera_splat_sim/
-```
+| Repository or directory | Ownership |
+| --- | --- |
+| tera_splat | MPM preparation, response, scoring, residual-model direction, and joined evidence |
+| tera_splat_sim | Chrono episode generation, robot proxy, RGB-D capture, Gaussian inputs, and planner prototype |
+| diagnostics | Lightweight reviewable evidence and summaries |
+| outputs on the data volume | Large states, maps, point clouds, videos, and study artifacts |
+| PhysGaussian sibling repository | Reference MPM-to-Gaussian implementation |
 
-`tera_splat` owns forward-model preparation, calibration interpretation,
-response scoring, W&B studies, and handoff documentation. The present
-implementation keeps backend state and evidence separate. `tera_splat_sim`
-owns Chrono oracle generation and qualification artifacts.
+Chrono and MPM start independently from the same initial terrain. Never apply
+the same action again to a Chrono-deformed surface and call it a paired MPM
+response.
 
-## Current entry points
+## Environments
 
-```bash
-conda run -n chrono_splat python scripts/build_chrono_settled_bed.py --help
-conda run -n chrono_splat python scripts/run_chrono_genesis_bridge.py --help
-conda run -n chrono_splat python scripts/run_chrono_genesis_bayesopt.py --help
-conda run -n chrono_splat python scripts/run_mass_controlled_terrain.py --help
-conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_comparison.py --help
-conda run -n chrono_splat python scripts/diagnose_chrono_genesis_model_form.py --help
-/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_prepared_bed.py --help
-/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_preparation_convergence.py --help
-/data/christoa/conda/envs/newton_splat/bin/python scripts/run_newton_cylinder_diagnostic.py --help
-/data/christoa/conda/envs/newton_splat/bin/python scripts/analyze_newton_response_convergence.py --help
-```
+Genesis instrumentation:
 
-Do not launch a new study until its target, prepared bed, resolution, seed
-policy, and gates match the active run contract.
+    conda environment: chrono_splat
+
+Newton tooling:
+
+    /data/christoa/conda/envs/newton_splat
+
+Generated calibration artifacts belong under:
+
+    /data/christoa/Chrono/tera_splat/outputs
+
+## Main entry points
+
+Chrono/Genesis:
+
+    scripts/build_chrono_settled_bed.py
+    scripts/run_chrono_genesis_bridge.py
+    scripts/run_chrono_genesis_bayesopt.py
+    scripts/run_mass_controlled_terrain.py
+    scripts/render_chrono_genesis_pointcloud_dem_comparison.py
+    scripts/diagnose_chrono_genesis_model_form.py
+
+Newton:
+
+    scripts/run_newton_prepared_bed.py
+    scripts/run_newton_cylinder_diagnostic.py
+    scripts/analyze_newton_preparation_convergence.py
+    scripts/analyze_newton_response_convergence.py
+    scripts/analyze_forward_model_transfer_v3.py
+
+Do not launch a study until its oracle, initial bed, geometry, action timing,
+resolution, seed policy, mechanics gates, split, and acceptance metrics are
+frozen.
+
+## Documentation maintenance
+
+- Update [current-state.md](current-state.md) when the repository-wide
+  conclusion, incumbent, blocker, or next experiment changes.
+- Update [newton/handoff.md](newton/handoff.md) when the active Newton contract
+  or next permitted work changes.
+- Append dated Newton decisions to
+  [newton/running-analysis.md](newton/running-analysis.md).
+- Put detailed new Newton reports under [newton](newton/).
+- Keep dated reports as provenance; link forward instead of rewriting history.
+- Keep [archive](archive/) immutable except for its index.
+- Synchronize Chrono-facing changes with the companion
+  [tera_splat_sim docs](../../tera_splat_sim/docs/README.md).

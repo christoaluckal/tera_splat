@@ -1,6 +1,7 @@
 # Newton handoff addendum — A5 spatial transfer (2026-10-02)
 
-This addendum supplements `newton-handoff.md` with the completed A5 spatial
+This dated report supplements the original
+[2026-09-28 handoff](handoff-20260928.md) with the completed A5 spatial
 holdout. The Chrono oracle used the frozen 1.625 kg guided cylinder at
 `(x=+0.05 m, y=0.0 m)`; all geometry, soil, guide, grid, and numerical
 settings were unchanged from the A0–A4 family.

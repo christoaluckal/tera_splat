@@ -1,11 +1,13 @@
 # Newton handoff update — 2026-10-04
 
-The original [Newton handoff](newton-handoff.md) is a correct record through
+Status: dated provenance; superseded by the [current handoff](handoff.md).
+
+The original [Newton handoff](handoff-20260928.md) is a correct record through
 2026-09-28 but predates A2-A9. It must be read with the following current
 documents:
 
-1. [Forward-model current state](forward-model-current-state-20261004.md)
-2. [Chrono-to-Newton historical evidence](historical-forward-model-evidence-20261004.md)
+1. [Forward-model current state](current-state-20261004.md)
+2. [Chrono-to-Newton historical evidence](historical-evidence-20261004.md)
 
 The ledger is authoritative for frozen parameters, exact action timings,
 mechanics-validity boundaries, scalar metrics, characteristic analysis, source
@@ -33,10 +35,10 @@ This supports stopping broad parameter-only Newton search for the current
 model form, while retaining the bounded claim that numerical or objective-level
 improvement is not mathematically excluded. Genesis remains numerically
 unresolved and is not declared exhausted. See
-[forward-model direction](forward-model-direction-20261006.md) and
+[forward-model direction](../forward-model-direction-20261006.md) and
 `diagnostics/forward_model_stopgo_20261006_A10/`.
 
 The complete Newton experiment inventory and consolidated interpretation is now
-in [newton experiment report](newton-experiment-consolidated-20261008.md).
+in [newton experiment report](experiment-consolidated-20261008.md).
 Use it as the index for numerical diagnostics, calibration, action holdouts,
 and stop/go evidence; retain the dated reports as provenance.
