@@ -1,6 +1,6 @@
 # Newton documentation index
 
-Last updated: 2026-10-19
+Last updated: 2026-10-22
 
 This directory contains the Newton-specific numerical contracts, experiment
 reports, transfer evidence, and handoff material for the Chrono-to-MPM terrain
@@ -8,34 +8,37 @@ forward-model study.
 
 ## Read in this order
 
-1. [Authoritative Phase 0](phase0.md) — live action ledger, ordered next work,
-   current claims, chronological evidence, and artifact routing.
-2. [Fresh hierarchical Phase 0 protocol](fresh-hierarchical-phase0-20261017.md)
+1. [Active Phase 1 goal](phase1.md) — sole operational goal and exit contract
+   for parameter-conditioned neural bed-state prediction.
+2. [Completed Phase 0](phase0.md) — frozen action ledger, claims, evidence, and
+   artifact routing for the completed residual proof.
+3. [Fresh hierarchical Phase 0 protocol](fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only evidence boundary, variation characterization, and
    geometric-utility hierarchy.
-3. [Running analysis through 2026-10-19](running-analysis.md) — detailed
+4. [Running analysis through 2026-10-19](running-analysis.md) — detailed
    pre-consolidation decision provenance; new entries belong in `phase0.md`.
-4. [Static 35 mm proxy qualification](static-proxy-qualification-20261009.md)
+5. [Static 35 mm proxy qualification](static-proxy-qualification-20261009.md)
    — original strict Phase 0 sentinel result and expansion stop gate.
-5. [Bounded coarse-prior admission](coarse-prior-admission-20261016.md) —
+6. [Bounded coarse-prior admission](coarse-prior-admission-20261016.md) —
    strict/coarse status split, frozen v2 limits, and pilot restart.
-6. [Consolidated experiment report](experiment-consolidated-20261008.md) —
+7. [Consolidated experiment report](experiment-consolidated-20261008.md) —
    canonical interpretation of preparation, contact, calibration, transfer,
    and stop/go results.
-7. [Fixed-domain contract](fixed-domain.md) — qualified historical numerical and mechanics
+8. [Fixed-domain contract](fixed-domain.md) — qualified historical numerical and mechanics
    configuration.
-8. [Hybrid model design](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+9. [Hybrid model design](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — current destination for the Newton physics prior.
 
-`phase0.md` is the only operational source for current completion counts,
-sequencing, and next work. All other files are frozen protocols, compatibility
-pointers, or dated provenance and must not silently replace it.
+`phase1.md` owns all new Phase 1 work. `phase0.md` remains the sole authority
+for its completed campaign; all other files are frozen protocols,
+compatibility pointers, or dated provenance.
 
 ## Canonical reports
 
 | Date | Document | Purpose |
 | --- | --- | --- |
-| live | [Authoritative Phase 0](phase0.md) | Current ledger, chronology, next work, and claims |
+| live | [Active Phase 1 goal](phase1.md) | Current neural state-prediction goal, scope, work, and exit gates |
+| 2026-10-22 | [Completed Phase 0](phase0.md) | Frozen ledger, chronology, result, and claims |
 | 2026-09-21 | [Fixed-domain contract](fixed-domain.md) | Public stock-contact Newton domain and local material study |
 | 2026-09-28 | [Original handoff](handoff-20260928.md) | State before A2-A10; retained for provenance |
 | 2026-10-02 | [Forward-model card](forward-model-card-20261002.md) | Inputs, outputs, established claims, and exclusions |

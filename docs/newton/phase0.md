@@ -144,6 +144,10 @@ Required Phase 0 execution is complete. Do not regenerate the 10 completed
 matrix cases or retrain v1 or v2. Preserve the model hashes, pre-holdout fit
 records, held-out evaluations, corrected states, and source/artifact hashes.
 
+The active next-phase goal and sole Phase 1 exit contract is
+[phase1.md](phase1.md). It defines bounded, parameter-conditioned neural
+bed-state prediction and supersedes older roadmap phase numbering for new work.
+
 ### Optional 61 N robustness decision
 
 The 61 N rung remains protected and absent. Execute it only under a new,
@@ -481,6 +485,7 @@ Newton history is indexed by
 | Need | Source |
 | --- | --- |
 | live status, next work, chronology, claims | this file |
+| active Phase 1 goal and exit contract | [phase1.md](phase1.md) |
 | frozen fresh campaign design | [fresh-hierarchical-phase0-20261017.md](fresh-hierarchical-phase0-20261017.md) |
 | live matrix completion | `.../matrix/matrix_summary.json` |
 | sentinel variation | `.../repeatability/repeatability_summary.json` |

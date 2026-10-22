@@ -1,6 +1,6 @@
 # Tera Splat documentation
 
-Last updated: 2026-10-19
+Last updated: 2026-10-22
 
 Tera Splat studies a planning-oriented hybrid terrain model:
 
@@ -17,22 +17,24 @@ differentiable backend.
 
 ## Start here
 
-1. [Authoritative Phase 0](newton/phase0.md) — live action ledger, ordered next
-   work, chronological evidence, and current claim boundary.
-2. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+1. [Active Phase 1 goal](newton/phase1.md) — sole goal and exit contract for
+   bounded, parameter-conditioned neural bed-state prediction.
+2. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
+   claim boundary for the completed 241-parameter residual proof.
+3. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — complete proposed architecture, backend decision, data split, losses,
    latent-state ablations, Gaussian transfer, and planner validation.
-3. [Current repository state](current-state.md) — cross-backend context for
+4. [Current repository state](current-state.md) — cross-backend context for
    Chrono, Genesis, Newton, artifacts, and execution constraints.
-4. [Newton documentation index](newton/README.md) — all Newton contracts,
+5. [Newton documentation index](newton/README.md) — all Newton contracts,
    reports, boundaries, and dated provenance.
-5. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+6. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only variation-characterization and geometric-utility protocol.
-6. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+7. [Cross-backend direction](forward-model-direction-20261006.md) — why the
    project moved from parameter-only fitting to a hybrid residual model.
-7. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+8. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
    timing, support, preparation, and scoring rules.
-8. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+9. [Contributor guidance](contributor-guidance.md) — repository, editing, and
    evidence-maintenance rules.
 
 Files in [archive](archive/) are historical provenance. They are not current
@@ -42,6 +44,7 @@ instructions.
 
 | Topic | Entry point |
 | --- | --- |
+| Active Phase 1 goal | [newton/phase1.md](newton/phase1.md) |
 | Current Phase 0 status | [newton/phase0.md](newton/phase0.md) |
 | Cross-backend context | [current-state.md](current-state.md) |
 | Hybrid architecture | [hybrid-chrono-mpm-residual-gaussian-planning-20261008.md](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md) |
@@ -64,13 +67,12 @@ instructions.
 
 ## Current decision snapshot
 
-- [Authoritative Phase 0](newton/phase0.md) owns all live counts, next steps,
-  sequencing locks, and new chronological evidence. Do not copy those values
-  into this index.
+- [Phase 1](newton/phase1.md) owns all new model, data, scope, and exit
+  decisions. Phase 0 remains frozen evidence and must not be rerun or re-fit.
 - No pre-2026-10-17 Chrono episode, particle bed, MPM preparation, or response
   is admissible for the current Phase 0 dataset or model score.
-- The 31 N single-load spatial residual rung is complete. Multi-load v2 remains
-  the active rung; consult `phase0.md` before launching any case or fit.
+- The 31 N and 46 N Phase 0 rungs and frozen v2 exit are complete. The active
+  work is the parameter-conditioned neural bed-state model in `phase1.md`.
 - The current hard gates are provenance and numerical integrity.
   Contact overlap is classified as an artifact unless it is gross; local
   geometric skill in the footprint and twice-radius region is the primary
@@ -80,16 +82,18 @@ instructions.
   reproducible synthetic ground truth, not real-sand measurement.
 - Broad parameter-only tuning of the current Newton model form is stopped.
   Newton is retained as a bounded mechanics prior.
-- The first learned model is an offline, post-rollout displacement residual.
-  It is supervised through Chrono-observable surfaces and renders.
+- The completed Phase 0 model is an offline, post-rollout displacement
+  residual. Phase 1 replaces its independent-cell MLP with a modest spatial
+  U-Net conditioned on action and synthetic soil parameters.
 - Corrected particle position is the primary output. Local orientation and
   Gaussian covariance come from a compatible deformation gradient, not an
   independent particle quaternion.
-- MPM material parameters are fit once across training actions and frozen for
-  held-out position and load evaluation.
-- Stress, deformation, plastic, and velocity-gradient features remain planned
-  privileged-input ablations. The current export placeholders are not used as
-  evidence against those features.
+- Newton material and numerics remain frozen for the Phase 1 experiment.
+  Chrono `bekker_kphi` and friction vary inside a prospectively qualified box
+  and enter the residual as known conditioning values.
+- Stress, deformation, plastic, and velocity-gradient features may enter only
+  after an informative export passes the Phase 1 semantic checks. The current
+  placeholders are not evidence against those features.
 - Historical 35 mm runs failed strict zero penetration and were not declared
   converged. In the fresh campaign, overlap is measured and classified; only
   gross interaction failure blocks geometric-utility evaluation.

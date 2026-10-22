@@ -233,6 +233,24 @@ Not supported:
 - dynamically consistent corrected stress or constitutive state;
 - Gaussian novel-view improvement or planner benefit.
 
+## Isometric surface-PCD views
+
+`scripts/render_phase0_pcd_isometric.py` renders matched surface point clouds
+for the untouched 46 N holdouts. Chrono provides a surface height map rather
+than a volumetric particle dump, so these figures compare like-for-like surface
+PCDs: Chrono truth, raw Newton's projected particle surface, and the Hybrid's
+projected corrected-particle surface.
+
+Every panel uses the same valid cells, 240 mm action-centered crop, z bounds,
+and -50 to +5 mm displacement color scale. Color encodes vertical displacement
+from each method's own initial surface; geometry uses a shared world-frame
+local datum. The dashed circle marks the 35 mm foot radius.
+
+| Held-out case | Northeast view | Southwest view |
+| --- | --- | --- |
+| +y validation, 46 N | [PNG](figures/phase0_pcd_isometric/yplus100_f046n_isometric_ne.png) | [PNG](figures/phase0_pcd_isometric/yplus100_f046n_isometric_sw.png) |
+| -y test, 46 N | [PNG](figures/phase0_pcd_isometric/yminus100_f046n_isometric_ne.png) | [PNG](figures/phase0_pcd_isometric/yminus100_f046n_isometric_sw.png) |
+
 ## Canonical artifacts
 
 All paths below are rooted at:
