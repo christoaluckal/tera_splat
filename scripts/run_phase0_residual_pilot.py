@@ -452,6 +452,109 @@ def write_corrected_state(
     )
 
 
+def _numeric_array_is_finite(array: np.ndarray) -> bool:
+    return array.dtype.kind not in "biufc" or bool(np.all(np.isfinite(array)))
+
+
+def audit_corrected_state(
+    source_path: Path,
+    corrected_path: Path,
+    stored_surface_path: Path,
+    manifest: dict[str, Any],
+    max_fill_distance_m: float,
+) -> dict[str, Any]:
+    """Prove the corrected state preserves the declared particle invariants."""
+
+    with np.load(source_path, allow_pickle=False) as source, np.load(
+        corrected_path, allow_pickle=False
+    ) as corrected:
+        source_positions = source["position_m"]
+        corrected_positions = corrected["position_m"]
+        correction = corrected["position_correction_m"]
+        preserved_names = sorted(
+            name
+            for name in source.files
+            if name not in {"schema_version", "backend", "position_m"}
+        )
+        expected_z = (
+            source_positions[:, 2].astype(np.float64)
+            + correction[:, 2].astype(np.float64)
+        ).astype(corrected_positions.dtype)
+        z_reconstruction_error = np.abs(
+            corrected_positions[:, 2].astype(np.float64)
+            - expected_z.astype(np.float64)
+        )
+        z_reconstruction_tolerance = (
+            4.0
+            * np.finfo(corrected_positions.dtype).eps
+            * np.maximum(np.abs(source_positions[:, 2]), np.abs(correction[:, 2]))
+        )
+        checks = {
+            "particle_count_preserved": corrected_positions.shape == source_positions.shape,
+            "all_source_numeric_arrays_finite": all(
+                _numeric_array_is_finite(source[name]) for name in source.files
+            ),
+            "all_corrected_numeric_arrays_finite": all(
+                _numeric_array_is_finite(corrected[name]) for name in corrected.files
+            ),
+            "xy_preserved_exactly": bool(
+                np.array_equal(corrected_positions[:, :2], source_positions[:, :2])
+            ),
+            "z_matches_stored_correction_within_float32_precision": bool(
+                np.all(z_reconstruction_error <= z_reconstruction_tolerance)
+            ),
+            "correction_xy_zero_exactly": bool(np.count_nonzero(correction[:, :2]) == 0),
+            "velocity_preserved_exactly": (
+                "velocity_mps" in source.files
+                and "velocity_mps" in corrected.files
+                and bool(np.array_equal(corrected["velocity_mps"], source["velocity_mps"]))
+            ),
+            "all_non_position_particle_state_preserved_exactly": all(
+                name in corrected.files and bool(np.array_equal(corrected[name], source[name]))
+                for name in preserved_names
+            ),
+            "backend_declares_learned_residual": (
+                str(corrected["backend"].item()) == "newton_plus_learned_residual"
+            ),
+            "residual_model_id_matches": (
+                str(corrected["residual_model_id"].item()) == MODEL_ID
+            ),
+        }
+        source_particle_count = int(source_positions.shape[0])
+        corrected_particle_count = int(corrected_positions.shape[0])
+        reprojected, supported = project_surface(
+            corrected_positions, manifest, max_fill_distance_m
+        )
+
+    reprojected[~supported] = np.nan
+    stored_surface = np.load(stored_surface_path, allow_pickle=False)
+    reprojected_stored_precision = reprojected.astype(stored_surface.dtype)
+    comparable = np.isfinite(reprojected) & np.isfinite(stored_surface)
+    reprojection_max_abs_m = (
+        float(np.max(np.abs(reprojected[comparable] - stored_surface[comparable])))
+        if np.any(comparable)
+        else None
+    )
+    checks["corrected_state_reproduces_stored_surface"] = bool(
+        np.array_equal(reprojected_stored_precision, stored_surface, equal_nan=True)
+    )
+    return {
+        "source_state_sha256": sha256(source_path),
+        "corrected_state_sha256": sha256(corrected_path),
+        "stored_surface_sha256": sha256(stored_surface_path),
+        "source_particle_count": source_particle_count,
+        "corrected_particle_count": corrected_particle_count,
+        "preserved_state_array_names": preserved_names,
+        "reprojection_max_abs_m": reprojection_max_abs_m,
+        "z_reconstruction_max_abs_m": float(np.max(z_reconstruction_error)),
+        "z_reconstruction_max_tolerance_m": float(
+            np.max(z_reconstruction_tolerance)
+        ),
+        "checks": checks,
+        "all_checks_pass": all(checks.values()),
+    }
+
+
 def phase_metrics(fields: dict[str, Any], prediction: np.ndarray) -> dict[str, Any]:
     radius_mask = {
         "footprint": fields["radial"] <= 1.0 + 1.0e-12,
@@ -485,10 +588,32 @@ def evaluate_case(
 ) -> dict[str, Any]:
     case_output = output_dir / "cases" / case_id
     case_output.mkdir(parents=True, exist_ok=True)
+    case_summary_path = matrix_root / "cases" / case_id / "case_summary.json"
+    case_summary = require_case(matrix_root, case_id)
     result: dict[str, Any] = {
         "case_id": case_id,
         "split": split_for_case(plan, case_id),
         "model_fitted_on_case": split_for_case(plan, case_id) == "train",
+        "source_case_summary_sha256": sha256(case_summary_path),
+        "admission_snapshot": {
+            name: case_summary[name]
+            for name in (
+                "complete",
+                "pipeline_usable",
+                "strict_mechanics_qualified",
+                "contact_artifact",
+                "numerical_checks",
+                "interaction_artifact_checks",
+                "interaction_observed",
+                "geometric_checks",
+                "geometric_gate_passed",
+            )
+        },
+        "error_view_contract": {
+            "raw": ["rmse_m", "max_abs_m", "signed_mean_m"],
+            "robust": ["mae_m", "p95_abs_m"],
+            "all_views_untrimmed": True,
+        },
         "phases": {},
     }
     for phase in PHASES:
@@ -511,18 +636,27 @@ def evaluate_case(
             corrected_positions, fields["manifest"], 1.51 * fields["spacing"]
         )
         particle_map[~particle_supported] = np.nan
-        np.save(case_output / f"predicted_correction_{phase}_m.npy", correction.astype(np.float32))
-        np.save(case_output / f"field_corrected_{phase}_heightmap_m.npy", field_corrected.astype(np.float32))
-        np.save(case_output / f"particle_corrected_{phase}_heightmap_m.npy", particle_map.astype(np.float32))
+        correction_path = case_output / f"predicted_correction_{phase}_m.npy"
+        field_surface_path = case_output / f"field_corrected_{phase}_heightmap_m.npy"
+        particle_surface_path = case_output / f"particle_corrected_{phase}_heightmap_m.npy"
+        corrected_state_path = case_output / f"corrected_state_{phase}.npz"
+        corrected_ply_path = case_output / f"particles_corrected_{phase}_mpm.ply"
+        np.save(correction_path, correction.astype(np.float32))
+        np.save(field_surface_path, field_corrected.astype(np.float32))
+        np.save(particle_surface_path, particle_map.astype(np.float32))
         write_corrected_state(
             state_path,
-            case_output / f"corrected_state_{phase}.npz",
+            corrected_state_path,
             corrected_positions,
             displacement_z,
         )
-        write_particle_ply(
-            corrected_positions,
-            case_output / f"particles_corrected_{phase}_mpm.ply",
+        write_particle_ply(corrected_positions, corrected_ply_path)
+        state_audit = audit_corrected_state(
+            state_path,
+            corrected_state_path,
+            particle_surface_path,
+            fields["manifest"],
+            1.51 * fields["spacing"],
         )
         raw_metrics = phase_metrics(fields, fields["prior"])
         field_metrics = phase_metrics(fields, field_corrected)
@@ -544,11 +678,23 @@ def evaluate_case(
             "checks": checks,
             "particle_count": int(corrected_positions.shape[0]),
             "max_abs_particle_displacement_m": float(np.max(np.abs(displacement_z))),
+            "particle_state_audit": state_audit,
+            "artifact_sha256": {
+                "predicted_correction": sha256(correction_path),
+                "field_corrected_surface": sha256(field_surface_path),
+                "particle_corrected_surface": sha256(particle_surface_path),
+                "corrected_state": sha256(corrected_state_path),
+                "corrected_particles_ply": sha256(corrected_ply_path),
+            },
         }
     result["all_local_checks_pass"] = all(
         checks["improves_raw_newton"] and checks["improves_no_deformation"]
         for phase in result["phases"].values()
         for checks in phase["checks"].values()
+    )
+    result["corrected_particle_preservation_pass"] = all(
+        phase["particle_state_audit"]["all_checks_pass"]
+        for phase in result["phases"].values()
     )
     write_json(case_output / "evaluation_summary.json", result)
     return result

@@ -4,6 +4,10 @@ Date: 2026-10-08
 Status: proposed implementation and validation contract  
 Code changes: none are implied by this document
 
+For the live Phase 0 ledger, sequencing locks, chronological evidence, and
+current claims, use [newton/phase0.md](newton/phase0.md). The dated execution
+snapshots in this design are retained only as provenance.
+
 ## Goal
 
 Build an offline, open-loop terrain what-if model with the following roles:
@@ -35,7 +39,7 @@ The intended system is:
 This extends the repository direction in
 [forward-model-direction-20261006.md](forward-model-direction-20261006.md)
 and uses the bounded Newton conclusion in
-[newton/handoff.md](newton/handoff.md).
+[newton/phase0.md](newton/phase0.md).
 
 ## Resolved design decisions
 
@@ -622,7 +626,7 @@ GT, identical H0, a fixed-0.25 ms Newton state that passes the frozen bounded
 gate, and a whole-episode prospective split. This permits only the offline
 residual experiment; strict mechanics and convergence remain failed claims.
 
-Current status, 2026-10-16: the centered 31 N and 46 N training actions pass
+Execution snapshot, 2026-10-16: the centered 31 N and 46 N training actions pass
 bounded policy v2 and fail strict zero penetration. The policy is frozen at
 10 micrometers transient depth and 0.02% affected particles before the 61 N
 and spatial cases. The centered 61 N boundary subsequently failed loaded-state
@@ -726,6 +730,6 @@ It does not establish:
 - [Repository current state](current-state.md)
 - [Chrono oracle contract](chrono-oracle-run-contract.md)
 - [Newton documentation](newton/README.md)
-- [Newton current handoff](newton/handoff.md)
+- [Authoritative Newton Phase 0](newton/phase0.md)
 - [Cross-backend direction](forward-model-direction-20261006.md)
 - [Companion simulation documentation](../../tera_splat_sim/docs/README.md)

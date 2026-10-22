@@ -1,6 +1,6 @@
 # Phase 0: fresh Chrono-to-Newton residual campaign
 
-Last updated: 2026-10-21
+Last updated: 2026-10-22
 Status: Phase 0 exit demonstrated; sole operational authority for Phase 0
 
 ## Comprehensive goal
@@ -90,21 +90,25 @@ held-out local terrain geometry across position and load.
 
 Current state:
 
-- fresh matrix: **7/15 Chrono complete and 7/15 usable Newton**;
+- fresh matrix: **10/15 Chrono complete and 10/15 usable Newton**;
 - 31 N spatial rung: **5/5 complete**;
-- 46 N rung: **2/5 complete**;
+- 46 N rung: **5/5 complete**;
 - 61 N rung: **0/5 complete and protected**;
 - same-build sentinel: complete and retained as variation evidence, not a
   duplicate training row;
 - v1 single-load residual: fitted once, frozen, and successful on untouched
   +y validation and -y test actions;
-- v2 multi-load residual: implementation contract frozen, but fitting remains
-  locked until `xminus100_f046n` completes;
+- v2 multi-load residual: fitted exactly once on the six 31/46 N training
+  actions before either 46 N y holdout existed, frozen, and successful on the
+  untouched +y validation and -y test actions;
+- Phase 0 residual exit: demonstrated, with all local held-out comparisons and
+  all corrected-particle preservation checks passing;
 - strict 35 mm mechanics qualification: not claimed;
 - Gaussian update and planner benefit: not yet tested.
 
-The next action is only `xminus100_f046n`. Do not rerun completed cases and do
-not generate either 46 N y holdout before v2 is fitted and frozen.
+All required Phase 0 work is complete. Preserve the completed cases, frozen v1
+and v2 models, and evaluation artifacts; do not rerun cases or refit either
+model. Decide separately whether to execute the optional 61 N robustness rung.
 
 ## Live action ledger
 
@@ -121,9 +125,9 @@ All matrix rows belong to
 | 31 N | `yminus100_f031n` | test | complete, usable | frozen-v1 evaluation |
 | 46 N | `center_f046n` | train | complete, usable | v2 training |
 | 46 N | `xplus100_f046n` | train | complete, usable | v2 training |
-| 46 N | `xminus100_f046n` | train | **next to run** | v2 training after completion |
-| 46 N | `yplus100_f046n` | validation | locked, absent | generate only after v2 freeze |
-| 46 N | `yminus100_f046n` | test | locked, absent | generate only after v2 freeze |
+| 46 N | `xminus100_f046n` | train | complete, usable | frozen-v2 training |
+| 46 N | `yplus100_f046n` | validation | complete, usable | frozen-v2 evaluation |
+| 46 N | `yminus100_f046n` | test | complete, usable | frozen-v2 evaluation |
 | 61 N | `center_f061n` | train | protected, absent | later robustness decision |
 | 61 N | `xplus100_f061n` | train | protected, absent | later robustness decision |
 | 61 N | `xminus100_f061n` | train | protected, absent | later robustness decision |
@@ -136,54 +140,22 @@ Canonical live ledger:
 
 ## Exact next work
 
-Run these steps in order.
+Required Phase 0 execution is complete. Do not regenerate the 10 completed
+matrix cases or retrain v1 or v2. Preserve the model hashes, pre-holdout fit
+records, held-out evaluations, corrected states, and source/artifact hashes.
 
-### 1. Complete the final 46 N training action
+### Optional 61 N robustness decision
 
-```bash
-/data/christoa/conda/envs/newton_splat/bin/python \
-  scripts/run_fresh_phase0_matrix.py --stage all --case xminus100_f046n
-```
+The 61 N rung remains protected and absent. Execute it only under a new,
+explicit robustness decision that preserves the unchanged v2 model and keeps
+the 61 N result outside the already-complete two-load exit. Do not use 61 N
+validation or test evidence to alter the frozen Phase 0 model.
 
-Stop if the case is incomplete, Chrono-unaccepted, non-finite,
-environment-incompatible, structurally incompatible, or fails the frozen
-fresh campaign's gross-interaction guard. Record smaller contact artifacts and
-variation; do not silently remove them.
+### Later exits
 
-### 2. Fit and freeze v2 exactly once
-
-Before either 46 N y-holdout or any 61 N case exists:
-
-```bash
-/data/christoa/conda/envs/newton_splat/bin/python \
-  scripts/run_phase0_multiload_residual_pilot.py --stage train
-```
-
-The fit must use only center/plus-x/minus-x actions at 31 N and 46 N. Preserve
-the existing v1 model and its artifacts unchanged.
-
-### 3. Generate untouched 46 N holdouts
-
-After the v2 training record and model hash exist, generate fresh
-`yplus100_f046n` and `yminus100_f046n` cases with the matrix runner.
-
-### 4. Evaluate the unchanged v2 model
-
-```bash
-/data/christoa/conda/envs/newton_splat/bin/python \
-  scripts/run_phase0_multiload_residual_pilot.py --stage evaluate \
-  --case yplus100_f046n --case yminus100_f046n
-```
-
-Audit `multiload_held_out_residual_exit_demonstrated`, corrected-particle
-preservation, model/source hashes, and the footprint and twice-radius results.
-Do not refit from validation or test results.
-
-### 5. Decide separately on 61 N robustness
-
-A passing two-load held-out result completes the smallest credible Phase 0
-demonstration. The 61 N rung is a later robustness decision, not a hidden exit
-requirement and not permission to alter v2 after seeing the two-load holdouts.
+Gaussian updates, novel-view evaluation, and fixed open-loop planner testing
+are separate work. They must consume only admitted Phase 0 states with their
+provenance and uncertainty intact and cannot retroactively change this exit.
 
 ## Frozen campaign contract
 
@@ -292,17 +264,45 @@ the learned field at stored precision. Post-holdout training refuses by
 construction. This demonstrates single-load spatial transfer, not load
 generalization, Gaussian fidelity, or planner benefit.
 
-### Current 46 N training evidence
+### Complete 46 N prior evidence
 
 | Case | Loaded footprint / 2r RMSE | Loaded skill | Post-unload footprint / 2r RMSE | Post-unload skill |
 | --- | ---: | ---: | ---: | ---: |
 | center | 13.340 / 8.226 mm | 0.608 / 0.419 | 10.160 / 6.666 mm | 0.773 / 0.618 |
 | +x | 13.912 / 8.659 mm | 0.580 / 0.370 | 10.275 / 6.337 mm | 0.771 / 0.663 |
+| -x | 14.095 / 8.698 mm | 0.563 / 0.358 | 10.385 / 6.382 mm | 0.763 / 0.654 |
+| +y validation | 13.628 / 7.999 mm | 0.603 / 0.519 | 10.325 / 6.136 mm | 0.772 / 0.717 |
+| -y test | 13.852 / 8.083 mm | 0.584 / 0.492 | 10.252 / 6.078 mm | 0.772 / 0.713 |
 
-Both cases pass numerical integrity and all four local positive-skill checks.
-The +x action records 31 transient inside centers to 9.837 micrometers and
-seven at the loaded observation. It is usable under the frozen fresh gross
-artifact rule and remains explicitly not strictly mechanics-qualified.
+All five cases pass numerical integrity and all four local positive-skill
+checks. Recorded microscopic contact artifacts remain below the frozen gross
+limits; these cases are usable but explicitly not strictly
+mechanics-qualified.
+
+### Frozen v2 multi-load result
+
+V2 trained exactly once on 7,356 samples from the six complete 31/46 N
+center/plus-x/minus-x actions. The training record proves that neither 46 N y
+holdout nor any 61 N action existed at fit time and that no validation or test
+target was used for fitting or selection. Model SHA-256:
+
+`cc31209737d69a059f64627e19d9c9f76b2ba1e36be86f528802470d05b0c23f`
+
+| Holdout | State | Raw footprint / 2r RMSE | Corrected footprint / 2r RMSE |
+| --- | --- | ---: | ---: |
+| +y validation | loaded | 13.628 / 7.999 mm | 1.263 / 1.876 mm |
+| +y validation | post-unload | 10.325 / 6.136 mm | 1.284 / 2.077 mm |
+| -y test | loaded | 13.852 / 8.083 mm | 1.226 / 1.736 mm |
+| -y test | post-unload | 10.252 / 6.078 mm | 1.240 / 1.871 mm |
+
+The unchanged model improves raw Newton and no deformation in both local
+regions and both phases on both holdouts. The evaluation sets
+`multiload_held_out_residual_exit_demonstrated` and
+`all_corrected_particle_preservation_checks_pass` true. Each corrected state
+retains all 307,461 finite particles, preserves x/y, velocity, and all declared
+non-position particle arrays, reconstructs z within float32 precision, and
+reprojects exactly to its stored surface. Model, training record, sources,
+inputs, corrected outputs, and generated artifacts are hash-audited.
 
 ## Residual representation boundary
 
@@ -327,18 +327,20 @@ independent particle orientation label.
 Supported now:
 
 - the fresh Chrono-to-Newton path is provenance-complete and numerically usable
-  on seven actions;
+  on 10 actions spanning all five positions at 31 N and 46 N;
 - the unchanged Newton prior carries positive local geometric signal on those
   actions despite recorded microscopic contact artifacts;
-- one frozen residual improves untouched spatial validation and test actions
-  at 31 N;
-- corrected held-out particle states preserve the required finite state and
-  kinematic invariants.
+- immutable v1 improves untouched spatial validation and test actions at 31 N;
+- v2, frozen before the 46 N y holdouts existed, improves every declared local
+  validation and test comparison at 46 N over both raw Newton and no
+  deformation;
+- corrected held-out particle states, fit locks, uncertainty/error views, and
+  source/input/output provenance are auditable and pass their declared checks.
 
 Not supported now:
 
 - strict 35 mm Newton mechanics qualification or timestep convergence;
-- load-generalizing learned correction;
+- correction outside the tested 31--46 N, 35 mm static-action domain;
 - a valid 61 N action domain;
 - real-sand fidelity or material identification;
 - sequential terrain-state prediction;
@@ -448,6 +450,32 @@ Newton history is indexed by
 - Decision: the ledger is 7/15; run only `xminus100_f046n`, then fit/freeze v2
   before either y holdout.
 
+### 2026-10-19 — Final 46 N training action completed and v2 frozen
+
+- `xminus100_f046n` passed integrity and all four local positive-skill checks,
+  completing the six-action 31/46 N training set.
+- V2 was fit exactly once on 7,356 training samples while both 46 N y holdouts
+  and every 61 N action were absent. No validation or test target was used for
+  fit or selection.
+- The frozen model SHA-256 is
+  `cc31209737d69a059f64627e19d9c9f76b2ba1e36be86f528802470d05b0c23f`.
+- Decision: preserve v1, freeze v2, and expose the untouched 46 N y holdouts
+  without retuning.
+
+### 2026-10-21 — Untouched 46 N validation and test passed
+
+- `yplus100_f046n` and `yminus100_f046n` completed fresh after the v2 fit;
+  both retained positive raw-prior skill and passed every frozen admission
+  gate.
+- The unchanged v2 model improved raw Newton and no deformation for loaded and
+  post-unload surfaces in the footprint and twice-radius regions on both
+  holdouts.
+- Corrected particle preservation, surface reproduction, fit locks, raw and
+  robust error views, and model/source/input/output hashes pass their audits.
+- Decision: set `multiload_held_out_residual_exit_demonstrated` true, record
+  the matrix at 10/15, and declare the required Phase 0 exit complete. Keep the
+  61 N rung optional and protected.
+
 ## Document and artifact routing
 
 | Need | Source |
@@ -458,6 +486,7 @@ Newton history is indexed by
 | sentinel variation | `.../repeatability/repeatability_summary.json` |
 | v1 training/evaluation | `.../matrix/residual_pilot_v1/` |
 | v2 training/evaluation | `.../matrix/residual_pilot_v2_multiload/` |
+| frozen Phase 0 completion report | [phase0-completion-20261022.md](phase0-completion-20261022.md) |
 | cross-backend repository context | [../current-state.md](../current-state.md) |
 | Newton numerical domain | [fixed-domain.md](fixed-domain.md) |
 | historical Newton campaign | [experiment-consolidated-20261008.md](experiment-consolidated-20261008.md) |

@@ -83,6 +83,8 @@ def source_files_for_case(matrix_root: Path, case_id: str) -> list[Path]:
         response_dir / "initial_heightmap_m.npy",
         response_dir / "loaded_heightmap_m.npy",
         response_dir / "residual_heightmap_m.npy",
+        response_dir / "newton_state_loaded.npz",
+        response_dir / "newton_state_residual.npz",
     ]
 
 
@@ -177,6 +179,13 @@ def evaluate(
     model_path = output_dir / "model.npz"
     if not model_path.is_file():
         raise RuntimeError("Train and freeze the multi-load v2 model before evaluation")
+    training_summary_path = output_dir / "training_summary.json"
+    if not training_summary_path.is_file():
+        raise RuntimeError("Missing the pre-holdout v2 training record")
+    training_summary = json.loads(training_summary_path.read_text(encoding="utf-8"))
+    model_sha256 = base.sha256(model_path)
+    if model_sha256 != training_summary["model_sha256"]:
+        raise RuntimeError("Frozen v2 model hash does not match its training record")
     model = base.load_model(model_path)
     allowed = set(plan["rungs"][EVALUATION_RUNG])
     requested = args.case or evaluation_case_ids(plan)
@@ -195,6 +204,13 @@ def evaluate(
             )
         )
     held_out = [result for result in results if result["split"] in {"validation", "test"}]
+    source_sha256: dict[str, dict[str, str]] = {}
+    for case_id in requested:
+        paths = [matrix_root / "cases" / case_id / "case_summary.json"]
+        paths.extend(source_files_for_case(matrix_root, case_id))
+        source_sha256[case_id] = {
+            str(path.resolve()): base.sha256(path) for path in paths
+        }
     base.write_json(
         output_dir / "evaluation_summary.json",
         {
@@ -202,8 +218,31 @@ def evaluate(
             "model_id": MODEL_ID,
             "evaluated_case_ids": [result["case_id"] for result in results],
             "held_out_case_ids": [result["case_id"] for result in held_out],
+            "model_sha256": model_sha256,
+            "training_summary_sha256": base.sha256(training_summary_path),
+            "evaluation_source_sha256": base.sha256(Path(__file__).resolve()),
+            "base_evaluator_source_sha256": base.sha256(Path(base.__file__).resolve()),
+            "fit_lock_audit": {
+                "training_status": training_summary["status"],
+                "train_case_ids": training_summary["train_case_ids"],
+                "validation_or_test_used_for_fit_or_selection": training_summary[
+                    "validation_or_test_used_for_fit_or_selection"
+                ],
+                "protected_case_ids_absent_at_fit": training_summary[
+                    "protected_case_ids_absent_at_fit"
+                ],
+                "model_hash_matches_training_record": True,
+            },
+            "evaluation_source_sha256_by_case": source_sha256,
             "multiload_held_out_residual_exit_demonstrated": (
-                len(held_out) == 2 and all(result["all_local_checks_pass"] for result in held_out)
+                len(held_out) == 2
+                and all(result["all_local_checks_pass"] for result in held_out)
+                and all(
+                    result["corrected_particle_preservation_pass"] for result in held_out
+                )
+            ),
+            "all_corrected_particle_preservation_checks_pass": all(
+                result["corrected_particle_preservation_pass"] for result in held_out
             ),
             "cases": {result["case_id"]: result for result in results},
         },

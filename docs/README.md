@@ -1,6 +1,6 @@
 # Tera Splat documentation
 
-Last updated: 2026-10-17
+Last updated: 2026-10-19
 
 Tera Splat studies a planning-oriented hybrid terrain model:
 
@@ -17,24 +17,22 @@ differentiable backend.
 
 ## Start here
 
-1. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+1. [Authoritative Phase 0](newton/phase0.md) — live action ledger, ordered next
+   work, chronological evidence, and current claim boundary.
+2. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — complete proposed architecture, backend decision, data split, losses,
    latent-state ablations, Gaussian transfer, and planner validation.
-2. [Current repository state](current-state.md) — authoritative live state for
+3. [Current repository state](current-state.md) — cross-backend context for
    Chrono, Genesis, Newton, artifacts, and execution constraints.
-3. [Newton documentation index](newton/README.md) — all Newton contracts,
+4. [Newton documentation index](newton/README.md) — all Newton contracts,
    reports, boundaries, and dated provenance.
-4. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
-   — current fresh-only variation-characterization and geometric-utility protocol.
-5. [Current Newton handoff](newton/handoff.md) — active Newton conclusion and
-   next permitted work.
-6. [Newton running analysis](newton/running-analysis.md) — chronological
-   decision log for tracking new evidence.
-7. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+5. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+   — frozen fresh-only variation-characterization and geometric-utility protocol.
+6. [Cross-backend direction](forward-model-direction-20261006.md) — why the
    project moved from parameter-only fitting to a hybrid residual model.
-8. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+7. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
    timing, support, preparation, and scoring rules.
-9. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+8. [Contributor guidance](contributor-guidance.md) — repository, editing, and
    evidence-maintenance rules.
 
 Files in [archive](archive/) are historical provenance. They are not current
@@ -44,11 +42,11 @@ instructions.
 
 | Topic | Entry point |
 | --- | --- |
-| Current status | [current-state.md](current-state.md) |
+| Current Phase 0 status | [newton/phase0.md](newton/phase0.md) |
+| Cross-backend context | [current-state.md](current-state.md) |
 | Hybrid architecture | [hybrid-chrono-mpm-residual-gaussian-planning-20261008.md](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md) |
 | Backend decision | [forward-model-direction-20261006.md](forward-model-direction-20261006.md) |
-| Newton current handoff | [newton/handoff.md](newton/handoff.md) |
-| Newton dated analysis | [newton/running-analysis.md](newton/running-analysis.md) |
+| Newton pre-consolidation chronology | [newton/running-analysis.md](newton/running-analysis.md) |
 | Newton full experiment record | [newton/experiment-consolidated-20261008.md](newton/experiment-consolidated-20261008.md) |
 | Static 35 mm proxy qualification | [newton/static-proxy-qualification-20261009.md](newton/static-proxy-qualification-20261009.md) |
 | Bounded coarse-prior admission | [newton/coarse-prior-admission-20261016.md](newton/coarse-prior-admission-20261016.md) |
@@ -66,16 +64,13 @@ instructions.
 
 ## Current decision snapshot
 
+- [Authoritative Phase 0](newton/phase0.md) owns all live counts, next steps,
+  sequencing locks, and new chronological evidence. Do not copy those values
+  into this index.
 - No pre-2026-10-17 Chrono episode, particle bed, MPM preparation, or response
   is admissible for the current Phase 0 dataset or model score.
-- The fresh matrix is at 1/15 complete and usable cases. The separate
-  centered-31 N duplicate sentinel is qualification evidence rather than
-  training data. It found exact
-  Chrono/bed output and small, compatible Newton variation, so matrix expansion
-  is permitted. Exact equality remains diagnostic, not a requirement.
-- The first progressive rung is the five-position 31 N slice with a 3/1/1
-  whole-position train/validation/test split. Canonical `center_f031n` is
-  complete and passes all local positive-skill checks; the rung is 1/5.
+- The 31 N single-load spatial residual rung is complete. Multi-load v2 remains
+  the active rung; consult `phase0.md` before launching any case or fit.
 - The current hard gates are provenance and numerical integrity.
   Contact overlap is classified as an artifact unless it is gross; local
   geometric skill in the footprint and twice-radius region is the primary
@@ -92,20 +87,21 @@ instructions.
   independent particle quaternion.
 - MPM material parameters are fit once across training actions and frozen for
   held-out position and load evaluation.
-- Stress, deformation, plastic, and velocity-gradient features are ablated as
-  privileged MPM inputs; they are not treated as real-world observations.
+- Stress, deformation, plastic, and velocity-gradient features remain planned
+  privileged-input ablations. The current export placeholders are not used as
+  evidence against those features.
 - Historical 35 mm runs failed strict zero penetration and were not declared
   converged. In the fresh campaign, overlap is measured and classified; only
   gross interaction failure blocks geometric-utility evaluation.
 - The old centered-load and bounded-gate results are quarantined historical
   diagnostics. They do not admit or exclude any load in the fresh 15-action
   campaign.
-- Gaussian transfer updates terrain means, covariance, and orientation without
-  retraining the scene.
+- Planned Gaussian transfer will update terrain means, covariance, and
+  orientation without retraining the scene; it is not yet validated.
 - Initial planning is offline and open loop. Candidate contacts are independent
   counterfactuals from the same initial terrain.
 
-## Evidence snapshot
+## Stable cross-backend evidence
 
 ### Chrono
 
@@ -124,7 +120,7 @@ instructions.
 - Residual-footprint RMSE: 13.678 mm.
 - Residual recovery remains too high and response convergence is unresolved.
 
-### Newton
+### Newton historical foundation
 
 - Qualified domain: 7.8125 mm, PIC/PIC, P0/S2/Q1, public stock contact,
   0.25 ms, 8 proxy iterations, and 16 rigid substeps.
@@ -134,12 +130,10 @@ instructions.
 - The incumbent is invalid at tested 1.75-3.0 kg actions and 55/65 mm radii.
 - Valid A9/A10 responses still have approximately 10-15 mm peak error and
   171-179 cm3 displaced-volume error.
-- The 35 mm, 31 N center sentinel is not mechanics-qualified at 0.25 ms:
-  eight transient particle centers penetrated by at most 3.759 micrometers.
-- Bounded policy v2 admits that action and the centered 46 N action for
-  residual-pilot data only; it does not change their strict status.
-- The 61 N boundary passes depth/fraction limits but fails loaded-state
-  clearance and is retained only as out-of-domain evidence.
+- Broad parameter-only tuning of that historical material point is stopped.
+- The current 35 mm campaign uses the unchanged 100 kPa prior under a separate
+  fresh-only contract. Its live evidence is maintained only in
+  [authoritative Phase 0](newton/phase0.md).
 
 The supported conclusion is local, mechanics-gated sim-to-sim improvement.
 General terrain prediction, real material identification, Gaussian-transfer
@@ -198,12 +192,10 @@ frozen.
 
 ## Documentation maintenance
 
-- Update [current-state.md](current-state.md) when the repository-wide
-  conclusion, incumbent, blocker, or next experiment changes.
-- Update [newton/handoff.md](newton/handoff.md) when the active Newton contract
-  or next permitted work changes.
-- Append dated Newton decisions to
-  [newton/running-analysis.md](newton/running-analysis.md).
+- Update [newton/phase0.md](newton/phase0.md) for every Phase 0 ledger,
+  conclusion, claim-boundary, or next-work change.
+- Update [current-state.md](current-state.md) only when broader cross-backend
+  context changes; do not duplicate Phase 0 live counts there.
 - Put detailed new Newton reports under [newton](newton/).
 - Keep dated reports as provenance; link forward instead of rewriting history.
 - Keep [archive](archive/) immutable except for its index.

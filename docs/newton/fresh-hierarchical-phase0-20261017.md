@@ -1,5 +1,8 @@
 # Fresh hierarchical Phase 0 protocol — 2026-10-17
 
+Status: frozen protocol. For live counts, next work, chronological evidence,
+and current claims, use [phase0.md](phase0.md).
+
 ## Current decision
 
 No previously generated Chrono episode, particle bed, Newton preparation, or
@@ -141,7 +144,10 @@ The prospective matrix contains 15 actions: five positions crossed with
 
 The split is frozen before Stage 0. No action is moved after its result is seen.
 
-## Current status
+## Execution snapshot through 2026-10-19
+
+This section is retained as dated evidence and is not the live ledger. Use
+[phase0.md](phase0.md) before acting.
 
 - complete fresh matrix Chrono episodes: 7/15;
 - usable fresh matrix Newton responses: 7/15;

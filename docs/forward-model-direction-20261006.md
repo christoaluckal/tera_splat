@@ -3,6 +3,10 @@
 Last updated: 2026-10-07. This is a decision summary; the dated evidence
 ledgers remain authoritative.
 
+For current Phase 0 execution, use
+[newton/phase0.md](newton/phase0.md); this document records the preceding
+backend-direction decision.
+
 ## Executive summary
 
 The project has established a reproducible sim-to-sim terrain-deformation
@@ -174,7 +178,7 @@ Not supported:
 ## Authoritative records
 
 * [Newton documentation index](newton/README.md)
-* [Current Newton handoff](newton/handoff.md)
+* [Authoritative Newton Phase 0](newton/phase0.md)
 * [Historical Chrono-to-Newton evidence](newton/historical-evidence-20261004.md)
 * [A10 protocol](newton/a10-protocol-and-result-20261004.md)
 * [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)

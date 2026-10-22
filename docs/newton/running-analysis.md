@@ -1,8 +1,10 @@
-# Newton running analysis
+# Newton running analysis through 2026-10-19
 
-Last updated: 2026-10-19  
-Status: chronological decision ledger; the active operational source is
-[handoff.md](handoff.md)
+Status: retained chronological provenance. The authoritative live ledger,
+next work, and all new chronological entries are in [phase0.md](phase0.md).
+
+Do not append new Phase 0 evidence here. This file preserves the more detailed
+pre-consolidation decision record.
 
 This file records how the Newton conclusion changed over time. It is an index
 to evidence, not a replacement for detailed dated reports or machine-readable
@@ -479,18 +481,8 @@ artifacts.
   `outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/matrix/cases/xplus100_f046n/case_summary.json` and
   [handoff.md](handoff.md).
 
-## Required format for future entries
+## Continuation
 
-Append entries in ascending date order:
-
-    ## YYYY-MM-DD — Short decision title
-
-    - Question:
-    - Frozen contract:
-    - New evidence:
-    - Decision:
-    - Claim boundary:
-    - Canonical artifacts:
-
-When an entry changes the current contract, conclusion, or next permitted work,
-update [handoff.md](handoff.md) in the same change.
+Append all subsequent entries to the chronological evidence section of
+[phase0.md](phase0.md), and update its live ledger, next work, and claim
+boundary in the same change.

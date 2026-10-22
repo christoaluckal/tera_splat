@@ -4,10 +4,9 @@ Read [current-state.md](current-state.md) and
 [chrono-oracle-run-contract.md](chrono-oracle-run-contract.md) before editing
 calibration code, configurations, or reports.
 
-For Newton work, also read the
-[Newton documentation index](newton/README.md) and
-[current Newton handoff](newton/handoff.md). Append dated decisions to
-[Newton running analysis](newton/running-analysis.md).
+For Phase 0 work, read [authoritative Newton Phase 0](newton/phase0.md) first,
+then the [Newton documentation index](newton/README.md). Append new evidence
+and update the live ledger only in `newton/phase0.md`.
 
 ## Working rules
 
@@ -105,8 +104,7 @@ conda run -n chrono_splat python scripts/render_chrono_genesis_pointcloud_dem_co
 /data/christoa/conda/envs/newton_splat/bin/python scripts/run_static_proxy_qualification.py --help
 ```
 
-Do not create another repository-wide live status document. Update
-`docs/current-state.md`. Newton-specific operational state and chronology live
-in [newton/handoff.md](newton/handoff.md) and
-[newton/running-analysis.md](newton/running-analysis.md); put superseded
+Do not create another live Phase 0 status document. Newton Phase 0 operational
+state and chronology live only in [newton/phase0.md](newton/phase0.md).
+`docs/current-state.md` holds broader cross-backend context; put superseded
 non-Newton material in `docs/archive/`.

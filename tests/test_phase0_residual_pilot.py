@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -69,6 +70,51 @@ class ResidualPilotTests(unittest.TestCase):
         self.assertGreater(float(displacement[1]), 0.0)
         self.assertLess(float(displacement[1]), float(displacement[0]))
         self.assertEqual(float(displacement[2]), 0.0)
+
+    def test_corrected_state_audit_proves_particle_invariants(self) -> None:
+        manifest = {
+            "heightmap": {
+                "shape": [2, 2],
+                "spacing_m": 1.0,
+                "origin_xy_m": [0.0, 0.0],
+            }
+        }
+        positions = np.asarray(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, -0.01], [0.0, 1.0, -0.02]],
+            dtype=np.float32,
+        )
+        displacement = np.asarray([0.01, 0.005, 0.0], dtype=np.float32)
+        corrected = positions.copy()
+        corrected[:, 2] = (
+            positions[:, 2].astype(np.float64) + displacement.astype(np.float64)
+        ).astype(np.float32)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source_path = root / "source.npz"
+            corrected_path = root / "corrected.npz"
+            surface_path = root / "surface.npy"
+            np.savez_compressed(
+                source_path,
+                schema_version=np.asarray(1),
+                backend=np.asarray("newton"),
+                position_m=positions,
+                velocity_mps=np.zeros_like(positions),
+                stress_pa=np.zeros((3, 3, 3), dtype=np.float32),
+            )
+            MODULE.write_corrected_state(
+                source_path, corrected_path, corrected, displacement
+            )
+            surface, supported = MODULE.project_surface(corrected, manifest, 1.51)
+            surface[~supported] = np.nan
+            np.save(surface_path, surface.astype(np.float32))
+            audit = MODULE.audit_corrected_state(
+                source_path, corrected_path, surface_path, manifest, 1.51
+            )
+        self.assertTrue(audit["all_checks_pass"])
+        self.assertEqual(audit["source_particle_count"], 3)
+        self.assertEqual(audit["corrected_particle_count"], 3)
+        self.assertTrue(audit["checks"]["xy_preserved_exactly"])
+        self.assertTrue(audit["checks"]["velocity_preserved_exactly"])
 
     def test_split_policy_keeps_whole_positions_out_of_training(self) -> None:
         plan = {
