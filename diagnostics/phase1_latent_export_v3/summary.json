@@ -1,0 +1,550 @@
+{
+  "schema_version": 1,
+  "qualification_id": "phase1_latent_export_v3",
+  "status": "passed",
+  "latent_export_qualified": true,
+  "qualified_nonkinematic_families": [
+    "stress",
+    "elastic"
+  ],
+  "required_family_checks": {
+    "occupancy_count_conserved": true,
+    "mass_conserved": true,
+    "velocity_nonconstant": true,
+    "velocity_checkpoint_change": true,
+    "velocity_repeat_ratio": true,
+    "velocity_repeat_correlation": true,
+    "loaded_contact_nodes": true,
+    "loaded_contact_impulse": true,
+    "initial_contact_zero": true,
+    "post_unload_contact_zero": true,
+    "contact_count_repeat_ratio": true,
+    "contact_count_repeat_correlation": true,
+    "contact_impulse_repeat_ratio": true,
+    "contact_impulse_repeat_correlation": true
+  },
+  "mass_relative_error": {
+    "repeat_01_initial": 1.8709016868306845e-16,
+    "repeat_01_loaded": 3.741803373661369e-16,
+    "repeat_01_post_unload": 3.741803373661369e-16,
+    "repeat_02_initial": 1.8709016868306845e-16,
+    "repeat_02_loaded": 3.741803373661369e-16,
+    "repeat_02_post_unload": 3.741803373661369e-16,
+    "repeat_03_initial": 1.8709016868306845e-16,
+    "repeat_03_loaded": 3.741803373661369e-16,
+    "repeat_03_post_unload": 3.741803373661369e-16
+  },
+  "velocity": {
+    "representation": "3x3 box mean of 5 mm column mean z velocity",
+    "loaded_local_robust_span_mps": 0.000808625286771754,
+    "loaded_vs_initial_local_rms_mps": 0.0007028173284513784,
+    "repeatability": {
+      "pairwise_checkpoint_rms_change": {
+        "initial_to_loaded": 0.0007028173284513784,
+        "initial_to_post_unload": 0.0001343428903060591,
+        "loaded_to_post_unload": 0.0006258377611247463
+      },
+      "maximum_checkpoint_rms_change": 0.0007028173284513784,
+      "maximum_pairwise_repeat_rms": 0.00011241559025832239,
+      "repeat_rms_over_action_signal": 0.15994994105513066,
+      "minimum_pairwise_repeat_pearson": 0.9642904113514101
+    }
+  },
+  "contact": {
+    "initial": {
+      "active_nodes": 0,
+      "total_upward_impulse_ns": 0.0
+    },
+    "loaded": {
+      "active_nodes": 367,
+      "total_upward_impulse_ns": 0.010628174626418505
+    },
+    "post_unload": {
+      "active_nodes": 0,
+      "total_upward_impulse_ns": 0.0
+    }
+  },
+  "contact_repeatability": {
+    "contact_node_count": {
+      "pairwise_checkpoint_rms_change": {
+        "initial_to_loaded": 1.4845589147247555,
+        "initial_to_post_unload": 0.0,
+        "loaded_to_post_unload": 1.4845589147247555
+      },
+      "maximum_checkpoint_rms_change": 1.4845589147247555,
+      "maximum_pairwise_repeat_rms": 0.21372177794665342,
+      "repeat_rms_over_action_signal": 0.1439631501497389,
+      "minimum_pairwise_repeat_pearson": 0.9876271329730865
+    },
+    "contact_normal_impulse_ns": {
+      "pairwise_checkpoint_rms_change": {
+        "initial_to_loaded": 4.395429933111676e-05,
+        "initial_to_post_unload": 0.0,
+        "loaded_to_post_unload": 4.395429933111676e-05
+      },
+      "maximum_checkpoint_rms_change": 4.395429933111676e-05,
+      "maximum_pairwise_repeat_rms": 3.974924445691687e-06,
+      "repeat_rms_over_action_signal": 0.090433120449669,
+      "minimum_pairwise_repeat_pearson": 0.9951510913429199
+    }
+  },
+  "triplet": {
+    "local_particle_count": 12567,
+    "fields": {
+      "speed_mps": {
+        "loaded_local_robust_span": 0.0015547582223687387,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 0.0008667981097092615,
+          "initial_to_post_unload": 0.000532085124157108,
+          "loaded_to_post_unload": 0.0008303132746340061
+        },
+        "minimum_pairwise_checkpoint_rms_change": 0.000532085124157108,
+        "maximum_pairwise_checkpoint_rms_change": 0.0008667981097092615,
+        "checkpoint": {
+          "initial": {
+            "minimum": 3.063318351685572e-08,
+            "maximum": 2.5501714120463164e-06,
+            "mean": 7.688435604844568e-07,
+            "standard_deviation": 4.065823132413019e-07
+          },
+          "loaded": {
+            "minimum": 5.023167955310696e-05,
+            "maximum": 0.012624614080493157,
+            "mean": 0.0006554632474473683,
+            "standard_deviation": 0.0005682420813230896
+          },
+          "post_unload": {
+            "minimum": 1.6334682925634826e-06,
+            "maximum": 0.005506331848658346,
+            "mean": 0.0001731746878807176,
+            "standard_deviation": 0.0005035255903165149
+          }
+        }
+      },
+      "velocity_gradient_frobenius_per_s": {
+        "loaded_local_robust_span": 0.2608967850198192,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 0.19549352567678846,
+          "initial_to_post_unload": 0.06665557713790508,
+          "loaded_to_post_unload": 0.1969883306034052
+        },
+        "minimum_pairwise_checkpoint_rms_change": 0.06665557713790508,
+        "maximum_pairwise_checkpoint_rms_change": 0.1969883306034052,
+        "checkpoint": {
+          "initial": {
+            "minimum": 1.542280016663053e-05,
+            "maximum": 0.002196023902871759,
+            "mean": 0.00014458740412182674,
+            "standard_deviation": 0.0001180470980072032
+          },
+          "loaded": {
+            "minimum": 0.002892864736070212,
+            "maximum": 4.863533256138675,
+            "mean": 0.08030537571258349,
+            "standard_deviation": 0.17830761994308902
+          },
+          "post_unload": {
+            "minimum": 0.00027213274837598625,
+            "maximum": 0.7670324292412081,
+            "mean": 0.026762421979693484,
+            "standard_deviation": 0.06113286409646017
+          }
+        }
+      },
+      "velocity_divergence_per_s": {
+        "loaded_local_robust_span": 0.1299331365386024,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 0.1235080631153389,
+          "initial_to_post_unload": 0.01963978777692665,
+          "loaded_to_post_unload": 0.12543915462964794
+        },
+        "minimum_pairwise_checkpoint_rms_change": 0.01963978777692665,
+        "maximum_pairwise_checkpoint_rms_change": 0.12543915462964794,
+        "checkpoint": {
+          "initial": {
+            "minimum": -0.001988288951906725,
+            "maximum": 0.0019732392338482896,
+            "mean": -4.944732564013028e-05,
+            "standard_deviation": 0.00013740720846361506
+          },
+          "loaded": {
+            "minimum": -1.7698484214488417,
+            "maximum": 3.0948481233790517,
+            "mean": -0.008882512978294448,
+            "standard_deviation": 0.12319225632840292
+          },
+          "post_unload": {
+            "minimum": -0.27678578346967697,
+            "maximum": 0.5847730464302003,
+            "mean": 0.0004453331616122689,
+            "standard_deviation": 0.019636329882142273
+          }
+        }
+      },
+      "stress_mean_pa": {
+        "loaded_local_robust_span": 14609.457487106323,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 6444.311046165999,
+          "initial_to_post_unload": 2415.3753145594897,
+          "loaded_to_post_unload": 5159.730489887264
+        },
+        "minimum_pairwise_checkpoint_rms_change": 2415.3753145594897,
+        "maximum_pairwise_checkpoint_rms_change": 6444.311046165999,
+        "checkpoint": {
+          "initial": {
+            "minimum": 0.7338799039522806,
+            "maximum": 3218.9845377604165,
+            "mean": 685.8573400152115,
+            "standard_deviation": 541.508569604608
+          },
+          "loaded": {
+            "minimum": 0.0,
+            "maximum": 64130.6171875,
+            "mean": 4665.768594995634,
+            "standard_deviation": 5234.429891068891
+          },
+          "post_unload": {
+            "minimum": 0.0,
+            "maximum": 20336.314453125,
+            "mean": 1982.1812326375427,
+            "standard_deviation": 2363.295786377348
+          }
+        }
+      },
+      "stress_von_mises_pa": {
+        "loaded_local_robust_span": 14919.886687265891,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 6792.20552684872,
+          "initial_to_post_unload": 2085.155721001213,
+          "loaded_to_post_unload": 5715.680937994102
+        },
+        "minimum_pairwise_checkpoint_rms_change": 2085.155721001213,
+        "maximum_pairwise_checkpoint_rms_change": 6792.20552684872,
+        "checkpoint": {
+          "initial": {
+            "minimum": 0.8508214213770396,
+            "maximum": 2814.524883598993,
+            "mean": 579.3549481853778,
+            "standard_deviation": 535.5763349059497
+          },
+          "loaded": {
+            "minimum": 0.0,
+            "maximum": 71216.77660094667,
+            "mean": 4690.075291433582,
+            "standard_deviation": 5549.431216914205
+          },
+          "post_unload": {
+            "minimum": 0.0,
+            "maximum": 17880.75046497595,
+            "mean": 1659.0174679926395,
+            "standard_deviation": 2037.7135012210158
+          }
+        }
+      },
+      "stress_frobenius_pa": {
+        "loaded_local_robust_span": 28004.236472101533,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 12458.318894262577,
+          "initial_to_post_unload": 4507.780490796706,
+          "loaded_to_post_unload": 10048.231835806111
+        },
+        "minimum_pairwise_checkpoint_rms_change": 4507.780490796706,
+        "maximum_pairwise_checkpoint_rms_change": 12458.318894262577,
+        "checkpoint": {
+          "initial": {
+            "minimum": 1.4485638408406643,
+            "maximum": 6030.4741032487555,
+            "mean": 1281.4631541463232,
+            "standard_deviation": 1031.3795426456973
+          },
+          "loaded": {
+            "minimum": 0.0,
+            "maximum": 125377.14183814278,
+            "mean": 8954.965064806327,
+            "standard_deviation": 10124.716687468626
+          },
+          "post_unload": {
+            "minimum": 0.0,
+            "maximum": 37751.76789287355,
+            "mean": 3701.5002682550544,
+            "standard_deviation": 4409.603253242263
+          }
+        }
+      },
+      "elastic_jacobian": {
+        "loaded_local_robust_span": 0.27046296652364965,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 0.10884701150410615,
+          "initial_to_post_unload": 0.061800797222600824,
+          "loaded_to_post_unload": 0.08055783327729854
+        },
+        "minimum_pairwise_checkpoint_rms_change": 0.061800797222600824,
+        "maximum_pairwise_checkpoint_rms_change": 0.10884701150410615,
+        "checkpoint": {
+          "initial": {
+            "minimum": 0.9437053276324167,
+            "maximum": 1.0006609938167907,
+            "mean": 0.9877774355154575,
+            "standard_deviation": 0.009652745022333218
+          },
+          "loaded": {
+            "minimum": 0.25200328060069166,
+            "maximum": 1.4773377070428808,
+            "mean": 0.9250865519507229,
+            "standard_deviation": 0.09187429747475764
+          },
+          "post_unload": {
+            "minimum": 0.6020045961021836,
+            "maximum": 1.5884190529577165,
+            "mean": 0.9673895894805707,
+            "standard_deviation": 0.061978849734921265
+          }
+        }
+      },
+      "elastic_isochoric_shear": {
+        "loaded_local_robust_span": 0.29948728849050793,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 0.13693026922198173,
+          "initial_to_post_unload": 0.10005350378978958,
+          "loaded_to_post_unload": 0.070411934675405
+        },
+        "minimum_pairwise_checkpoint_rms_change": 0.070411934675405,
+        "maximum_pairwise_checkpoint_rms_change": 0.13693026922198173,
+        "checkpoint": {
+          "initial": {
+            "minimum": 2.190426720782309e-05,
+            "maximum": 0.052480033157675014,
+            "mean": 0.011217452883849214,
+            "standard_deviation": 0.01026535358130708
+          },
+          "loaded": {
+            "minimum": 9.965218840632584e-08,
+            "maximum": 0.7427386393662495,
+            "mean": 0.10774319472384633,
+            "standard_deviation": 0.09873796632866172
+          },
+          "post_unload": {
+            "minimum": 6.058684170781758e-08,
+            "maximum": 1.031847055085493,
+            "mean": 0.07785226957795985,
+            "standard_deviation": 0.07499581566483833
+          }
+        }
+      },
+      "plastic_jacobian": {
+        "loaded_local_robust_span": 0.2962025165557858,
+        "pairwise_checkpoint_rms_change": {
+          "initial_to_loaded": 570.6882159730112,
+          "initial_to_post_unload": 579.2953083382451,
+          "loaded_to_post_unload": 14.189333801259911
+        },
+        "minimum_pairwise_checkpoint_rms_change": 14.189333801259911,
+        "maximum_pairwise_checkpoint_rms_change": 579.2953083382451,
+        "checkpoint": {
+          "initial": {
+            "minimum": 1.0,
+            "maximum": 1.0817029476165771,
+            "mean": 1.0000925129634475,
+            "standard_deviation": 0.0016209709016126667
+          },
+          "loaded": {
+            "minimum": 1.0,
+            "maximum": 45556.046875,
+            "mean": 14.261550705036571,
+            "standard_deviation": 570.5341107773618
+          },
+          "post_unload": {
+            "minimum": 1.0,
+            "maximum": 46533.3125,
+            "mean": 14.603041448987373,
+            "standard_deviation": 579.1355730505951
+          }
+        }
+      }
+    },
+    "stress_relative_antisymmetric_norm": 0.0,
+    "positive_jacobians": {
+      "elastic_jacobian": true,
+      "plastic_jacobian": true
+    }
+  },
+  "repeatability": {
+    "speed_mps": {
+      "maximum_pairwise_repeat_rms": 0.0003841973387693151,
+      "minimum_pairwise_repeat_pearson": 0.8127729420296945,
+      "action_signal_rms": 0.0008667981097092615,
+      "repeat_rms_over_action_signal": 0.44323739803514484
+    },
+    "velocity_gradient_frobenius_per_s": {
+      "maximum_pairwise_repeat_rms": 0.18979100495632548,
+      "minimum_pairwise_repeat_pearson": 0.5074030392835124,
+      "action_signal_rms": 0.1969883306034052,
+      "repeat_rms_over_action_signal": 0.9634631877683656
+    },
+    "velocity_divergence_per_s": {
+      "maximum_pairwise_repeat_rms": 0.1721821572883159,
+      "minimum_pairwise_repeat_pearson": 0.13614156075832526,
+      "action_signal_rms": 0.12543915462964794,
+      "repeat_rms_over_action_signal": 1.3726348666544672
+    },
+    "stress_mean_pa": {
+      "maximum_pairwise_repeat_rms": 183.6021281252054,
+      "minimum_pairwise_repeat_pearson": 0.9993853392533694,
+      "action_signal_rms": 6444.311046165999,
+      "repeat_rms_over_action_signal": 0.028490575146033384
+    },
+    "stress_von_mises_pa": {
+      "maximum_pairwise_repeat_rms": 260.4120991649733,
+      "minimum_pairwise_repeat_pearson": 0.9988843039731126,
+      "action_signal_rms": 6792.20552684872,
+      "repeat_rms_over_action_signal": 0.03833984383063757
+    },
+    "stress_frobenius_pa": {
+      "maximum_pairwise_repeat_rms": 363.8002834808148,
+      "minimum_pairwise_repeat_pearson": 0.999355165811223,
+      "action_signal_rms": 12458.318894262577,
+      "repeat_rms_over_action_signal": 0.029201394391048664
+    },
+    "elastic_jacobian": {
+      "maximum_pairwise_repeat_rms": 0.01096910372097901,
+      "minimum_pairwise_repeat_pearson": 0.9842658312680423,
+      "action_signal_rms": 0.10884701150410615,
+      "repeat_rms_over_action_signal": 0.10077542386696772
+    },
+    "elastic_isochoric_shear": {
+      "maximum_pairwise_repeat_rms": 0.01302481153851354,
+      "minimum_pairwise_repeat_pearson": 0.9848453147245277,
+      "action_signal_rms": 0.13693026922198173,
+      "repeat_rms_over_action_signal": 0.09512003162280087
+    },
+    "plastic_jacobian": {
+      "maximum_pairwise_repeat_rms": 14.658437092239748,
+      "minimum_pairwise_repeat_pearson": 0.9997350084878797,
+      "action_signal_rms": 579.2953083382451,
+      "repeat_rms_over_action_signal": 0.025303911288853082
+    }
+  },
+  "nonkinematic_families": {
+    "stress": {
+      "qualified": true,
+      "checks": {
+        "stress_mean_pa_nonconstant": true,
+        "stress_mean_pa_checkpoint_changes": true,
+        "stress_mean_pa_repeat_ratio": true,
+        "stress_mean_pa_repeat_correlation": true,
+        "stress_von_mises_pa_nonconstant": true,
+        "stress_von_mises_pa_checkpoint_changes": true,
+        "stress_von_mises_pa_repeat_ratio": true,
+        "stress_von_mises_pa_repeat_correlation": true,
+        "stress_symmetric": true
+      },
+      "fields": [
+        "stress_mean_pa",
+        "stress_von_mises_pa"
+      ]
+    },
+    "elastic": {
+      "qualified": true,
+      "checks": {
+        "elastic_jacobian_nonconstant": true,
+        "elastic_jacobian_checkpoint_changes": true,
+        "elastic_jacobian_repeat_ratio": true,
+        "elastic_jacobian_repeat_correlation": true,
+        "elastic_isochoric_shear_nonconstant": true,
+        "elastic_isochoric_shear_checkpoint_changes": true,
+        "elastic_isochoric_shear_repeat_ratio": true,
+        "elastic_isochoric_shear_repeat_correlation": true,
+        "elastic_positive_jacobian": true
+      },
+      "fields": [
+        "elastic_jacobian",
+        "elastic_isochoric_shear"
+      ]
+    },
+    "plastic": {
+      "qualified": false,
+      "checks": {
+        "plastic_jacobian_nonconstant": true,
+        "plastic_jacobian_checkpoint_changes": true,
+        "plastic_jacobian_repeat_ratio": true,
+        "plastic_jacobian_repeat_correlation": true,
+        "plastic_positive_jacobian": true,
+        "plastic_constitutive_plausibility": false
+      },
+      "fields": [
+        "plastic_jacobian"
+      ]
+    }
+  },
+  "plastic_maximum_absolute_log_jacobian": 10.747923732934463,
+  "field_semantics": {
+    "position_m": {
+      "units": "m",
+      "frame": "bed/world Cartesian frame",
+      "meaning": "particle center position"
+    },
+    "velocity_mps": {
+      "units": "m/s",
+      "frame": "bed/world Cartesian frame; z is the action axis",
+      "meaning": "particle translational velocity"
+    },
+    "velocity_gradient_per_s": {
+      "units": "1/s",
+      "frame": "bed/world Cartesian tensor basis",
+      "meaning": "Newton implicit-MPM APIC velocity gradient"
+    },
+    "elastic_strain": {
+      "units": "dimensionless",
+      "frame": "bed/world Cartesian tensor basis",
+      "meaning": "Newton implicit-MPM elastic deformation gradient F_e"
+    },
+    "plastic_jacobian": {
+      "units": "dimensionless",
+      "frame": "rotation invariant",
+      "meaning": "Newton implicit-MPM determinant of plastic deformation J_p"
+    },
+    "stress_pa": {
+      "units": "Pa",
+      "frame": "bed/world Cartesian tensor basis",
+      "meaning": "Newton implicit-MPM symmetric Cauchy stress"
+    },
+    "deformation_transform": {
+      "units": "dimensionless",
+      "frame": "bed/world Cartesian tensor basis",
+      "meaning": "optional rendering deformation transform; not advanced unless explicitly requested"
+    }
+  },
+  "provenance": {
+    "qualification_plan_sha256": "355bf9bcbe73f2eb365095e1c4ad30fd58bc28f0c2ec27d1dcfcbe5b3d047b13",
+    "latent_contract_sha256": "51385b1e904b9553ce279ec2ad60f47c41dbc4171cfa289b979b89965af1e9b2",
+    "source_sha256": {
+      "latent_contract": "51385b1e904b9553ce279ec2ad60f47c41dbc4171cfa289b979b89965af1e9b2",
+      "phase1_contract": "abd4aff8d5970f8596292139af94c4518494510b40b7b347bf4e6da0aba68c0b",
+      "qualification_runner": "b4db1577e6f3162ac2bd79cb60cd77672761eba1a9a25633a82de260ec336632",
+      "latent_fields": "0bad419682d322ee718150a4922bb53a6242f2185f6c091c561cb74749f48d8f",
+      "newton_response": "df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783",
+      "newton_preparation": "c6690811991ea20ffd8b34fec6d4251e41ce34fd8c0906720c80401845aa80a8",
+      "newton_contract": "280fa4f198057823c18adc1e0772d466d07232beb44c61936cd0752ef347795b",
+      "newton_base_config": "8808c41c64d2e70c966d1c8ba527e1a02f0e08b68551e13acee184d81040cefa"
+    },
+    "input_sha256": {
+      "physical_screen_plan": "57c108ac063d36e255f1721a95ae996c3b8bb0f53abcbe5c4561343a590e37c5",
+      "physical_screen_summary": "60990f1004623593197844a49ced397b94b8e898a481311ca01f107820ca57ef",
+      "physical_screen_case_summary": "cb9e03231b9d6811b5a9513953af056ed422d29e91eba64de8b7572ed142be4a",
+      "chrono_manifest": "116272de5eb7b3d55de88c1b65b9d3bfe41903611de7746ccd4532a3d479c2c9",
+      "chrono_action": "ba3b880b544c3ffaa94064c051342603422d83147b11a0c3add970fe4ac87cb1",
+      "chrono_initial": "4b9def214957c4a5c0cd42129ab4e5868420b583e359e94e0ad59077bf58c8ee",
+      "chrono_loaded": "48806a8a96784bff753786d88e337d180655aefb5c5e71888ea6753c73f09a19",
+      "chrono_post_unload": "98dd5c0eaaeeadeb6c13d2f884a91a601df7e71c519e3a385274676dac3b925a",
+      "chrono_valid_mask": "81fad1eda00a4b870eee82c4ea9993ca25533bfae3945eb8282e5c6e36837472",
+      "preparation_manifest": "40f84e06425dee8d0732321cc4440d26d15025ab57b29f0e17daae14136c1030",
+      "metric_bed_particles": "b3859860f6d73f72f45fedb5911effaa036394bfe23f3e6a6958cd7ea1f5fae9",
+      "metric_bed_metadata": "72e5d3c6ca1fe15608b4bcc54f835cb7bc8345e82cb02d7d7d69b719d25c3657"
+    },
+    "repeat_responses": [
+      "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3/repeat_01/response",
+      "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3/repeat_02/response",
+      "/data/christoa/Chrono/tera_splat/outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3/repeat_03/response"
+    ]
+  }
+}

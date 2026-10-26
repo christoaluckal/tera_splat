@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "qualification_id": "phase1_latent_export_v3",
+  "status": "frozen_before_runtime_qualification",
+  "authority": "docs/newton/phase1.md",
+  "phase1_contract": "configs/phase1_bed_state_v1.json",
+  "purpose": "Correct the v2 enforcement gap by requiring repeat-stable action-aligned velocity and contact grids and constitutive plausibility before any mechanics channel is admitted to H2.",
+  "supersedes_after_audit": "configs/phase1_latent_export_v2.json",
+  "physical_screen": {
+    "qualification_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/qualification_plan.json",
+    "qualification_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json",
+    "case_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/cases/screen_material_kref_fref/case_summary.json",
+    "prepared_dir": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/shared_newton_prior/preparation",
+    "requires_all_five_pairings_admitted": true,
+    "strict_mechanics_qualified": false,
+    "coarse_prior_only": true
+  },
+  "source_case": {
+    "case_id": "screen_material_kref_fref",
+    "initial_surface_seed": 1101,
+    "normal_force_n": 45.984375,
+    "center_xy_m": [0.0, 0.0],
+    "bekker_kphi": 800000.0,
+    "mohr_friction_deg": 28.0,
+    "requires_material_screen_pass": true
+  },
+  "observation_time_contract": {
+    "newton_mode": "independent_fixed",
+    "loaded_duration_s": 0.35,
+    "post_unload_duration_s": 0.25,
+    "chrono_target_time_must_not_control_newton_rollout": true
+  },
+  "execution": {
+    "independent_fresh_process_repeats": 3,
+    "raw_output_root": "outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3",
+    "tracked_report_root": "diagnostics/phase1_latent_export_v3",
+    "newton_python": "/data/christoa/conda/envs/newton_splat/bin/python",
+    "device": "cuda:0",
+    "freeze_plan_before_first_repeat": true,
+    "require_source_environment_and_input_hashes": true,
+    "v2_runtime_must_not_be_reused": true
+  },
+  "spatial_scope": {
+    "particle_identity": "source particle order is preserved across checkpoints and repeats",
+    "action_frame": "bed/world x-y with +z aligned to the vertical action axis",
+    "local_crop_radius_multiplier": 2.0,
+    "minimum_local_particles": 100,
+    "chrono_grid_spacing_m": 0.005,
+    "column_reduction": "nearest 5 mm Chrono x-y cell; all depth particles; mass-weighted means and declared maxima"
+  },
+  "required_families": {
+    "occupancy_mass": {
+      "fields": ["column_particle_count", "column_mass_kg"],
+      "nonnegative": true,
+      "mass_conservation_relative_tolerance": 1e-6
+    },
+    "velocity": {
+      "fields": ["column_mean_action_velocity_mps"],
+      "action_component": "z",
+      "box_mean_width_cells": 3,
+      "box_mean_width_m": 0.015,
+      "rationale": "one fixed local support-scale reduction suppresses sub-voxel APIC jitter without removing the vertical indentation field",
+      "minimum_loaded_local_robust_span_mps": 1e-5,
+      "minimum_loaded_vs_initial_local_rms_mps": 1e-6,
+      "require_repeat_ratio_and_correlation": true
+    },
+    "contact": {
+      "fields": ["contact_node_count", "contact_normal_impulse_ns"],
+      "minimum_loaded_impulse_nodes": 1,
+      "minimum_loaded_total_upward_impulse_ns": 1e-8,
+      "require_initial_and_post_removal_zero": true,
+      "require_repeat_ratio_and_correlation": true
+    }
+  },
+  "candidate_nonkinematic_families": {
+    "stress": {
+      "fields": ["stress_mean_pa", "stress_von_mises_pa"],
+      "minimum_loaded_local_robust_span": 1.0,
+      "minimum_pairwise_checkpoint_rms_change": 0.1,
+      "maximum_relative_antisymmetric_norm": 1e-5
+    },
+    "elastic": {
+      "fields": ["elastic_jacobian", "elastic_isochoric_shear"],
+      "minimum_loaded_local_robust_span": 1e-6,
+      "minimum_pairwise_checkpoint_rms_change": 1e-7,
+      "require_positive_jacobian": true
+    },
+    "plastic": {
+      "fields": ["plastic_jacobian"],
+      "minimum_loaded_local_robust_span": 1e-7,
+      "minimum_pairwise_checkpoint_rms_change": 1e-8,
+      "require_positive_jacobian": true,
+      "maximum_absolute_log_jacobian": 0.05,
+      "rationale": "the selected material has yield_pressure_pa=1e12 and is effectively elastic; larger plastic volume change is a solver artifact"
+    }
+  },
+  "repeatability": {
+    "maximum_repeat_rms_over_action_signal": 0.25,
+    "minimum_repeat_pearson_correlation": 0.95,
+    "particle_comparison_scope": "same local particle identities at initial, loaded, and post-unload checkpoints",
+    "grid_comparison_scope": "same local 5 mm cells at initial, loaded, and post-unload checkpoints",
+    "zero_signal_fields_cannot_qualify": true
+  },
+  "admission": {
+    "all_fields_must_be_finite_and_exactly_shaped": true,
+    "units_and_frames_must_be_published": true,
+    "require_occupancy_mass_velocity_and_contact": true,
+    "minimum_qualified_nonkinematic_families": 1,
+    "unqualified_fields_excluded_from_h2": true,
+    "predictive_value_requires_h2_vs_h1_evidence": true
+  }
+}

@@ -175,9 +175,44 @@ def validate_metric_bed(points: np.ndarray, metadata: dict[str, Any]) -> tuple[i
             f"metric-bed particle count mismatch: metadata={particle_count}, points={points.shape[0]}"
         )
     surface_count = int(metadata.get("surface_particle_count", 0))
-    if surface_count <= 0 or points.shape[0] % surface_count:
-        raise ValueError("metric bed must contain complete equal-sized vertical layers")
+    if surface_count <= 0 or surface_count > points.shape[0]:
+        raise ValueError("metric bed must declare a valid surface-particle prefix")
     spacing = _positive("particle_spacing_m", metadata.get("particle_spacing_m"))
+    base_contract = metadata.get("base_contract")
+    if base_contract is None:
+        if points.shape[0] % surface_count:
+            raise ValueError(
+                "metric bed must contain complete equal-sized vertical layers"
+            )
+    else:
+        if base_contract.get("mode") != "common_flat_base":
+            raise ValueError("unsupported metric-bed base contract")
+        surface_xy = points[:surface_count, :2]
+        unique_surface_xy, surface_indices = np.unique(
+            surface_xy, axis=0, return_index=True
+        )
+        unique_xy, inverse = np.unique(points[:, :2], axis=0, return_inverse=True)
+        if unique_surface_xy.shape[0] != surface_count:
+            raise ValueError("common-base bed requires one unique surface particle per column")
+        if not np.array_equal(unique_surface_xy, unique_xy):
+            raise ValueError("common-base interior columns differ from the surface grid")
+        counts = np.bincount(inverse, minlength=surface_count)
+        declared_min = int(base_contract.get("minimum_column_particles", -1))
+        declared_max = int(base_contract.get("maximum_column_particles", -1))
+        if int(np.min(counts)) != declared_min or int(np.max(counts)) != declared_max:
+            raise ValueError("common-base column counts differ from metadata")
+        base_z = float(base_contract.get("base_z_m", np.nan))
+        if not np.isfinite(base_z):
+            raise ValueError("common-base bed requires a finite base height")
+        bottoms = np.full(surface_count, np.inf)
+        tops = np.full(surface_count, -np.inf)
+        np.minimum.at(bottoms, inverse, points[:, 2])
+        np.maximum.at(tops, inverse, points[:, 2])
+        if not np.allclose(bottoms, base_z, rtol=0.0, atol=1.0e-7):
+            raise ValueError("common-base bed columns do not share the declared base")
+        declared_tops = points[:surface_count][surface_indices, 2]
+        if not np.allclose(tops, declared_tops, rtol=0.0, atol=1.0e-7):
+            raise ValueError("common-base surface prefix is not the column top envelope")
     ground = metadata.get("ground_plane_mpm", {})
     normal = np.asarray(ground.get("normal", []), dtype=float)
     if normal.shape != (3,) or not np.allclose(normal, (0.0, 0.0, 1.0)):
@@ -187,6 +222,15 @@ def validate_metric_bed(points: np.ndarray, metadata: dict[str, Any]) -> tuple[i
         raise ValueError("ground-plane height must be finite")
     if np.min(points[:, 2]) <= ground_z:
         raise ValueError("metric-bed particles must start above the ground plane")
+    if base_contract is not None and not np.isclose(
+        float(base_contract["base_z_m"]) - ground_z,
+        spacing,
+        rtol=0.0,
+        atol=1.0e-7,
+    ):
+        raise ValueError(
+            "common-base ground clearance must equal one particle spacing"
+        )
     return surface_count, spacing, ground_z
 
 

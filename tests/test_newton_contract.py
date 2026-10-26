@@ -24,6 +24,7 @@ from newton_contract import (  # noqa: E402
     validate_metric_bed,
 )
 from run_newton_cylinder_diagnostic import (  # noqa: E402
+    active_cylinder_contact_arrays,
     advance_guided_body,
     circumscribed_cylinder_radius,
     convergence_qualifies_preparation,
@@ -32,6 +33,7 @@ from run_newton_cylinder_diagnostic import (  # noqa: E402
     cylinder_penetration,
     finite_cylinder_signed_distance,
     guide_constraint_error,
+    phase1_state_arrays,
     response_error,
     summarize_cylinder_contacts,
 )
@@ -130,6 +132,79 @@ class NewtonMetricBedTest(unittest.TestCase):
         self.assertEqual(cropped.shape, (8, 3))
         self.assertTrue(np.all(keep))
 
+    def test_common_base_allows_variable_column_counts(self) -> None:
+        surface = np.array(
+            [
+                [-0.005, -0.005, 0.0],
+                [0.005, -0.005, 0.004],
+            ],
+            dtype=np.float32,
+        )
+        points = np.concatenate(
+            [
+                surface,
+                np.array(
+                    [
+                        [-0.005, -0.005, -0.010],
+                        [-0.005, -0.005, -0.015],
+                        [0.005, -0.005, -0.010],
+                        [0.005, -0.005, -0.015],
+                        [0.005, -0.005, -0.005],
+                    ],
+                    dtype=np.float32,
+                ),
+            ]
+        )
+        metadata = {
+            "coordinate_frame": "bed",
+            "particle_count": 7,
+            "surface_particle_count": 2,
+            "particle_spacing_m": 0.005,
+            "base_contract": {
+                "mode": "common_flat_base",
+                "base_z_m": -0.015,
+                "minimum_column_particles": 3,
+                "maximum_column_particles": 4,
+            },
+            "ground_plane_mpm": {
+                "point": [0.0, 0.0, -0.020],
+                "normal": [0.0, 0.0, 1.0],
+            },
+        }
+        surface_count, spacing, ground_z = validate_metric_bed(points, metadata)
+        self.assertEqual(surface_count, 2)
+        self.assertEqual(spacing, 0.005)
+        self.assertEqual(ground_z, -0.020)
+
+    def test_common_base_rejects_one_raised_column_bottom(self) -> None:
+        points = np.array(
+            [
+                [-0.005, 0.0, 0.0],
+                [0.005, 0.0, 0.0],
+                [-0.005, 0.0, -0.010],
+                [0.005, 0.0, -0.005],
+            ],
+            dtype=np.float32,
+        )
+        metadata = {
+            "coordinate_frame": "bed",
+            "particle_count": 4,
+            "surface_particle_count": 2,
+            "particle_spacing_m": 0.005,
+            "base_contract": {
+                "mode": "common_flat_base",
+                "base_z_m": -0.010,
+                "minimum_column_particles": 2,
+                "maximum_column_particles": 2,
+            },
+            "ground_plane_mpm": {
+                "point": [0.0, 0.0, -0.015],
+                "normal": [0.0, 0.0, 1.0],
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "share the declared base"):
+            validate_metric_bed(points, metadata)
+
     def test_bounds_and_speed_summary(self) -> None:
         np.testing.assert_allclose(
             containment_bounds(self.points, 0.005),
@@ -148,6 +223,74 @@ class NewtonPreparationConvergenceTest(unittest.TestCase):
 
 
 class NewtonCylinderDiagnosticTest(unittest.TestCase):
+    def test_phase1_snapshot_uses_coupled_entry_mechanics(self) -> None:
+        class Array:
+            def __init__(self, value):
+                self.value = np.asarray(value)
+
+            def numpy(self):
+                return self.value
+
+        class Namespace:
+            pass
+
+        def state(stress):
+            value = Namespace()
+            value.particle_q = Array(np.zeros((1, 3)))
+            value.particle_qd = Array(np.zeros((1, 3)))
+            value.mpm = Namespace()
+            value.mpm.particle_qd_grad = Array(np.zeros((1, 3, 3)))
+            value.mpm.particle_elastic_strain = Array(
+                np.repeat(np.eye(3)[None], 1, axis=0)
+            )
+            value.mpm.particle_Jp = Array(np.ones(1))
+            value.mpm.particle_stress = Array(
+                np.full((1, 3, 3), stress, dtype=float)
+            )
+            value.mpm.particle_transform = Array(
+                np.repeat(np.eye(3)[None], 1, axis=0)
+            )
+            return value
+
+        parent = state(0.0)
+        entry = state(7.0)
+
+        class Solver:
+            def entry_state(self, name, phase):
+                self.call = (name, phase)
+                return entry
+
+        solver = Solver()
+        arrays = phase1_state_arrays(parent, solver, "native_proxy")
+        np.testing.assert_array_equal(arrays["stress_pa"], np.full((1, 3, 3), 7.0))
+        self.assertEqual(solver.call, ("mpm", "current"))
+
+    def test_active_contact_archive_filters_to_cylinder_body(self) -> None:
+        class Array:
+            def __init__(self, value):
+                self.value = np.asarray(value)
+
+            def numpy(self):
+                return self.value
+
+        class Solver:
+            collider_body_index = Array([3, 4])
+
+            def collect_collider_impulses(self, state):
+                return (
+                    Array([[0, 0, 2], [0, 0, 0], [0, 0, 5]]),
+                    Array([[0, 0, 0], [1, 0, 0], [2, 0, 0]]),
+                    Array([0, 0, 1]),
+                )
+
+        contacts = active_cylinder_contact_arrays(Solver(), object(), 3)
+        np.testing.assert_array_equal(
+            contacts["contact_position_m"], [[0.0, 0.0, 0.0]]
+        )
+        np.testing.assert_array_equal(
+            contacts["contact_impulse_ns"], [[0.0, 0.0, 2.0]]
+        )
+
     def test_convergence_summary_must_contain_selected_preparation(self) -> None:
         root = Path("/tmp/selected_preparation")
         summary = {

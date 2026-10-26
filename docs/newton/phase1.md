@@ -1,6 +1,8 @@
 # Phase 1 goal: parameter-conditioned neural bed-state prediction
 
-Date: 2026-10-22
+Created: 2026-10-23
+
+Last updated: 2026-10-26
 
 Status: active Phase 1 goal and exit contract
 
@@ -15,6 +17,552 @@ artifacts. The phase numbering in the older
 [hybrid roadmap](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
 is historical; where it conflicts with this document, this document wins for
 all new work.
+
+## Fresh-session handoff
+
+This section is the entry point for a new agent or session. Read the sources in
+the order below before changing code or launching simulations:
+
+1. this document for the active Phase 1 goal, domain, ordering, and exit gates;
+2. the [Phase 1 chronological record](phase1-running.md) for dated
+   implementation evidence, frozen hashes, decisions, blockers, and the next
+   permitted gate;
+3. the [Phase 0 completion report](phase0-completion-20261022.md) for the
+   frozen result, implementation changes, verification, hashes, and claim
+   boundary;
+4. the [Phase 0 authority](phase0.md) for the completed action ledger, frozen
+   numerical contract, chronology, and artifact routing;
+5. the [fresh Phase 0 protocol](fresh-hierarchical-phase0-20261017.md) for the
+   prospective split and evidence hierarchy inherited by Phase 1;
+6. the [Chrono oracle contract](../chrono-oracle-run-contract.md) for action,
+   timing, mask, support, and acceptance semantics;
+7. the [current repository state](../current-state.md) for cross-backend
+   context and known limitations;
+8. the [hybrid roadmap](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+   for design background only; this document overrides its phase numbering;
+9. the [contributor guidance](../contributor-guidance.md) before modifying
+   experiments, claims, or evidence documents;
+10. the [Newton documentation index](README.md) for the complete dated report
+    and action-specific experiment index;
+11. the [tracked diagnostics index](../../diagnostics/README.md) for the
+    lightweight JSON, CSV, and Markdown evidence that led to the inherited
+    Newton prior; and
+12. the [Chrono simulator documentation](../../../tera_splat_sim/docs/README.md)
+    for the adjacent oracle repository and its environment contract.
+
+The first two documents are sufficient to identify the live goal and current
+gate. Items 3--12 recover why the inherited baseline exists and where its
+evidence lives. Dated historical reports are provenance, not alternative live
+instructions.
+
+### Frozen baseline inherited from Phase 0
+
+Phase 1 begins from the following immutable evidence:
+
+| Item | Frozen value or source |
+| --- | --- |
+| campaign | `static_proxy_hierarchical_v3_20261017` |
+| completed matrix | 10/15 actions: all 31 N and 46 N cases |
+| protected boundary | all five 61 N actions remain absent |
+| proxy | vertically guided, 35 mm-radius cylinder |
+| Newton material | 100 kPa, `nu=0.2`, `mu=0.68` |
+| Newton timestep | 0.25 ms |
+| Newton voxel size | 7.8125 mm |
+| support | 14,161 valid Chrono cells at 5 mm spacing |
+| frozen v1 SHA-256 | `242fa879c1d7eda443f4277d82a41dcfea5828cdb7b66ccae357b633d99a15af` |
+| frozen v2 SHA-256 | `cc31209737d69a059f64627e19d9c9f76b2ba1e36be86f528802470d05b0c23f` |
+| v2 training-summary SHA-256 | `5109b4266451751898f9e42b50fbbe8b7610587a65ee9f9d5a4193452a2a3c11` |
+| strict mechanics status | not qualified; bounded coarse-prior use only |
+
+Do not regenerate the 10 actions, refit v1 or v2, alter their split membership,
+or use the protected 61 N targets to revise them. Phase 1 may evaluate the
+frozen models as baselines, but it must build a prospective Phase 1 dataset.
+
+### Existing executable entry points
+
+| Purpose | Source |
+| --- | --- |
+| frozen Phase 0 machine contract | [static_proxy_hierarchical_v3_20261017.json](../../configs/static_proxy_hierarchical_v3_20261017.json) |
+| fresh matrix orchestration and admission | [run_fresh_phase0_matrix.py](../../scripts/run_fresh_phase0_matrix.py) |
+| Newton preparation | [run_newton_prepared_bed.py](../../scripts/run_newton_prepared_bed.py) |
+| Newton response diagnostic | [run_newton_cylinder_diagnostic.py](../../scripts/run_newton_cylinder_diagnostic.py) |
+| Phase 0 base residual and particle lift | [run_phase0_residual_pilot.py](../../scripts/run_phase0_residual_pilot.py) |
+| frozen multi-load v2 wrapper | [run_phase0_multiload_residual_pilot.py](../../scripts/run_phase0_multiload_residual_pilot.py) |
+| residual integrity tests | [test_phase0_residual_pilot.py](../../tests/test_phase0_residual_pilot.py) |
+| Chrono cylinder oracle CLI | [run_cylinder_episode.py](../../../tera_splat_sim/run_cylinder_episode.py) |
+| Chrono SCM implementation | [cylinder_episode.py](../../../tera_splat_sim/quick_support_demo/chrono_demo/cylinder_episode.py) |
+| optional local PCD rendering | [render_phase0_pcd_isometric.py](../../scripts/render_phase0_pcd_isometric.py) |
+
+Reuse the contracts, schemas, admission logic, provenance, and tests where they
+remain applicable. Do not silently convert a Phase 0 script into the Phase 1
+authority; Phase 1 receives new versioned files so the completed evidence stays
+reproducible.
+
+### Canonical Phase 0 artifacts
+
+The Phase 0 output root is:
+
+`outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/`
+
+| Evidence | Path below the output root |
+| --- | --- |
+| live matrix summary | `matrix/matrix_summary.json` |
+| admitted per-action states | `matrix/cases/<case_id>/` |
+| same-build repeatability | `repeatability/repeatability_summary.json` |
+| v1 model and evaluation | `matrix/residual_pilot_v1/` |
+| frozen v2 model | `matrix/residual_pilot_v2_multiload/model.npz` |
+| frozen v2 training record | `matrix/residual_pilot_v2_multiload/training_summary.json` |
+| locked v2 held-out result | `matrix/residual_pilot_v2_multiload/evaluation_summary.json` |
+| v2 corrected states | `matrix/residual_pilot_v2_multiload/cases/<case_id>/` |
+
+The paired Chrono episodes are rooted at:
+
+`../tera_splat_sim/validity_experiment/chrono_episodes/static_proxy_hierarchical_v3_20261017/`
+
+Large outputs are data-volume artifacts and are not assumed to be present in a
+fresh Git clone. The optional Phase 0 PNG views are derived local files,
+ignored by Git, and can be regenerated with the rendering script; they are not
+required evidence.
+
+### Environments
+
+- Run Newton generation and Phase 0 compatibility checks with
+  `/data/christoa/conda/envs/newton_splat/bin/python`.
+- Run the Chrono oracle in the existing `chrono_splat` conda environment; its
+  setup and pinned PyChrono requirement are documented in
+  [getting started](../../../tera_splat_sim/docs/getting-started.md).
+- The available neural-training candidate is conda environment `test`, verified
+  on 2026-10-22 as Python 3.11.15, NumPy 2.4.6, PyTorch 2.13.0+cu130, CUDA
+  runtime 13.0, with CUDA available on an NVIDIA GeForce RTX 5090. This is a
+  discovered environment, not yet a frozen training identity. Its exact probe,
+  package lock, source hashes, and device identity must be copied into the
+  future training plan before the first fit.
+- Do not silently mutate either simulator environment to add neural-training
+  dependencies. Training must remain a separate invocation from Chrono and
+  Newton data generation.
+
+### Experiment recovery map
+
+Phase 1 spans two sibling repositories on branch `neural`:
+
+| Repository | Role | Revision recorded at screening-plan freeze |
+| --- | --- | --- |
+| `tera_splat` | contracts, Newton bridge, screening, dataset, models, evaluation, and documentation | `7f91a707fe29461398691b6ff4222b8c01e9dcfc` |
+| `tera_splat_sim` | Chrono SCM oracle and exact heightfield initialization | `164023bc0d2147da177cba864a297cd2abc8e28d` |
+
+Both working trees intentionally contain the new Phase 1 implementation on top
+of those revisions. A fresh session must use the hashes in the frozen plans,
+not assume that the recorded revisions alone identify the uncommitted source.
+Do not modify a source named in `screening_plan.json` while the canonical
+screen is running: the runner checks its SHA-256 before every stage.
+
+The currently frozen Phase 1 identities are:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| machine contract | `abd4aff8d5970f8596292139af94c4518494510b40b7b347bf4e6da0aba68c0b` |
+| contract planner | `ab433a9b8fc31bcedd7692440b5e573c5d77b1a023b211eb209aad3c9a9b9f49` |
+| complete target-free dataset-plan file | `0c7971813bbde427694a207f06234ce780ad827bbb28b8e3025c17fe8529880c` |
+| canonical 88-input manifest payload | `a821d191edbdaa7e2dda3c5cfef89f2c20eaf7ba9ce080c2bd78c67b7047a45c` |
+| protected test-identity lock | `277bdcd63b9539723a1cd0f5059c8169314f55ba70566236138d8f7d54433e0c` |
+| complete screening plan | `958cba65978106e1664a0531b14cf8a520a0e629bd8fd413068de4851b1637ca` |
+| screening runner | `71b9324aaa383045e94c17493822d35de1244dcf9f21a7c14d18b7558fd55e08` |
+| surface generator | `789f617996a4b85b63014fc41e681376e2e672d62af81b3f7260758dff29903e` |
+| superseded latent v1 contract (never run) | `4db6c5bd799076ca5f108dc370b43005f3728d46d2ce36c2d98b7774c4c9c0dc` |
+| common-base v2 contract | `c1fae68557727d7f4dc34bbd3554c36f9ed9185c3dd3b30863d84d4d2f41bf1f` |
+| common-base v2 qualification plan | `57c108ac063d36e255f1721a95ae996c3b8bb0f53abcbe5c4561343a590e37c5` |
+| common-base v2 qualification summary | `60990f1004623593197844a49ced397b94b8e898a481311ca01f107820ca57ef` |
+| completed latent v2 contract | `2ad312c67d99b78a7f8b9323497801819d52297669f8d192e4d67265537a6b9d` |
+| latent v2 qualification plan | `b948bbfb5c40c5c3ac3730e9be624fab409b7be74da34b1961f8786ef37993ad` |
+| latent v2 generated summary, rejected by audit | `2849aa933922d7072e8dd0fa99ad67094dde87c01af8123cfb5bc840a18e037e` |
+| active latent v3 contract, before plan freeze | `51385b1e904b9553ce279ec2ad60f47c41dbc4171cfa289b979b89965af1e9b2` |
+| active v3 qualification runner, before plan freeze | `b4db1577e6f3162ac2bd79cb60cd77672761eba1a9a25633a82de260ec336632` |
+| active latent v3 qualification plan | `355bf9bcbe73f2eb365095e1c4ad30fd58bc28f0c2ec27d1dcfcbe5b3d047b13` |
+| completed latent v3 qualification summary | `72af2a69495f525c6dcc8df248e82a3eb5667ff41f74b399072d82635d0d9243` |
+| latent v3 field-metrics table | `5ff70aed9d7c1054fe19b570d718163daf0058725cf6f47bd0cd83caf1b0bc38` |
+| smoke dataset contract, before plan freeze | `d963f0dcd58a4e6c502ab74c7b741bf17d388b2cfdfbbc81dfafeaaf58dccff9` |
+| smoke dataset runner, before plan freeze | `db579bdc06e43d72c60868fe56a7c3a1315034f2b266ea059dbe70a805c3faf2` |
+| smoke dataset focused tests, before plan freeze | `9f6e9efcd94e941183fa49a9a74c096a80dd43154c5f85f43f2a7f661a94ffe3` |
+| frozen smoke plan | `760592caa36f5ca3552192c1cb24a03409a8fa8603c0c4fcf3fdefc2be473ca0` |
+| selected 12-episode smoke membership | `5bbfc312f0bfd4f0edd027fb5b11dd2293e62398f78d6b68af5b9acb1cb90db8` |
+| completed smoke aggregate summary | `c473e4b79a5c615f88c52cdb2f5f74860848eaf6102a1a751fda45e6eedc24c0` |
+| reserved-surface-2101 Newton preparation | `aa8e38c7a369cc3796ccca9fa820de19c0b4e67f35b45a2f077aecbf511fc91b` |
+| bulk train/validation contract, before plan freeze | `dcd2717629c441132b8f978e6c981876a396b5891979f63f61a05f465926b35f` |
+| bulk train/validation runner, before plan freeze | `381c3fcbd65d9d14401a950e2265bff3c61a0724235400a3b059815e80e06b4e` |
+| bulk train/validation tests, before plan freeze | `3bad3072facb067db84ae3ac7a4f9a5e3708f61882c45f18e1c693c71607ef2d` |
+| frozen 64-target bulk plan | `a42db0a6a49142620cf276cb8337ffff4c8b804ad0d0a73af71569e883e4cb18` |
+| selected 48/16/0 bulk membership | `37e5f1cc405bc92a72a0644848e6b08a4d8709931486b22cb54efe3069097e26` |
+
+The dataset-plan file hash covers provenance and plan metadata; the manifest
+payload hash covers the canonical episode identities only. They are expected
+to differ. The screening plan contains the remaining per-source hashes,
+repository status snapshots, simulator environment probes, material-case
+input hashes, and surface-case input hashes and is the authority for resuming
+that screen.
+
+Tracked Phase 1 sources and checks are:
+
+| Evidence or implementation | Canonical source |
+| --- | --- |
+| goal and exit contract | this document |
+| chronological measurements and decisions | [phase1-running.md](phase1-running.md) |
+| machine-readable domain and gates | [phase1_bed_state_v1.json](../../configs/phase1_bed_state_v1.json) |
+| deterministic 88-input planner and lock | [run_phase1_contract_screen.py](../../scripts/run_phase1_contract_screen.py) |
+| deterministic surface family | [phase1_surface.py](../../scripts/phase1_surface.py) |
+| surface/material screening pipeline | [run_phase1_screening.py](../../scripts/run_phase1_screening.py) |
+| contract, split, surface, and screen tests | [test_phase1_contract_screen.py](../../tests/test_phase1_contract_screen.py), [test_phase1_surface.py](../../tests/test_phase1_surface.py), and [test_phase1_screening.py](../../tests/test_phase1_screening.py) |
+| superseded, never-run latent contract | [phase1_latent_export_v1.json](../../configs/phase1_latent_export_v1.json) |
+| completed but audit-rejected latent contract | [phase1_latent_export_v2.json](../../configs/phase1_latent_export_v2.json) |
+| active corrected latent contract | [phase1_latent_export_v3.json](../../configs/phase1_latent_export_v3.json) |
+| coupled MPM latent extraction and invariants | [phase1_latent_fields.py](../../scripts/phase1_latent_fields.py) and [test_phase1_latent_fields.py](../../tests/test_phase1_latent_fields.py) |
+| source-hashed latent qualification runner | [run_phase1_latent_qualification.py](../../scripts/run_phase1_latent_qualification.py) and [test_phase1_latent_qualification.py](../../tests/test_phase1_latent_qualification.py) |
+| prospective smoke contract and dataset pipeline | [phase1_dataset_smoke_v1.json](../../configs/phase1_dataset_smoke_v1.json), [run_phase1_dataset.py](../../scripts/run_phase1_dataset.py), and [test_phase1_dataset.py](../../tests/test_phase1_dataset.py) |
+| locked train/validation bulk pipeline | [phase1_dataset_bulk_v1.json](../../configs/phase1_dataset_bulk_v1.json), [run_phase1_dataset_bulk.py](../../scripts/run_phase1_dataset_bulk.py), and [test_phase1_dataset_bulk.py](../../tests/test_phase1_dataset_bulk.py) |
+| prospective neural-training contract | [phase1_training_v1.json](../../configs/phase1_training_v1.json) |
+| shared capacity-controlled B3/H0/H1/H2 U-Net | [phase1_bed_state_model.py](../../scripts/phase1_bed_state_model.py) and [test_phase1_bed_state_model.py](../../tests/test_phase1_bed_state_model.py) |
+| train-only normalization, loss, fitting, and validation selection | [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) and [test_train_phase1_bed_state.py](../../tests/test_train_phase1_bed_state.py) |
+| deterministic surface-to-particle lift and invariant audit | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) |
+| prospective selection-locked final evaluation | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) |
+| preserved, validator-rejected common-base v1 contract | [phase1_newton_common_base_v1.json](../../configs/phase1_newton_common_base_v1.json) |
+| passing common-flat-base Newton repair contract | [phase1_newton_common_base_v2.json](../../configs/phase1_newton_common_base_v2.json) |
+| common-base builder and rescreen | [phase1_metric_bed.py](../../scripts/phase1_metric_bed.py), [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py), [test_phase1_metric_bed.py](../../tests/test_phase1_metric_bed.py), and [test_phase1_newton_common_base.py](../../tests/test_phase1_newton_common_base.py) |
+| tracked v2 audit-rejected latent report | [README](../../diagnostics/phase1_latent_export_v2/README.md), [field metrics](../../diagnostics/phase1_latent_export_v2/field_metrics.csv), and [summary](../../diagnostics/phase1_latent_export_v2/summary.json) |
+| tracked v3 passing latent report | [README](../../diagnostics/phase1_latent_export_v3/README.md), [field metrics](../../diagnostics/phase1_latent_export_v3/field_metrics.csv), and [summary](../../diagnostics/phase1_latent_export_v3/summary.json) |
+| Chrono exact-array SCM course | [build_scm_pit.py](../../../tera_splat_sim/quick_support_demo/chrono_demo/build_scm_pit.py) |
+| Chrono episode implementation and CLI | [cylinder_episode.py](../../../tera_splat_sim/quick_support_demo/chrono_demo/cylinder_episode.py) and [run_cylinder_episode.py](../../../tera_splat_sim/run_cylinder_episode.py) |
+| native SCM round-trip check | [check_scm_initial_heightmap.py](../../../tera_splat_sim/check_scm_initial_heightmap.py) |
+| Chrono terrain interface tests | [test_difficult_terrain.py](../../../tera_splat_sim/quick_support_demo/tests/test_difficult_terrain.py) |
+
+Generated evidence is intentionally ignored by Git and lives on the data
+volume. Relative to `tera_splat`, recover it in this order:
+
+| Generated evidence | Canonical path |
+| --- | --- |
+| frozen 88-input plan and protected test lock | `outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_plan.json` |
+| frozen source/environment screening plan | `outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_plan.json` |
+| aggregate screening decision | `outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_summary.json` |
+| per-surface array, generator metrics, native check, and qualification | `outputs/validity_experiment/newton/phase1_bed_state_v1/screening/surfaces/surface_<seed>/` |
+| per-material logs, metric bed, Newton states, and admission summary | `outputs/validity_experiment/newton/phase1_bed_state_v1/screening/material/<case_id>/` |
+| paired Chrono material episodes | `../tera_splat_sim/validity_experiment/chrono_episodes/phase1_bed_state_v1/screening/material/<case_id>/` |
+| preserved failed common-base v1 validator attempt | `outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v1/` |
+| passing common-base v2 plan, shared prior, pairings, and summary | `outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/` |
+| completed v2 plan, three raw repeats, logs, and audit-rejected summary | `outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v2/` |
+| preserved v2 generated report | `diagnostics/phase1_latent_export_v2/` |
+| passing v3 plan, three fresh repeats, logs, and summary | `outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3/` |
+| passing v3 tracked field report | `diagnostics/phase1_latent_export_v3/` |
+| frozen smoke plan, per-surface priors, episode outputs, tensors, and aggregate decision | `outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_smoke_v1/` |
+| paired smoke Chrono targets | `../tera_splat_sim/validity_experiment/chrono_episodes/phase1_bed_state_v1/dataset_smoke_v1/` |
+| frozen bulk plan, train/validation priors, responses, tensors, and aggregate decision | `outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_bulk_v1/` |
+| paired bulk train/validation Chrono targets | `../tera_splat_sim/validity_experiment/chrono_episodes/phase1_bed_state_v1/dataset_bulk_v1/` |
+| future frozen training plan, train-only normalization, checkpoints, histories, and model cards | `outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/` |
+
+The aggregate summary is the machine decision; `phase1-running.md` is its
+human-readable interpretation. The contract expresses immutable intent, so
+its embedded `not_started` fields are not live status indicators. If the large
+output volume is unavailable, the tracked sources and frozen hashes still
+recover the contract, but completed simulation evidence must be treated as
+unavailable rather than regenerated silently.
+
+From `tera_splat`, the exact validation and staged-screen commands are:
+
+```bash
+python3 scripts/run_phase1_contract_screen.py --check-only
+python3 -m pytest tests/test_phase1_contract_screen.py tests/test_phase1_surface.py tests/test_phase1_screening.py -q
+python3 scripts/run_phase1_screening.py --stage plan
+python3 scripts/run_phase1_screening.py --stage surfaces
+python3 scripts/run_phase1_screening.py --stage chrono
+python3 scripts/run_phase1_screening.py --stage bed
+python3 scripts/run_phase1_screening.py --stage newton
+python3 scripts/run_phase1_screening.py --stage analyze
+```
+
+The material screen has passed and the response writer has the tested
+schema-v2 mechanics/contact export. Run the active corrected v3 qualification with the
+Newton environment, one independently logged process per repeat:
+
+```bash
+/data/christoa/conda/envs/newton_splat/bin/python -m pytest tests/test_newton_contract.py tests/test_phase1_latent_fields.py tests/test_phase1_latent_qualification.py -q
+python3 scripts/run_phase1_latent_qualification.py --config configs/phase1_latent_export_v3.json --stage plan
+python3 scripts/run_phase1_latent_qualification.py --config configs/phase1_latent_export_v3.json --stage run --repeat 1
+python3 scripts/run_phase1_latent_qualification.py --config configs/phase1_latent_export_v3.json --stage run --repeat 2
+python3 scripts/run_phase1_latent_qualification.py --config configs/phase1_latent_export_v3.json --stage run --repeat 3
+python3 scripts/run_phase1_latent_qualification.py --config configs/phase1_latent_export_v3.json --stage analyze
+```
+
+The latent runner refuses to freeze a plan before the material screen passes.
+Its plan binds the screening summary, reference-case inputs, source files,
+Newton environment, device, and three independent response repeats. A passing
+field-semantic report only admits channels to H2; it does not establish that H2
+improves prediction.
+
+The corrected v3 gate and the subsequent 12-episode smoke gate have passed.
+These are the exact smoke commands that produced and independently reproduced
+the passing aggregate without opening a test target:
+
+```bash
+/data/christoa/conda/envs/newton_splat/bin/python -m pytest tests/test_phase1_dataset.py tests/test_phase1_metric_bed.py tests/test_phase1_latent_fields.py -q
+python3 scripts/run_phase1_dataset.py --config configs/phase1_dataset_smoke_v1.json --stage plan
+python3 scripts/run_phase1_dataset.py --config configs/phase1_dataset_smoke_v1.json --stage chrono
+python3 scripts/run_phase1_dataset.py --config configs/phase1_dataset_smoke_v1.json --stage bed
+python3 scripts/run_phase1_dataset.py --config configs/phase1_dataset_smoke_v1.json --stage newton
+python3 scripts/run_phase1_dataset.py --config configs/phase1_dataset_smoke_v1.json --stage analyze
+```
+
+The smoke runner refuses source, input, environment, GPU, device, membership,
+or protected-test-lock drift after `smoke_plan.json` is frozen. It creates one
+fresh common-flat-base preparation per initial-surface seed, an independent
+Chrono target and Newton response per episode, and physically separate
+`model_inputs.npz` and `targets.npz` archives. An incomplete episode directory
+is preserved and refused. Only `smoke_summary.json` may permit the full
+88-episode dataset. That summary now records `status=passed`, 12/12 admitted,
+8/4/0 train/validation/test counts, all aggregate checks true, and
+`full_dataset_permitted=true`. Do not regenerate the smoke set unless a new
+versioned contract is prospectively frozen.
+
+The next commands generate only the 48 train and 16 validation targets. The
+bulk runner cannot select, generate, analyze, or summarize any of the 24 locked
+test identities:
+
+```bash
+python3 -m pytest tests/test_phase1_dataset_bulk.py tests/test_phase1_dataset.py tests/test_phase1_metric_bed.py tests/test_phase1_latent_fields.py -q
+python3 scripts/run_phase1_dataset_bulk.py --config configs/phase1_dataset_bulk_v1.json --stage plan
+python3 scripts/run_phase1_dataset_bulk.py --config configs/phase1_dataset_bulk_v1.json --stage chrono
+python3 scripts/run_phase1_dataset_bulk.py --config configs/phase1_dataset_bulk_v1.json --stage bed
+python3 scripts/run_phase1_dataset_bulk.py --config configs/phase1_dataset_bulk_v1.json --stage newton
+python3 scripts/run_phase1_dataset_bulk.py --config configs/phase1_dataset_bulk_v1.json --stage analyze
+```
+
+The 64-target plan is frozen and binds the original 88-input manifest and
+24-identity test lock, all sources and prerequisites, both simulator
+environments, GPU/device identity, and five qualified non-test surfaces. The
+test identities remain part of the immutable 88-input design, but their target
+generation is deferred to the one-shot locked evaluation after model selection.
+
+The shared neural architecture and training preflight can be verified in the
+separate `test` environment without opening any protected target:
+
+```bash
+/eng/home/christoa/miniconda3/envs/test/bin/python -m unittest discover -s tests -p 'test_phase1_bed_state_model.py' -v
+/eng/home/christoa/miniconda3/envs/test/bin/python -m unittest discover -s tests -p 'test_train_phase1_bed_state.py' -v
+/eng/home/christoa/miniconda3/envs/test/bin/python -m unittest discover -s tests -p 'test_phase1_particle_lift.py' -v
+/eng/home/christoa/miniconda3/envs/test/bin/python -m unittest discover -s tests -p 'test_evaluate_phase1_bed_state.py' -v
+/eng/home/christoa/miniconda3/envs/test/bin/python -m py_compile scripts/phase1_bed_state_model.py scripts/train_phase1_bed_state.py scripts/phase1_particle_lift.py scripts/evaluate_phase1_bed_state.py
+```
+
+All B3, H0, H1, and H2 variants retain the same 289,172 trainable parameters
+through fixed input masks. The tests cover the 121-by-121 odd grid, finite
+forward/backward execution, bounded and boundary-tapered corrections, exact
+base-state reproduction at initialization, parameter/latent ablation masks,
+FiLM conditioning at every scale, the declared training contract, train-only
+normalization helpers, physical-zero no-action construction, unambiguous
+normalization hashes, validation-only conformal uncertainty calibration,
+differentiable multi-term loss, and refusal to freeze a training plan before
+the admitted bulk summary exists. The deterministic grid-to-particle lift is
+also implemented and tested: its linear depth taper changes only particle z,
+preserves every other archived field bitwise, preserves unsupported particles,
+and reproduces the requested valid surface. This is implementation evidence
+only. No training plan is frozen, no model has been fit, and no validation or
+test model score exists. The locked evaluator has a partial preflight
+implementation for selection-before-unlock planning, protected target
+generation, tensor admission, metrics, and bootstrap intervals. Its
+prediction, baseline/control, particle-lift, sensitivity, uncertainty, and
+final-report stages still have to be implemented and tested before Phase 1 can
+meet its final-evaluation gates.
+
+For latent qualification, resume only after checking these sentinels in order:
+
+1. `qualification_plan.json` exists and its source, input, environment, and
+   device hashes still match the active tree;
+2. each `repeat_<NN>/newton_response.log` belongs to a distinct completed
+   process;
+3. each repeat response contains `newton_cylinder_manifest.json` and the three
+   schema-v2 archives `newton_state_initial.npz`, `newton_state_loaded.npz`, and
+   `newton_state_residual.npz`;
+4. each manifest passes finite, guide, and preparation checks and publishes the
+   mechanics/contact field semantics; and
+5. only `qualification_summary.json`, generated after all three repeats, may
+   admit a latent family. Directory existence or one successful repeat is not
+   qualification.
+
+The v1 latent contract was frozen against the original failed material-screen
+route and was never executed. V2 completed three repeats, but its analyzer
+applied repeat gates only to non-kinematic particle invariants; the generated
+`passed` label therefore contradicted this document's requirement that velocity
+and contact also qualify. The raw v2 evidence and generated report are
+preserved, but v2 does not pass the Phase 1 latent gate. The active v3 contract
+keeps the thresholds, requires repeat-stable action-aligned velocity and both
+contact grids, rejects plastic volume change inconsistent with the effectively
+elastic material, consumes the passing common-base v2 preparation, and uses
+target-independent 0.350 s loaded and 0.250 s post-unload timing.
+
+The Chrono interface test must be run from `tera_splat_sim` with its activated
+environment semantics:
+
+```bash
+conda run -n chrono_splat python -m unittest quick_support_demo.tests.test_difficult_terrain
+```
+
+`--case <case_id>` restricts any material stage to one frozen case. Before
+launching a stage, check for an already-running screen and read its log under
+`screening/material/<case_id>/logs/`; do not start a duplicate. Completed
+artifacts are reused only after identity checks. An incomplete directory is
+deliberately refused, so preserve it, diagnose and record the interruption in
+`phase1-running.md`, then make an explicit recovery decision instead of
+deleting evidence ad hoc.
+
+For one material case, recovery proceeds through these concrete sentinels:
+
+1. the Chrono episode `manifest.yaml` and every file it names;
+2. `logs/chrono.log` plus successful Chrono qualification on analysis;
+3. `metric_bed/particles_initial_mpm.ply` and
+   `metric_bed/ground_plane_metadata.json`;
+4. `preparation/newton_prepared_bed_manifest.json` and
+   `logs/newton_preparation.log`;
+5. `response/newton_cylinder_manifest.json`, its named state archives, and
+   `logs/newton_response.log`; and
+6. the analyzed `case_summary.json`.
+
+Only `screening_summary.json` decides the aggregate gate. Directory existence,
+a completed subprocess, or an individual Chrono acceptance is not equivalent
+to Newton admission or permission for bulk generation. The repository-relative
+`outputs` path is a symlink to `/data/christoa/Chrono/tera_splat/outputs` on the
+current machine; preserve repository-relative paths in contracts so the data
+volume can be relocated.
+
+### Current Phase 1 state and first permitted work
+
+As of 2026-10-26, the machine-readable Phase 1 contract and target-free
+prospective 48/16/24 episode plan are frozen. The plan fixes all 88 input
+identities, assigns whole episodes, reserves disjoint initial-surface seeds,
+defines five protected test groups, and records per-input, manifest, source,
+and test-lock hashes before any Phase 1 target is generated. Seven focused
+contract tests pass. Exact hashes and commands are recorded in the
+[Phase 1 chronological record](phase1-running.md).
+
+All six declared Phase 1 surface seeds now pass the analytic generator checks
+and an exact native Chrono SCM initialization round-trip at 5 mm resolution.
+The maximum observed round-trip height error is 7.463 micrometers. All five
+material-box episodes are individually Chrono-accepted, so the proposed Chrono
+parameter rectangle passes its oracle-side screen.
+
+The first Newton preparation was deliberately rejected before contact:
+equilibrium was reached, but its settled surface differed from the common
+initial state by 6.072 mm RMSE, above the frozen 5 mm gate. The original
+metric-bed builder placed a fixed-depth particle column below each varying
+surface point, creating an undulating, partly unsupported bottom over a flat
+ground plane. That failed screen remains preserved.
+
+The prospectively frozen common-flat-base v2 repair passes. Its standalone
+preparation reaches equilibrium with 2.106 mm settled-surface RMSE and 4.472 mm
+maximum error. One independent, fixed-time Newton response is validly shared
+across the five cases because they have the same initial bed, action, and
+frozen Newton material; only their Chrono soil parameters and targets differ.
+All five pairings pass inherited numerical and gross-interaction admission, so
+the physical screen permits later bulk generation. Strict mechanics remains
+unqualified: 20 of 303,829 particle centers briefly entered the analytic
+cylinder, by at most 6.285 micrometers, within the declared 0.5 mm coarse
+limit. This is a bounded coarse prior, not a strict-contact result.
+
+The common-base screen's saved mechanics fields remain unqualified legacy
+placeholders; that completed evidence is immutable. The response writer was
+upgraded prospectively to export schema-v2 coupled solver entry state and
+active cylinder-contact impulses. V2 completed three valid responses, but its
+generated pass is audit-rejected because required velocity repeatability was
+not enforced. The corrected v3 gate then completed three fresh responses and
+passed. Occupancy and mass are conserved; the fixed 3x3/15 mm action-aligned
+velocity field passes with repeat/action ratio 0.160 and minimum correlation
+0.964; contact-node count passes at 0.144/0.988; and normal impulse passes at
+0.090/0.995. Stress and elastic invariants pass and are the only admitted
+non-kinematic H2 families. Plastic state is excluded: maximum absolute
+`log(J_p)` is 10.748, far above the frozen 0.05 plausibility limit for the
+effectively elastic material. These are qualified solver inputs, not evidence
+that H2 improves prediction.
+
+The prospectively frozen engineering smoke set is also complete. All 12
+episodes pass every numerical, interaction, fixed-timing, schema-v2, tensor,
+memory, signal, and baseline-loss check: eight training episodes and four
+validation episodes, including two validation episodes on reserved initial
+surface 2101. The test count is zero and the protected test targets remain
+unopened. Every tensor pair uses a separate `model_inputs.npz` and
+`targets.npz`, is 1,551,986 uncompressed bytes, includes stress and elastic
+inputs, and excludes plastic state. Chrono local action-signal RMS spans
+8.499--12.318 mm; maximum coarse-prior penetration spans 3.185--11.737
+micrometers; raw Newton beats no deformation at both checkpoints in every
+episode. The reproduced aggregate hash is
+`c473e4b79a5c615f88c52cdb2f5f74860848eaf6102a1a751fda45e6eedc24c0`
+and explicitly permits full-dataset generation.
+
+The shared capacity-controlled B3/H0/H1/H2 U-Net, training orchestration, and
+deterministic particle lift are implemented and pass 19 focused tests. A
+partial locked-evaluator preflight adds 7 passing tests, for 26 focused tests
+across the four components. Each
+variant has exactly 289,172
+trainable parameters, with immutable masks preserving capacity across direct,
+parameter, and latent ablations. The prospective contract declares three
+training seeds, train-only normalization, heteroscedastic loaded/post-unload
+heads, bounded residual corrections, validation-only conformal calibration and
+selection, and refusal to plan or fit before the bulk dataset passes. The lift
+passes a real admitted-state preflight on 303,829 particles and all 14,161 valid
+cells, reproducing a perturbed requested surface to 2.329e-10 m while preserving
+all declared state invariants. No training plan has been frozen, no model has
+been fit, and no Phase 1 model score exists. The evaluator's lock, generation,
+admission, metric, and bootstrap routes are implemented prospectively, but its
+prediction and final-report routes are not; it is neither complete nor frozen.
+Exact surface, material,
+preparation-failure, export-diagnosis,
+qualification, smoke, and contract evidence is recorded in the
+[Phase 1 chronological record](phase1-running.md).
+
+The bulk route is implemented, tested, and frozen. Its active data gate is to
+generate and admit all 48 train and 16 validation Chrono/Newton pairs without
+changing the domain, identities, splits, or gates; 40 Chrono targets are
+currently accepted and episode 040 is active. Concurrent implementation may
+finish the prospective evaluator, but test-target generation remains
+prohibited until validation-only model selection and the one-shot locked
+evaluation. The bulk route retains per-surface preparation reuse, separate
+input and target archives, schema-v2 H2 fields, resumable identity checks, and
+the protected-test boundary proven by the smoke. U-Net fitting, model
+selection, and test unlock remain later ordered gates.
+
+The frozen 88-input manifest contains no pair of episodes with identical
+initial-surface seed, action position, and force while varying only soil
+parameters. Therefore it cannot by itself supply the matched sweeps required by
+the parameter-direction gate. The already prospectively frozen five-case
+material rectangle is the canonical matched-sweep sensitivity suite: all five
+cases share one initial bed and action while varying the declared soil
+parameters. Those targets remain excluded from fitting, normalization,
+calibration, model selection, and locked-test accuracy. They may be used only
+by the predeclared final evaluator for the directional sensitivity diagnostic.
+
+### Planned Phase 1 routing
+
+These are the canonical locations and their current evidence state:
+
+| Future artifact | Canonical location | Current state |
+| --- | --- | --- |
+| machine contract | [phase1_bed_state_v1.json](../../configs/phase1_bed_state_v1.json) | frozen pre-screening contract |
+| chronological evidence | [phase1-running.md](phase1-running.md) | active through bulk Chrono generation and evaluator preflight |
+| dataset plan | `.../phase1_bed_state_v1/dataset_plan.json` | frozen locally; 48/16/24 inputs, targets absent |
+| contract planner | [run_phase1_contract_screen.py](../../scripts/run_phase1_contract_screen.py) | frozen target-free plan complete |
+| surface/material screening | [run_phase1_screening.py](../../scripts/run_phase1_screening.py) and [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py) | six surfaces and Chrono 5/5 pass; original Newton screen preserved failed; common-base v2 admits all 5 pairings as a bounded coarse prior |
+| surface generator | [phase1_surface.py](../../scripts/phase1_surface.py) | six declared seeds qualified |
+| screening plan | `.../phase1_bed_state_v1/screening/screening_plan.json` | frozen source/environment identity |
+| original screening summary | `.../phase1_bed_state_v1/screening/screening_summary.json` | surfaces pass; original fixed-depth Newton route failed and is preserved |
+| repaired physical-screen summary | `.../phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json` | all five pairings admitted; bulk permission true at bounded coarse-prior level |
+| smoke contract and dataset generator | [phase1_dataset_smoke_v1.json](../../configs/phase1_dataset_smoke_v1.json) and [run_phase1_dataset.py](../../scripts/run_phase1_dataset.py) | complete; frozen 8/4/0 set passes 12/12, test targets unopened, full-dataset permission true |
+| bulk train/validation generator | [phase1_dataset_bulk_v1.json](../../configs/phase1_dataset_bulk_v1.json) and [run_phase1_dataset_bulk.py](../../scripts/run_phase1_dataset_bulk.py) | tested and prospectively frozen for 48/16/0 targets; Chrono generation active; 24 test identities locked and targets absent |
+| latent qualification | [phase1_latent_export_v3.json](../../configs/phase1_latent_export_v3.json), [run_phase1_latent_qualification.py](../../scripts/run_phase1_latent_qualification.py), and `diagnostics/phase1_latent_export_v3/` | v2 preserved and audit-rejected; corrected v3 passes three fresh repeats; stress and elastic admitted, plastic excluded |
+| shared direct/hybrid architecture | [phase1_bed_state_model.py](../../scripts/phase1_bed_state_model.py) | implemented and tested for B3/H0/H1/H2; equal 289,172-parameter capacity; not trained |
+| shared direct/hybrid trainer | [phase1_training_v1.json](../../configs/phase1_training_v1.json) and [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) | prospective implementation and tests pass; includes validation-only calibration; plan/fitting gated on admitted bulk data |
+| deterministic particle lift | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) | implemented; synthetic suite and one admitted 303,829-particle state pass surface-reproduction and preservation audit |
+| locked evaluator | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) | partial and not frozen; selection-before-unlock planning, protected generation/admission, metrics, and bootstrap implemented; prediction/report stages absent; 7 focused tests pass |
+| Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | contract, screening, latent qualification, and smoke complete locally; bulk Chrono generation active; training outputs absent |
+| final report | `docs/newton/phase1-completion-YYYYMMDD.md` | created only at exit |
+
+Whenever Phase 1 evidence changes, update the current-state paragraph and this
+routing table in the same change. Record measurements in machine-readable
+summaries first, then reflect their interpretation here. Do not create a second
+document with a competing live goal, next-step list, or completion status.
 
 ## Goal
 
@@ -385,16 +933,51 @@ redesign of the latent representation before Phase 2.
 ## Ordered implementation plan
 
 1. Freeze the machine-readable Phase 1 action, surface, and parameter contract.
+   **Complete 2026-10-22:** the contract, 48/16/24 input manifest, and protected
+   test identity lock are frozen; see [the running record](phase1-running.md).
 2. Qualify the material-box corners and the initial-surface generator.
+   **Complete 2026-10-23:** all six surfaces and all five Chrono corner/center
+   cases pass. The original Newton screen failed and remains preserved; the
+   prospectively frozen common-base v2 repair passes preparation and all five
+   numerical/gross-interaction pairings with inference-safe fixed timing.
 3. Fix the Newton latent export and publish field-semantic diagnostics.
+   **Complete 2026-10-24:** coupled-state and active-contact schema-v2 export
+   is integrated and tested. V2 exposed a required-velocity enforcement gap
+   and remains audit-rejected. Corrected v3 passes three fresh repeats with
+   occupancy/mass, action-aligned velocity, contact, stress, and elastic
+   evidence. Stress and elastic are admitted to H2; implausible plastic state
+   is excluded. Predictive value remains to be tested by H2 versus H1.
 4. Generate and validate the 12-episode engineering smoke set.
+   **Complete 2026-10-25:** all 12 frozen episodes are admitted, including all
+   four validation episodes; every aggregate check passes, protected test
+   targets remain unopened, and the reproduced summary permits full-dataset
+   generation.
 5. Freeze the 88-episode manifest and whole-episode splits.
+   **Complete 2026-10-22:** this was frozen prospectively with step 1, before
+   any Phase 1 target generation. It remains immutable after the smoke pass.
 6. Generate accepted Chrono/Newton pairs without changing the domain or gates.
+   **In progress 2026-10-26:** a source/input/environment/device-hashed bulk
+   plan is frozen for all 48 train and 16 validation targets. Its runner
+   structurally prohibits the 24 test targets until the one-shot evaluation.
+   The original supervisor has completed and admitted 40/64 Chrono targets;
+   episode 040 is active and all protected targets remain absent.
 7. Implement B3, H0, H1, and H2 from one shared U-Net code path.
-8. Train the three declared seeds, select on validation, and freeze all choices.
-9. Open the test set once and publish the complete baseline, ablation,
+   **Architecture/trainer/lift preflight complete 2026-10-26:** all four
+   variants share an exact 289,172-parameter architecture, validation-only
+   uncertainty calibration and strict artifact locks are implemented, the
+   deterministic particle lift passes synthetic and real-state audits, and 19
+   focused tests pass. Fitting remains gated on completion and admission of
+   step 6.
+8. Finish the locked evaluator.
+   **Partial preflight 2026-10-26:** selection-before-unlock planning,
+   protected target generation, tensor admission, surface metrics, and
+   whole-episode bootstrap routes are implemented and 7 focused tests pass.
+   Prediction, baselines/controls, particle lift, sensitivity, uncertainty,
+   aggregation, and final reporting remain to be built before freezing.
+9. Train the three declared seeds, select on validation, and freeze all choices.
+10. Open the test set once and publish the complete baseline, ablation,
    sensitivity, uncertainty, and integrity report.
-10. Mark Phase 1 complete only if every required gate above passes.
+11. Mark Phase 1 complete only if every required gate above passes.
 
 ## Kept for Phase 2
 

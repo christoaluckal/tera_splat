@@ -21,6 +21,13 @@ from newton_contract import (
     speed_summary,
     validate_metric_bed,
 )
+from phase1_latent_fields import (
+    FIELD_SEMANTICS,
+    STATE_SCHEMA_VERSION,
+    extract_particle_state,
+    select_active_collider_contacts,
+    write_state_archive,
+)
 from run_newton_prepared_bed import (
     DEFAULT_ORACLE,
     REPO_ROOT,
@@ -29,10 +36,8 @@ from run_newton_prepared_bed import (
     load_oracle,
     project_surface,
     read_particle_ply,
-    state_arrays,
     surface_match,
     write_particle_ply,
-    write_state,
 )
 
 
@@ -92,12 +97,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pre-settle-required-duration-s", type=float, default=0.02)
     parser.add_argument("--particle-speed-threshold-mps", type=float, default=0.0005)
     parser.add_argument(
+        "--observation-time-mode",
+        choices=("oracle_aligned", "independent_fixed"),
+        default="oracle_aligned",
+        help=(
+            "oracle_aligned preserves the historical exact Chrono-time contract; "
+            "independent_fixed requires explicit loaded/residual durations and "
+            "prevents target-derived timing from controlling the Newton rollout."
+        ),
+    )
+    parser.add_argument(
         "--loaded-duration-s",
         type=float,
         default=None,
         help=(
-            "Newton loading observation time. Defaults to the supplied Chrono "
-            "episode's recorded loaded sample time and must match it exactly."
+            "Newton loading observation time. In oracle_aligned mode it defaults "
+            "to and must match the Chrono record; independent_fixed requires it."
         ),
     )
     parser.add_argument(
@@ -105,8 +120,8 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=None,
         help=(
-            "Newton post-removal observation duration. Defaults to the supplied "
-            "Chrono episode's recorded residual duration and must match it exactly."
+            "Newton post-removal observation duration. In oracle_aligned mode it "
+            "defaults to and must match Chrono; independent_fixed requires it."
         ),
     )
     parser.add_argument("--diagnostic-every", type=int, default=10)
@@ -530,6 +545,35 @@ def collect_cylinder_contacts(
     )
 
 
+def phase1_state_arrays(state, solver, guide_coupling_mode: str) -> dict[str, np.ndarray]:
+    """Snapshot reconciled kinematics and the authoritative MPM entry history."""
+    coupled_solver = solver if guide_coupling_mode == "native_proxy" else None
+    return extract_particle_state(state, coupled_solver=coupled_solver)
+
+
+def empty_contact_arrays() -> dict[str, np.ndarray]:
+    """Return the typed no-contact payload used before loading and after removal."""
+    return {
+        "contact_position_m": np.empty((0, 3), dtype=np.float64),
+        "contact_impulse_ns": np.empty((0, 3), dtype=np.float64),
+        "contact_collider_id": np.empty((0,), dtype=np.int64),
+    }
+
+
+def active_cylinder_contact_arrays(
+    solver, state, body_index: int
+) -> dict[str, np.ndarray]:
+    """Capture active grid contacts assigned to the analytic cylinder body."""
+    impulses, positions, collider_ids = solver.collect_collider_impulses(state)
+    return select_active_collider_contacts(
+        impulses.numpy(),
+        positions.numpy(),
+        collider_ids.numpy(),
+        solver.collider_body_index.numpy(),
+        body_index=body_index,
+    )
+
+
 def response_error(
     candidate: np.ndarray,
     initial: np.ndarray,
@@ -611,23 +655,38 @@ def main() -> None:
     chrono_loaded_duration_s, chrono_residual_duration_s = oracle_observation_times(
         oracle_manifest
     )
-    loaded_duration_s = (
-        chrono_loaded_duration_s
-        if args.loaded_duration_s is None
-        else float(args.loaded_duration_s)
-    )
-    residual_duration_s = (
-        chrono_residual_duration_s
-        if args.residual_duration_s is None
-        else float(args.residual_duration_s)
-    )
-    for name, requested, recorded in (
-        ("loaded", loaded_duration_s, chrono_loaded_duration_s),
-        ("residual", residual_duration_s, chrono_residual_duration_s),
+    if args.observation_time_mode == "independent_fixed":
+        if args.loaded_duration_s is None or args.residual_duration_s is None:
+            raise ValueError(
+                "independent_fixed observation timing requires explicit loaded "
+                "and residual durations"
+            )
+        loaded_duration_s = float(args.loaded_duration_s)
+        residual_duration_s = float(args.residual_duration_s)
+    else:
+        loaded_duration_s = (
+            chrono_loaded_duration_s
+            if args.loaded_duration_s is None
+            else float(args.loaded_duration_s)
+        )
+        residual_duration_s = (
+            chrono_residual_duration_s
+            if args.residual_duration_s is None
+            else float(args.residual_duration_s)
+        )
+    for name, requested in (
+        ("loaded", loaded_duration_s),
+        ("residual", residual_duration_s),
     ):
         if not math.isfinite(requested) or requested <= 0.0:
             raise ValueError(f"{name} observation duration must be finite and positive")
-        if not math.isclose(requested, recorded, rel_tol=0.0, abs_tol=1.0e-12):
+    if args.observation_time_mode == "oracle_aligned":
+        for name, requested, recorded in (
+            ("loaded", loaded_duration_s, chrono_loaded_duration_s),
+            ("residual", residual_duration_s, chrono_residual_duration_s),
+        ):
+            if math.isclose(requested, recorded, rel_tol=0.0, abs_tol=1.0e-12):
+                continue
             raise ValueError(
                 f"Newton {name} observation duration {requested} s differs from "
                 f"the Chrono episode record {recorded} s"
@@ -956,7 +1015,7 @@ def main() -> None:
             "fresh Newton state failed the cylinder-free speed hold before loading"
         )
 
-    initial_arrays = state_arrays(state)
+    initial_arrays = phase1_state_arrays(state, solver, args.guide_coupling_mode)
     local = (
         np.linalg.norm(initial_arrays["position_m"][:, :2] - np.asarray(center_xy), axis=1)
         <= radius + spacing
@@ -967,7 +1026,11 @@ def main() -> None:
         initial_arrays["position_m"], oracle_manifest, args.max_fill_distance_m
     )
     write_particle_ply(initial_arrays["position_m"], output / "particles_initial_mpm.ply")
-    write_state(output / "newton_state_initial.npz", state)
+    write_state_archive(
+        output / "newton_state_initial.npz",
+        initial_arrays,
+        extra_arrays=empty_contact_arrays(),
+    )
 
     loaded_steps = int(round(loaded_duration_s / args.dt_s))
     residual_steps = int(round(residual_duration_s / args.dt_s))
@@ -992,6 +1055,7 @@ def main() -> None:
     impulse_sdf_max = None
     first_impulse_step = None
     first_impulse_bottom_relative_to_surface = None
+    loaded_contact_arrays = empty_contact_arrays()
     set_body_state(state, cylinder_body, center_xy, cylinder_z, cylinder_vz)
     for step in range(1, loaded_steps + 1):
         if args.guide_coupling_mode == "explicit_impulse":
@@ -1011,6 +1075,10 @@ def main() -> None:
             radius,
             half_height,
         )
+        if step == loaded_steps:
+            loaded_contact_arrays = active_cylinder_contact_arrays(
+                mpm_solver, state, cylinder_collider_body
+            )
         impulse_z = float(contacts["upward_impulse_ns"])
         contact_nodes = int(contacts["assigned_nodes"])
         impulse_nodes = int(contacts["impulse_nodes"])
@@ -1097,7 +1165,7 @@ def main() -> None:
         )
     loaded_body_pose = state.body_q.numpy()[cylinder_body].copy()
     loaded_body_velocity = state.body_qd.numpy()[cylinder_body].copy()
-    loaded_arrays = state_arrays(state)
+    loaded_arrays = phase1_state_arrays(state, solver, args.guide_coupling_mode)
     loaded_speed = speed_summary(loaded_arrays["velocity_mps"])
     loaded_map, loaded_supported = project_surface(
         loaded_arrays["position_m"], oracle_manifest, args.max_fill_distance_m
@@ -1106,7 +1174,11 @@ def main() -> None:
         loaded_arrays["position_m"], center_xy, cylinder_z, radius, half_height
     )
     write_particle_ply(loaded_arrays["position_m"], output / "particles_loaded_mpm.ply")
-    write_state(output / "newton_state_loaded.npz", state)
+    write_state_archive(
+        output / "newton_state_loaded.npz",
+        loaded_arrays,
+        extra_arrays=loaded_contact_arrays,
+    )
     loaded_center_z = cylinder_z
     loaded_vertical_speed = cylinder_vz
 
@@ -1138,13 +1210,17 @@ def main() -> None:
     wp.synchronize_device(device)
     wall_time = time.perf_counter() - wall_start
 
-    residual_arrays = state_arrays(state)
+    residual_arrays = phase1_state_arrays(state, solver, args.guide_coupling_mode)
     residual_speed = speed_summary(residual_arrays["velocity_mps"])
     residual_map, residual_supported = project_surface(
         residual_arrays["position_m"], oracle_manifest, args.max_fill_distance_m
     )
     write_particle_ply(residual_arrays["position_m"], output / "particles_residual_mpm.ply")
-    write_state(output / "newton_state_residual.npz", state)
+    write_state_archive(
+        output / "newton_state_residual.npz",
+        residual_arrays,
+        extra_arrays=empty_contact_arrays(),
+    )
     valid = (
         chrono_valid
         & initial_supported
@@ -1242,10 +1318,28 @@ def main() -> None:
         },
         "chrono_episode": str(args.chrono_episode.resolve()),
         "observation_timing_s": {
+            "mode": args.observation_time_mode,
+            "chrono_target_time_controls_newton": (
+                args.observation_time_mode == "oracle_aligned"
+            ),
             "chrono_loaded": chrono_loaded_duration_s,
             "chrono_residual": chrono_residual_duration_s,
             "newton_loaded": loaded_steps * args.dt_s,
             "newton_residual": residual_steps * args.dt_s,
+        },
+        "state_archive": {
+            "schema_version": STATE_SCHEMA_VERSION,
+            "kinematics_source": "reconciled parent state",
+            "mechanics_source": (
+                "public SolverCoupledProxy MPM entry state"
+                if args.guide_coupling_mode == "native_proxy"
+                else "public SolverImplicitMPM state"
+            ),
+            "field_semantics": FIELD_SEMANTICS,
+            "loaded_active_cylinder_contact_nodes": int(
+                loaded_contact_arrays["contact_position_m"].shape[0]
+            ),
+            "initial_and_post_unload_contacts_are_empty": True,
         },
         "environment": {
             "python": platform.python_version(),

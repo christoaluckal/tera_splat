@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "dataset_id": "phase1_dataset_smoke_v1",
+  "status": "prospective_before_runtime",
+  "authority": "docs/newton/phase1.md",
+  "phase1_contract": "configs/phase1_bed_state_v1.json",
+  "dataset_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_plan.json",
+  "purpose": "Validate the Phase 1 paired-episode schema, tensor semantics, simulator routing, admission checks, memory footprint, and elementary loss behavior before generating the 88-episode dataset.",
+  "prerequisites": {
+    "physical_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json",
+    "require_physical_status": "passed",
+    "require_bulk_dataset_permitted": true,
+    "latent_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/latent_qualification/phase1_latent_export_v3/qualification_summary.json",
+    "require_latent_status": "passed",
+    "qualified_nonkinematic_families": ["stress", "elastic"],
+    "excluded_nonkinematic_families": ["plastic"]
+  },
+  "membership": {
+    "train": [
+      "p1_train_joint-design_000",
+      "p1_train_joint-design_001",
+      "p1_train_joint-design_002",
+      "p1_train_joint-design_003",
+      "p1_train_joint-design_004",
+      "p1_train_joint-design_005",
+      "p1_train_joint-design_006",
+      "p1_train_joint-design_007"
+    ],
+    "validation": [
+      "p1_validation_joint-design_000",
+      "p1_validation_joint-design_001",
+      "p1_validation_unseen-initial-surface_008",
+      "p1_validation_unseen-initial-surface_009"
+    ],
+    "test": []
+  },
+  "newton_prior": {
+    "builder_contract": "configs/phase1_newton_common_base_v2.json",
+    "preparation_reuse_scope": "one fresh preparation per initial_surface_seed within this smoke campaign",
+    "response_reuse_prohibited": true,
+    "newton_material_fixed_across_episodes": true,
+    "observation_time_mode": "independent_fixed",
+    "loaded_duration_s": 0.35,
+    "post_unload_duration_s": 0.25,
+    "chrono_target_time_must_not_control_newton_rollout": true,
+    "coarse_prior_only": true,
+    "strict_mechanics_claim_permitted": false
+  },
+  "tensor_schema": {
+    "grid_spacing_m": 0.005,
+    "checkpoints": ["loaded", "post_unload"],
+    "core_spatial_inputs": [
+      "initial_height_m",
+      "newton_loaded_displacement_m",
+      "newton_post_unload_displacement_m",
+      "valid_support",
+      "action_relative_x_m",
+      "action_relative_y_m",
+      "action_signed_distance_m",
+      "action_footprint"
+    ],
+    "qualified_h2_fields_per_checkpoint": [
+      "column_particle_count",
+      "column_mass_kg",
+      "column_mean_action_velocity_mps",
+      "contact_node_count",
+      "contact_normal_impulse_ns",
+      "column_mean_stress_mean_pa",
+      "column_mean_stress_von_mises_pa",
+      "column_mean_elastic_jacobian",
+      "column_mean_elastic_isochoric_shear"
+    ],
+    "excluded_fields": ["plastic_jacobian"],
+    "global_action_vector": ["center_x_m", "center_y_m", "normal_force_n", "phase"],
+    "global_parameter_vector": ["bekker_kphi", "mohr_friction_deg"],
+    "targets": ["chrono_loaded_height_m", "chrono_post_unload_height_m"],
+    "target_arrays_are_never_model_inputs": true
+  },
+  "smoke_exit": {
+    "required_episode_count": 12,
+    "required_train_count": 8,
+    "required_validation_count": 4,
+    "required_surface_seeds": [1101, 1102, 1103, 1104, 2101],
+    "require_all_chrono_accepted": true,
+    "require_all_newton_admitted": true,
+    "require_schema_v2": true,
+    "require_all_tensor_fields_finite": true,
+    "minimum_target_action_rms_m": 0.000001,
+    "maximum_uncompressed_tensor_bytes_per_episode": 536870912,
+    "require_finite_raw_newton_and_no_deformation_losses": true,
+    "permit_full_dataset_only_after_pass": true
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_smoke_v1",
+    "chrono_output_root": "../tera_splat_sim/validity_experiment/chrono_episodes/phase1_bed_state_v1/dataset_smoke_v1",
+    "newton_python": "/data/christoa/conda/envs/newton_splat/bin/python",
+    "device": "cuda:0",
+    "freeze_plan_before_first_target": true,
+    "require_source_input_environment_and_device_hashes": true
+  }
+}

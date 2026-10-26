@@ -19,22 +19,24 @@ differentiable backend.
 
 1. [Active Phase 1 goal](newton/phase1.md) — sole goal and exit contract for
    bounded, parameter-conditioned neural bed-state prediction.
-2. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
+2. [Phase 1 chronological record](newton/phase1-running.md) — current dated
+   implementation evidence, frozen hashes, blockers, and next permitted gate.
+3. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
    claim boundary for the completed 241-parameter residual proof.
-3. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+4. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — complete proposed architecture, backend decision, data split, losses,
    latent-state ablations, Gaussian transfer, and planner validation.
-4. [Current repository state](current-state.md) — cross-backend context for
+5. [Current repository state](current-state.md) — cross-backend context for
    Chrono, Genesis, Newton, artifacts, and execution constraints.
-5. [Newton documentation index](newton/README.md) — all Newton contracts,
+6. [Newton documentation index](newton/README.md) — all Newton contracts,
    reports, boundaries, and dated provenance.
-6. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+7. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only variation-characterization and geometric-utility protocol.
-7. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+8. [Cross-backend direction](forward-model-direction-20261006.md) — why the
    project moved from parameter-only fitting to a hybrid residual model.
-8. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+9. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
    timing, support, preparation, and scoring rules.
-9. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+10. [Contributor guidance](contributor-guidance.md) — repository, editing, and
    evidence-maintenance rules.
 
 Files in [archive](archive/) are historical provenance. They are not current
@@ -45,6 +47,7 @@ instructions.
 | Topic | Entry point |
 | --- | --- |
 | Active Phase 1 goal | [newton/phase1.md](newton/phase1.md) |
+| Phase 1 chronological evidence | [newton/phase1-running.md](newton/phase1-running.md) |
 | Current Phase 0 status | [newton/phase0.md](newton/phase0.md) |
 | Cross-backend context | [current-state.md](current-state.md) |
 | Hybrid architecture | [hybrid-chrono-mpm-residual-gaussian-planning-20261008.md](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md) |

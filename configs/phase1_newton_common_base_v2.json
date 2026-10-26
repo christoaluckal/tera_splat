@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "qualification_id": "phase1_newton_common_base_v2",
+  "status": "prospective_before_runtime",
+  "authority": "docs/newton/phase1.md",
+  "phase1_contract": "configs/phase1_bed_state_v1.json",
+  "purpose": "Qualify a common-flat-base varying-surface Newton bed after adding strict variable-column validation; retain all physical and surface gates.",
+  "antecedent_failure": {
+    "screening_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_summary.json",
+    "preparation_manifest": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/material/screen_material_klo_flo/preparation/newton_prepared_bed_manifest.json",
+    "reason": "fixed-depth columns created an undulating bottom over one flat ground plane",
+    "settled_surface_rmse_m": 0.006071991752833128,
+    "settled_surface_max_abs_m": 0.007630891166627407,
+    "acceptance_rmse_m": 0.005,
+    "acceptance_max_abs_m": 0.01,
+    "preserve_original_failure": true
+  },
+  "antecedent_validation_failure": {
+    "qualification_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v1/qualification_plan.json",
+    "preparation_log": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v1/shared_newton_prior/logs/newton_preparation.log",
+    "reason": "legacy metric-bed validation required equal-sized vertical layers",
+    "simulation_started": false,
+    "preserve_v1_failure": true
+  },
+  "builder": {
+    "implementation": "scripts/phase1_metric_bed.py",
+    "mode": "exact_surface_global_vertical_lattice_common_flat_base",
+    "surface_datum": "mean_of_exact_initial_heightmap",
+    "nominal_bed_depth_m": 0.1,
+    "particle_spacing_m": 0.005,
+    "minimum_top_gap_fraction": 0.95,
+    "ground_clearance_particle_spacings": 1.0,
+    "retain_exact_top_particle_per_cell": true,
+    "all_columns_include_common_base": true
+  },
+  "validation": {
+    "legacy_equal_layer_rule_preserved_without_base_contract": true,
+    "common_base_requires_unique_surface_prefix": true,
+    "common_base_requires_exact_column_top_envelope": true,
+    "common_base_requires_all_columns_at_declared_base": true,
+    "common_base_requires_declared_column_count_range": true,
+    "common_base_requires_one_spacing_ground_clearance": true
+  },
+  "observation_time_contract": {
+    "newton_mode": "independent_fixed",
+    "loaded_duration_s": 0.35,
+    "post_unload_duration_s": 0.25,
+    "chrono_target_checkpoint": "independently accepted_settled_state",
+    "chrono_target_time_must_not_control_newton_rollout": true
+  },
+  "qualification_order": {
+    "reference_case": "screen_material_kref_fref",
+    "reference_preparation_and_response_first": true,
+    "material_cases_after_reference": [
+      "screen_material_klo_flo",
+      "screen_material_klo_fhi",
+      "screen_material_khi_flo",
+      "screen_material_khi_fhi",
+      "screen_material_kref_fref"
+    ]
+  },
+  "admission": {
+    "retain_phase0_surface_rmse_gate_m": 0.005,
+    "retain_phase0_surface_max_abs_gate_m": 0.01,
+    "retain_phase0_numerical_integrity": true,
+    "retain_phase0_guide_support_and_gross_interaction_guards": true,
+    "require_all_five_chrono_cases_previously_accepted": true,
+    "require_all_five_case_pairings_newton_admitted": true,
+    "bulk_dataset_remains_blocked_until_pass": true
+  },
+  "execution": {
+    "newton_python": "/data/christoa/conda/envs/newton_splat/bin/python",
+    "device": "cuda:0",
+    "output_root": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2",
+    "freeze_plan_before_first_runtime": true,
+    "require_source_input_environment_and_device_hashes": true
+  }
+}
