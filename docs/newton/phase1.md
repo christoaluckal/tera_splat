@@ -2,7 +2,7 @@
 
 Created: 2026-10-23
 
-Last updated: 2026-10-26
+Last updated: 2026-10-30
 
 Status: active Phase 1 goal and exit contract
 
@@ -319,9 +319,10 @@ is preserved and refused. Only `smoke_summary.json` may permit the full
 `full_dataset_permitted=true`. Do not regenerate the smoke set unless a new
 versioned contract is prospectively frozen.
 
-The next commands generate only the 48 train and 16 validation targets. The
-bulk runner cannot select, generate, analyze, or summarize any of the 24 locked
-test identities:
+These are the exact bulk commands. The plan, Chrono, and bed stages are now
+complete; the Newton stage is active and the analyzer may be rerun as responses
+finish. The bulk runner cannot select, generate, analyze, or summarize any of
+the 24 locked test identities:
 
 ```bash
 python3 -m pytest tests/test_phase1_dataset_bulk.py tests/test_phase1_dataset.py tests/test_phase1_metric_bed.py tests/test_phase1_latent_fields.py -q
@@ -360,14 +361,18 @@ differentiable multi-term loss, and refusal to freeze a training plan before
 the admitted bulk summary exists. The deterministic grid-to-particle lift is
 also implemented and tested: its linear depth taper changes only particle z,
 preserves every other archived field bitwise, preserves unsupported particles,
-and reproduces the requested valid surface. This is implementation evidence
-only. No training plan is frozen, no model has been fit, and no validation or
-test model score exists. The locked evaluator has a partial preflight
-implementation for selection-before-unlock planning, protected target
-generation, tensor admission, metrics, and bootstrap intervals. Its
-prediction, baseline/control, particle-lift, sensitivity, uncertainty, and
-final-report stages still have to be implemented and tested before Phase 1 can
-meet its final-evaluation gates.
+and reproduces the requested valid surface. The training plan and train-only
+normalization are now frozen, all 12 variant/seed fits are complete, and
+per-variant checkpoint selection plus uncertainty calibration used validation
+only. No locked-test model score exists yet. The locked evaluator implements
+selection-before-unlock planning, protected
+target generation and admission, selected-model inference, B0--B3/H0--H2
+baselines and ablations, shuffled and constant-parameter controls, calibrated
+uncertainty, invariant-preserving particle lift, the five-case matched
+sensitivity diagnostic, whole-episode bootstrap aggregation, explicit failure
+cases, artifact revalidation, and evidence-complete final gate reporting. Its
+plan was frozen after validation-only model selection; the explicit unlock and
+open-once markers then released the currently active test Chrono stage.
 
 For latent qualification, resume only after checking these sentinels in order:
 
@@ -431,7 +436,7 @@ volume can be relocated.
 
 ### Current Phase 1 state and first permitted work
 
-As of 2026-10-26, the machine-readable Phase 1 contract and target-free
+As of 2026-10-30, the machine-readable Phase 1 contract and target-free
 prospective 48/16/24 episode plan are frozen. The plan fixes all 88 input
 identities, assigns whole episodes, reserves disjoint initial-surface seeds,
 defines five protected test groups, and records per-input, manifest, source,
@@ -493,36 +498,63 @@ episode. The reproduced aggregate hash is
 and explicitly permits full-dataset generation.
 
 The shared capacity-controlled B3/H0/H1/H2 U-Net, training orchestration, and
-deterministic particle lift are implemented and pass 19 focused tests. A
-partial locked-evaluator preflight adds 7 passing tests, for 26 focused tests
-across the four components. Each
+deterministic particle lift are implemented and pass 19 focused tests. The
+complete prospective locked-evaluator preflight adds 12 passing tests, for 31
+focused tests across the four components. Each
 variant has exactly 289,172
 trainable parameters, with immutable masks preserving capacity across direct,
 parameter, and latent ablations. The prospective contract declares three
 training seeds, train-only normalization, heteroscedastic loaded/post-unload
 heads, bounded residual corrections, validation-only conformal calibration and
-selection, and refusal to plan or fit before the bulk dataset passes. The lift
+selection, and refusal to plan or fit before the bulk dataset passes. That gate
+has now passed: the frozen training plan binds all 64 admitted train/validation
+pairs and train-only normalization, all 12 declared variant/seed fits are
+complete, and validation-only selection chose B3 seed 20261024 and H0/H1/H2
+seed 20261023. The lift
 passes a real admitted-state preflight on 303,829 particles and all 14,161 valid
 cells, reproducing a perturbed requested surface to 2.329e-10 m while preserving
-all declared state invariants. No training plan has been frozen, no model has
-been fit, and no Phase 1 model score exists. The evaluator's lock, generation,
-admission, metric, and bootstrap routes are implemented prospectively, but its
-prediction and final-report routes are not; it is neither complete nor frozen.
+all declared state invariants. No locked-test model score exists. The evaluator
+implementation covers inference, all required
+baselines and controls, particle-state audits, parameter sensitivity,
+uncertainty, aggregation, and the final report. After model selection it froze
+the original 24-episode v1 evaluation plan, wrote the explicit unlock and
+open-once markers, and completed all 24 one-shot v1 targets. V1 then failed
+closed at admission: episode 009 alone exceeded the prospectively frozen
+single guide tolerance, so prediction was correctly refused.
+
+The separately authorized v2 recovery was frozen before target generation. It
+reuses the exact v1-selected models, normalization, and calibration without
+refitting or reselection; declares dimensionally explicit component guide
+tolerances; freezes the qualified two-worker Newton identity; and contains 24
+new physical inputs with zero exact overlap with all 88 v1 inputs. Reserved
+surface 3102 passes analytic generation and native SCM round-trip qualification
+with 4.612 micrometers maximum error. The target-free manifest, model/source/
+surface-hashed evaluator plan, and selection identity were frozen before the
+explicit unlock. V2 has now opened once: all 24 Chrono targets pass, all five
+Newton priors are prepared, and 24 response manifests exist. The original
+two-worker queue produced 23 manifests; episode 012 failed on a non-finite
+plastic Jacobian, then succeeded only when retried alone after the other 23
+were skipped. All 24 numerical response checks and prospective guide limits
+pass, but the successful serial retry violates v2's frozen requirement to use
+exactly two independent Newton processes without mixing serial and dual target
+generation. Aggregate admission and prediction therefore remain withheld.
 Exact surface, material,
 preparation-failure, export-diagnosis,
 qualification, smoke, and contract evidence is recorded in the
 [Phase 1 chronological record](phase1-running.md).
 
-The bulk route is implemented, tested, and frozen. Its active data gate is to
-generate and admit all 48 train and 16 validation Chrono/Newton pairs without
-changing the domain, identities, splits, or gates; 40 Chrono targets are
-currently accepted and episode 040 is active. Concurrent implementation may
-finish the prospective evaluator, but test-target generation remains
-prohibited until validation-only model selection and the one-shot locked
-evaluation. The bulk route retains per-surface preparation reuse, separate
-input and target archives, schema-v2 H2 fields, resumable identity checks, and
-the protected-test boundary proven by the smoke. U-Net fitting, model
-selection, and test unlock remain later ordered gates.
+The bulk route is complete and passed: all five preparations and all 64
+train/validation Chrono/Newton/tensor pairs are admitted, with stress and
+elastic retained for H2 and plastic excluded. Every aggregate check is true.
+The training plan, 12 model fits, per-variant validation selection, and
+validation-only uncertainty calibration then completed before the test unlock.
+The v1 test set was legitimately opened once under its frozen evaluator plan
+and its failed admission remains immutable. The v2 test set has now been
+opened once under its separate prospective plan, after the unchanged selection
+identity was rebound and verified. The bulk route retains per-surface
+preparation reuse, separate input and target archives, schema-v2 H2 fields,
+resumable identity checks, and the protected ordering proven by the recorded
+plan, selection, unlock, and open-marker hashes.
 
 The frozen 88-input manifest contains no pair of episodes with identical
 initial-surface seed, action position, and force while varying only soil
@@ -541,8 +573,8 @@ These are the canonical locations and their current evidence state:
 | Future artifact | Canonical location | Current state |
 | --- | --- | --- |
 | machine contract | [phase1_bed_state_v1.json](../../configs/phase1_bed_state_v1.json) | frozen pre-screening contract |
-| chronological evidence | [phase1-running.md](phase1-running.md) | active through bulk Chrono generation and evaluator preflight |
-| dataset plan | `.../phase1_bed_state_v1/dataset_plan.json` | frozen locally; 48/16/24 inputs, targets absent |
+| chronological evidence | [phase1-running.md](phase1-running.md) | active through preserved v1 failure, v2 unlock, complete Chrono generation, and the running Newton response queue |
+| dataset plan | `.../phase1_bed_state_v1/dataset_plan.json` | frozen locally; 48/16/24 inputs; test identities opened once only after selection |
 | contract planner | [run_phase1_contract_screen.py](../../scripts/run_phase1_contract_screen.py) | frozen target-free plan complete |
 | surface/material screening | [run_phase1_screening.py](../../scripts/run_phase1_screening.py) and [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py) | six surfaces and Chrono 5/5 pass; original Newton screen preserved failed; common-base v2 admits all 5 pairings as a bounded coarse prior |
 | surface generator | [phase1_surface.py](../../scripts/phase1_surface.py) | six declared seeds qualified |
@@ -550,13 +582,14 @@ These are the canonical locations and their current evidence state:
 | original screening summary | `.../phase1_bed_state_v1/screening/screening_summary.json` | surfaces pass; original fixed-depth Newton route failed and is preserved |
 | repaired physical-screen summary | `.../phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json` | all five pairings admitted; bulk permission true at bounded coarse-prior level |
 | smoke contract and dataset generator | [phase1_dataset_smoke_v1.json](../../configs/phase1_dataset_smoke_v1.json) and [run_phase1_dataset.py](../../scripts/run_phase1_dataset.py) | complete; frozen 8/4/0 set passes 12/12, test targets unopened, full-dataset permission true |
-| bulk train/validation generator | [phase1_dataset_bulk_v1.json](../../configs/phase1_dataset_bulk_v1.json) and [run_phase1_dataset_bulk.py](../../scripts/run_phase1_dataset_bulk.py) | tested and prospectively frozen for 48/16/0 targets; Chrono generation active; 24 test identities locked and targets absent |
+| bulk train/validation generator | [phase1_dataset_bulk_v1.json](../../configs/phase1_dataset_bulk_v1.json) and [run_phase1_dataset_bulk.py](../../scripts/run_phase1_dataset_bulk.py) | complete and passed for 48/16/0: five preparations and 64/64 Chrono/Newton/tensor pairs admitted; all aggregate checks true |
 | latent qualification | [phase1_latent_export_v3.json](../../configs/phase1_latent_export_v3.json), [run_phase1_latent_qualification.py](../../scripts/run_phase1_latent_qualification.py), and `diagnostics/phase1_latent_export_v3/` | v2 preserved and audit-rejected; corrected v3 passes three fresh repeats; stress and elastic admitted, plastic excluded |
-| shared direct/hybrid architecture | [phase1_bed_state_model.py](../../scripts/phase1_bed_state_model.py) | implemented and tested for B3/H0/H1/H2; equal 289,172-parameter capacity; not trained |
-| shared direct/hybrid trainer | [phase1_training_v1.json](../../configs/phase1_training_v1.json) and [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) | prospective implementation and tests pass; includes validation-only calibration; plan/fitting gated on admitted bulk data |
+| shared direct/hybrid architecture | [phase1_bed_state_model.py](../../scripts/phase1_bed_state_model.py) | B3/H0/H1/H2 implemented, tested, and fit for three seeds each with equal 289,172-parameter capacity |
+| shared direct/hybrid trainer | [phase1_training_v1.json](../../configs/phase1_training_v1.json) and [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) | training plan and train-only normalization frozen; 12 fits complete; per-variant selection and uncertainty calibration completed on validation only |
 | deterministic particle lift | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) | implemented; synthetic suite and one admitted 303,829-particle state pass surface-reproduction and preservation audit |
-| locked evaluator | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) | partial and not frozen; selection-before-unlock planning, protected generation/admission, metrics, and bootstrap implemented; prediction/report stages absent; 7 focused tests pass |
-| Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | contract, screening, latent qualification, and smoke complete locally; bulk Chrono generation active; training outputs absent |
+| locked evaluator | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) | frozen after selection; 24/24 test Chrono targets, 5/5 preparations, and 24/24 Newton responses complete; aggregate admission is `failed_or_incomplete` because episode 009 alone fails the guide guard; prediction correctly refused |
+| v2 recovery contract and planner | [phase1_evaluation_v2.json](../../configs/phase1_evaluation_v2.json), [plan_phase1_evaluation_v2.py](../../scripts/plan_phase1_evaluation_v2.py), and [test_phase1_evaluation_v2.py](../../tests/test_phase1_evaluation_v2.py) | 24/24 Chrono, five/five preparations, and 24/24 response manifests exist; episode 012 first failed non-finite and its successful retry ran alone, violating the frozen two-worker/no-mix identity; aggregate admission withheld |
+| Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | bulk and training/selection passed; v1 admission failed 23/24; v2 numerical artifacts are complete but execution identity failed; prediction, sensitivity, and final report absent |
 | final report | `docs/newton/phase1-completion-YYYYMMDD.md` | created only at exit |
 
 Whenever Phase 1 evidence changes, update the current-state paragraph and this
@@ -956,27 +989,49 @@ redesign of the latent representation before Phase 2.
    **Complete 2026-10-22:** this was frozen prospectively with step 1, before
    any Phase 1 target generation. It remains immutable after the smoke pass.
 6. Generate accepted Chrono/Newton pairs without changing the domain or gates.
-   **In progress 2026-10-26:** a source/input/environment/device-hashed bulk
-   plan is frozen for all 48 train and 16 validation targets. Its runner
-   structurally prohibits the 24 test targets until the one-shot evaluation.
-   The original supervisor has completed and admitted 40/64 Chrono targets;
-   episode 040 is active and all protected targets remain absent.
+   **Complete 2026-10-28:** all five preparations and all 64 train/validation
+   Chrono/Newton/tensor pairs are admitted; the aggregate passes every check
+   and permitted training while recording that test targets were still closed.
 7. Implement B3, H0, H1, and H2 from one shared U-Net code path.
    **Architecture/trainer/lift preflight complete 2026-10-26:** all four
    variants share an exact 289,172-parameter architecture, validation-only
    uncertainty calibration and strict artifact locks are implemented, the
    deterministic particle lift passes synthetic and real-state audits, and 19
-   focused tests pass. Fitting remains gated on completion and admission of
-   step 6.
+   focused tests pass. All four variants subsequently completed the three
+   declared training seeds with identical capacity.
 8. Finish the locked evaluator.
-   **Partial preflight 2026-10-26:** selection-before-unlock planning,
-   protected target generation, tensor admission, surface metrics, and
-   whole-episode bootstrap routes are implemented and 7 focused tests pass.
-   Prediction, baselines/controls, particle lift, sensitivity, uncertainty,
-   aggregation, and final reporting remain to be built before freezing.
+   **Implementation preflight complete 2026-10-26:** selection-before-unlock
+   planning, protected target generation and admission, selected-model
+   inference, B0--B3/H0--H2 comparisons, parameter controls, particle lift,
+   matched sensitivity, calibrated uncertainty, whole-episode bootstrap
+   aggregation, explicit failure cases, artifact revalidation, and final
+   reporting are implemented. Twelve evaluator tests pass. The plan was frozen
+   only after validation-only model selection, followed by explicit unlock and
+   open-once markers.
 9. Train the three declared seeds, select on validation, and freeze all choices.
+   **Complete 2026-10-28:** 12 fits completed; per-variant checkpoint selection
+   and nominal-90% uncertainty calibration used only the 16 validation episodes.
 10. Open the test set once and publish the complete baseline, ablation,
-   sensitivity, uncertainty, and integrity report.
+    sensitivity, uncertainty, and integrity report.
+   **Failed at admission 2026-10-30:** the test set opened once after selection;
+   all 24 Chrono targets, five preparations, and 24 Newton responses completed.
+   The aggregate admits 23/24 episodes and records `failed_or_incomplete`
+   because episode 009 alone exceeds the frozen guide horizontal-speed
+   tolerance. The fail-closed chain refused prediction, so sensitivity and
+   final reporting remain absent and Phase 1 cannot claim any predictive gate.
+   **Recovery frozen 2026-10-30:** after explicit authorization, evaluation v2
+   froze 24 entirely new protected inputs, component-specific guide tolerances,
+   unchanged v1-selected model identities, reserved surface 3102, and exactly
+   two Newton workers. All pre-unlock identity and target-absence checks pass;
+   no v2 target was open at freeze.
+   **Recovery execution failed 2026-10-31:** the explicit unlock/open completed against
+   the unchanged selection identity; all 24 Chrono targets and all five prior
+   preparations pass. The original dual-worker queue produced 23 response
+   manifests; episode 012 failed on a non-finite plastic Jacobian. Its
+   user-authorized retry succeeded alone after the other 23 were skipped, so
+   all 24 numerical contracts now pass but the response set mixes dual and
+   serial execution in violation of the frozen v2 identity. Aggregate admission
+   is withheld, and every prediction/report gate remains closed.
 11. Mark Phase 1 complete only if every required gate above passes.
 
 ## Kept for Phase 2

@@ -12,13 +12,30 @@
   "normalization": "outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/normalization.json",
   "selection_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/selection_summary.json",
   "phase0_model": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/matrix/residual_pilot_v2_multiload/model.npz",
+  "phase0_model_sha256": "cc31209737d69a059f64627e19d9c9f76b2ba1e36be86f528802470d05b0c23f",
+  "phase0_training_summary": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/matrix/residual_pilot_v2_multiload/training_summary.json",
+  "phase0_training_summary_sha256": "5109b4266451751898f9e42b50fbbe8b7610587a65ee9f9d5a4193452a2a3c11",
   "sensitivity": {
     "screening_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_plan.json",
     "screening_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_summary.json",
+    "pairing_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json",
+    "chrono_repeatability_summary": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/repeatability/repeatability_summary.json",
     "case_source": "the five frozen material_cases sharing surface 1101, center action, and force",
     "use_for_training_normalization_calibration_or_selection": false,
     "use_for_locked_accuracy": false,
-    "use_only_for_directional_parameter_sensitivity": true
+    "use_only_for_directional_parameter_sensitivity": true,
+    "quantities": ["loaded_peak_sinkage_m", "loaded_displaced_volume_m3", "peak_recovery_m"],
+    "chrono_repeatability_floor": {
+      "loaded_peak_sinkage_m": 0.0,
+      "loaded_displaced_volume_m3": 0.0,
+      "peak_recovery_m": 0.0
+    },
+    "minimum_prediction_change": {
+      "loaded_peak_sinkage_m": 1e-9,
+      "loaded_displaced_volume_m3": 1e-12,
+      "peak_recovery_m": 1e-9
+    },
+    "maximum_center_bilinear_deviation_fraction": 0.5
   },
   "membership": {
     "test": 24,
@@ -37,7 +54,8 @@
     "shuffle_algorithm": "seeded_derangement_of_test_episode_soil_vectors",
     "shuffle_seed": 20261026,
     "constant_parameters": "train_mean_normalized_to_zero",
-    "minimum_shuffle_degradation_fraction": 0.0,
+    "minimum_shuffle_degradation_m": 0.0,
+    "minimum_constant_degradation_m": 0.0,
     "require_paired_bootstrap_lower_bound_above_zero": true
   },
   "metrics": {

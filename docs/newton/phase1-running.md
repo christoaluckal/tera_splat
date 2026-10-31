@@ -1,6 +1,6 @@
 # Phase 1 chronological implementation and evidence record
 
-Last updated: 2026-10-26
+Last updated: 2026-10-31
 
 Status: active append-only evidence record
 
@@ -19,13 +19,13 @@ must not redefine Phase 1 or maintain a competing success criterion.
 | parameter-box physical screening | complete at bounded coarse-prior level | surfaces 6/6, Chrono 5/5, and common-base v2 Newton pairings 5/5 pass; strict mechanics remains false |
 | initial-surface generator and qualification | complete | all six analytic and native SCM checks pass |
 | informative Newton latent export | complete for model inputs | corrected v3 passes three fresh repeats; stress and elastic admitted to H2, plastic excluded |
-| neural-training environment | candidate verified, not frozen | conda `test`: Python 3.11.15, NumPy 2.4.6, PyTorch 2.13.0+cu130, CUDA 13.0, RTX 5090 |
+| neural-training environment | frozen in training plan | conda `test`: Python 3.11.15, NumPy 2.4.6, PyTorch 2.13.0+cu130, CUDA 13.0, RTX 5090 |
 | 12-episode engineering smoke set | complete and passed | 12/12 admitted: 8 train/4 validation/0 test; protected test targets unopened; full-dataset permission true |
-| 88-episode admitted dataset | train/validation generation active | immutable 48/16/24 input manifest retained; Chrono 40/64 accepted and episode 040 active; 24 test targets absent and locked |
-| U-Net model ladder | implementation preflight complete; fitting blocked by dataset | B3/H0/H1/H2 share 289,172 parameters; trainer, validation calibration, and particle lift implemented; 19 focused tests pass |
-| locked evaluator | partial preflight implementation; not frozen | prospective config and selection-before-unlock, target-generation, and admission routes exist; prediction/report routes remain unimplemented; 7 focused tests pass; no evaluation plan or unlock marker exists |
-| locked test evaluation | protected | targets unopened |
-| Phase 1 exit | not demonstrated | later gates remain |
+| 88-episode admitted dataset | train/validation subset complete and passed | 64/64 train/validation Chrono/Newton/tensor pairs admitted, five preparations accepted, all aggregate checks true; bulk SHA-256 `d8090a35...`; protected test remained unopened through this gate |
+| U-Net model ladder | fit and selected on validation | 12 models completed; B3/H0/H1/H2 share 289,172 parameters; selected seeds are 20261024/20261023/20261023/20261023; calibration fit on validation only |
+| v1 locked evaluator | preserved failed | evaluation plan SHA-256 `789720e5...`; 24/24 responses complete; 23/24 admitted; episode 009 alone fails the frozen guide guard; prediction correctly refused |
+| v2 recovery contract | response artifacts complete; execution identity violated | 24/24 Chrono targets, five/five priors, and 24/24 response manifests exist; episode 012 first failed non-finite, then succeeded alone after the other 23 were skipped, violating the frozen no-mix two-worker identity |
+| Phase 1 exit | blocked, not demonstrated | v1 remains failed; v2 aggregate admission is withheld because the successful episode-012 retry was serial; prediction, sensitivity, and final report remain absent |
 
 The physical screen, corrected v3 latent-input qualification, and 12-episode
 engineering smoke set have passed. The smoke aggregate now permits generation
@@ -1606,6 +1606,841 @@ Claim boundary:
 - the new evidence establishes evaluator preflight structure and lock
   preservation, not trained-model correctness or predictive performance;
 - Phase 1 remains active and no exit gate has yet been claimed.
+
+### 2026-10-26 — Locked evaluator implementation preflight completed and bulk supervisor resumed
+
+Questions:
+
+- can the prospective locked evaluator execute every Phase 1 accuracy,
+  parameter-use, uncertainty, particle-state, and latent-mechanics gate without
+  opening a test target before validation-only selection?
+- can the stopped frozen bulk Chrono campaign resume from episode 040 without
+  deleting evidence or changing its source/input/environment identities?
+
+Implementation:
+
+- completed the evaluator's selected-checkpoint loading and hash checks,
+  B0--B3/H0--H2 prediction paths, frozen Phase 0 MLP application, H1 shuffled
+  and constant-soil controls, and validation-calibrated uncertainty intervals;
+- hardened the constant-soil control after a requirement audit: both the
+  seeded soil-vector derangement and the train-mean soil substitution now
+  require a strictly positive paired whole-episode bootstrap lower bound in
+  every loaded/post-unload local region;
+- added per-episode footprint, twice-radius, valid-bed, recovery, and
+  uncertainty metrics plus whole-episode bootstrap aggregation for every
+  required baseline, ablation, failure-tail, and holdout-group gate;
+- connected every selected neural prediction to the deterministic particle
+  lift and its bitwise state-preservation/surface-reproduction audit;
+- implemented H2-versus-H1 evidence classification. H2 is named final only
+  when it improves prediction or is neutral without a worse failure tail, and
+  a positive latent-value claim remains restricted to demonstrated
+  improvement;
+- bound the already-frozen five-case common-action material rectangle to an
+  evaluation-only H1 directional-sensitivity diagnostic. The exact Chrono
+  repeatability result supplies a zero oracle floor; four rectangle edges,
+  sinkage, displaced volume, peak recovery, prediction saturation, and center
+  smoothness are checked without using those cases for fitting,
+  normalization, calibration, selection, or locked accuracy;
+- added explicit inference rejection for out-of-box center, radius, force,
+  bekker_kphi, and friction values;
+- enabled resumable predict and report stages while retaining refusal of
+  incomplete outputs and the selection-before-unlock plan gate;
+- hardened final reporting to recompute the plan, rehash every selected model
+  artifact, revalidate every locked target and prediction/lift artifact, prove
+  the qualified H2 latent families are present, and embed aggregate, baseline,
+  control, uncertainty, sensitivity, latent, and explicit failure-case evidence
+  rather than reporting gate booleans alone.
+
+Verification:
+
+- 6 model, 8 trainer, 5 particle-lift, and 12 evaluator tests pass as
+  standalone unittest files in the test environment: 31 focused tests total;
+- the added end-to-end integrity test constructs a coherent locked artifact
+  tree, verifies every final-report integrity check, mutates a prediction
+  archive, and proves that the final reporter rejects the changed hash;
+- all four implementation sources and the evaluator test compile;
+- git diff --check passes;
+- a real admitted smoke artifact produces a finite Phase 0 baseline with
+  shape (2, 121, 121) and value range -0.020930--0.035932 m;
+- the real frozen screen_material_klo_flo sensitivity adapter produces all
+  26 declared spatial channels, 14,161 valid cells, and two finite 121-by-121
+  targets;
+- no evaluation plan, unlock marker, opened marker, evaluation Chrono target,
+  training plan, model fit, or model score was created.
+
+Current prospective evaluator identities:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| evaluation contract | 6be5ee960f9933829d13dd52156e71d53741e597604c412d999d494de45841a9 |
+| evaluator source | 11f8ed8dc58a455ad429f96e7753d3855418fd7d588ddb2355fa13deeacc77d1 |
+| evaluator tests | d99f9cf7cd6333aa478599fe1ac6c7a128a77ad2f564c1e88e6b4a66df64dea2 |
+
+Bulk recovery evidence:
+
+- the previously documented supervisor was no longer running after the Phase 1
+  implementation commit;
+- episodes 000--039 remained accepted. Episode 040 contained only a zero-byte
+  local execution log, while its paired Chrono target directory was absent;
+- the frozen runner overwrites that log at launch and refuses an existing
+  incomplete target directory, so episode 040 could be retried without
+  deleting or replacing simulation evidence;
+- the same frozen bulk_plan.json and source hashes now supervise episode 040.
+  The Chrono subprocess was observed healthy at 99.9% CPU; the accepted count
+  remains 40/64 until its manifest passes the frozen checks.
+
+Decision and next gate:
+
+- evaluator implementation preflight is complete but remains unfrozen until
+  the admitted bulk dataset permits training and validation-only model
+  selection supplies the selected artifacts;
+- continue the single frozen bulk supervisor through all 64 Chrono targets,
+  then build five priors, run and admit 64 Newton/tensor pairs, freeze the
+  training plan, fit the declared seeds, and select on validation;
+- only after selection may the evaluator plan, unlock marker, or protected
+  test targets be created.
+
+Claim boundary:
+
+- this establishes complete prospective evaluation machinery and a safe bulk
+  resume, not predictive accuracy, useful mechanics latents, or Phase 1 exit.
+
+### 2026-10-27 — Bulk Chrono generation completed and first Newton pairs admitted
+
+Question:
+
+- can the frozen bulk route advance from completed Chrono targets through fresh
+  per-surface Newton preparation, fixed-time response, schema-v2 tensor export,
+  and bounded coarse-prior admission without relaxing the strict-mechanics
+  claim boundary or opening protected test targets?
+
+Execution and verified evidence:
+
+- the single resumed supervisor completed all 64/64 train/validation Chrono
+  targets under the frozen 48/16/24 plan; the 24 test targets remain absent;
+- all five metric particle beds were built from Chrono initial states only.
+  Loaded/post-unload targets were not consumed by bed construction;
+- surface-1101 through surface-1104 preparations are accepted. Their
+  first-equilibrium times are 0.677500, 0.680750, 0.679250, and 0.706000 s;
+  settled-surface RMSE values are 2.105972, 2.133287, 2.172294, and 2.124932 mm;
+  maximum errors are 4.472049, 4.485341, 4.594764, and 4.360292 mm. All remain
+  below the unchanged 5 mm RMSE and 10 mm maximum-error gates;
+- responses `p1_train_joint-design_000` and `_001` completed with finite
+  schema-v2 states, accepted guides/support/timing, and gross-interaction checks.
+  Their observed maximum particle-center penetrations are 4.986 and 6.976
+  micrometers, involving at most 24/303,829 and 11/304,940 particles,
+  respectively, against the inherited 0.5 mm gross-depth limit;
+- `python3 scripts/run_phase1_dataset_bulk.py --config
+  configs/phase1_dataset_bulk_v1.json --stage analyze` exported separate input
+  and target archives and marked both episodes `complete: true` and `admitted:
+  true`. Every tensor check passes, stress and elastic remain the qualified H2
+  families, and plastic remains excluded;
+- response `p1_train_joint-design_002` subsequently completed in 2,580.927 s
+  with seven affected centers and 8.879 micrometers maximum penetration. The
+  same analyzer exported finite schema-v2 tensors and admitted the episode;
+- response `p1_train_joint-design_003` completed in 2,577.062 s with
+  18/304,707 affected particle centers and 11.766 micrometers maximum
+  penetration. Its analyzer-produced summary is complete and admitted; every
+  numerical, interaction, tensor, memory, signal, and baseline-loss check
+  passes, with stress and elastic retained and plastic excluded;
+- response `p1_train_joint-design_004` completed in 2,577.972 s with
+  6/303,829 affected particle centers and 7.043 micrometers maximum
+  penetration. Its analyzer-produced summary is likewise complete and
+  admitted with every declared numerical, interaction, and tensor check true;
+- the response manifests correctly retain `accepted: false` and
+  `mechanics_qualified: false` because a few particle centers cross the strict
+  analytic zero-penetration boundary. Phase 1 admission does not rewrite that
+  failed strict claim: it applies the prospectively frozen bounded coarse-prior
+  numerical and gross-interaction policy;
+- the aggregate bulk summary remains `failed_or_incomplete`, with
+  `training_dataset_ready: false`, because only 5/64 Newton/tensor pairs are
+  complete. Response 005 is active from the accepted surface-1102 prior.
+
+Decision and next gate:
+
+- continue the same supervisor through the remaining preparation and 59
+  responses, then run one complete frozen analyzer pass after generation
+  finishes and require all 64 episode admissions before freezing normalization
+  or a training plan. Per-episode analysis is not a generation dependency;
+- a guarded waiter is attached to supervisor PID 1615782. After that supervisor
+  exits it counts completed `newton_cylinder_manifest.json` artifacts, refuses
+  analysis unless the count is exactly 64, and otherwise invokes the frozen
+  bulk analyzer once. It does not launch or alter any simulation;
+- a second fail-closed waiter is attached behind the analyzer. It first
+  requires the resulting bulk summary to be `passed`, training-ready, and all
+  checks true; only then may it freeze normalization/training, fit all declared
+  variants and seeds, and perform validation-only selection. The locked
+  evaluator plan, explicit unlock, 24-test Chrono/Newton generation, admission,
+  prediction, sensitivity diagnostic, and final report follow in that order
+  under `set -e`, so any failed prerequisite stops all later stages. At queue
+  time no evaluation plan, unlock marker, or protected target existed;
+- do not alter source, inputs, solver settings, split membership, or gates in
+  response to runtime duration, and do not unlock test targets.
+
+Claim boundary:
+
+- this demonstrates five admitted bulk training pairs and four accepted
+  per-surface priors, not a passed bulk dataset, trained model, predictive
+  result, strict Newton mechanics result, or Phase 1 exit.
+
+### 2026-10-27 — Bulk response generation passed its midpoint
+
+Question:
+
+- is the unchanged frozen supervisor continuing through the response set while
+  the requested end-of-generation analysis boundary and protected-test lock
+  remain intact?
+
+Execution and verified evidence:
+
+- supervisor PID 1615782 remains live and unchanged;
+- 33/64 `newton_cylinder_manifest.json` response artifacts are complete;
+- `p1_train_joint-design_033`, the 34th response, is active from the accepted
+  surface-1102 prior;
+- four preparation manifests remain present and accepted. Reserved validation
+  surface 2101 has not yet reached its preparation point;
+- the analyzer has not run since the explicit generation-first decision, so
+  the machine aggregate correctly remains at the previously analyzed 5/64
+  admitted tensor pairs rather than overstating unexamined responses;
+- the guarded analyzer and fail-closed post-bulk pipeline waiters remain live.
+  No evaluation plan, test-unlock marker, or protected target has been created.
+
+Decision and next gate:
+
+- leave the single supervisor uninterrupted through the remaining 31 response
+  manifests and the final validation-surface preparation;
+- after exactly 64 response manifests exist, run the one queued analyzer pass;
+  only a passing 64/64 bulk summary may release training and subsequent locked
+  evaluation stages.
+
+Claim boundary:
+
+- this is response-generation progress only. The 28 newly generated but
+  unanalyzed responses are not yet claimed as admitted data.
+
+### 2026-10-28 — All 48 training responses generated
+
+Question:
+
+- can the unchanged supervisor complete the training-response partition and
+  cross into validation while preserving the generation-first analysis
+  boundary and every downstream lock?
+
+Execution and verified evidence:
+
+- all 48 `p1_train_joint-design_<NNN>` response manifests are complete;
+- the supervisor advanced without intervention to
+  `p1_validation_joint-design_000`, the first of 16 validation responses;
+- 48/64 total response manifests and four accepted preparation manifests are
+  present. The fifth preparation remains correctly deferred until reserved
+  validation surface 2101 is first encountered;
+- no intermediate analyzer pass was run: the aggregate still truthfully
+  records only the five pairs analyzed before the generation-first decision;
+- supervisor PID 1615782, the exactly-64 guarded analyzer, and the fail-closed
+  training/evaluation pipeline remain live. No protected target or evaluation
+  unlock artifact exists.
+
+Decision and next gate:
+
+- continue serially through the 16 validation responses and the surface-2101
+  preparation, then allow the guarded analyzer to evaluate all 64 pairs once;
+- do not freeze normalization or release model fitting unless the resulting
+  bulk summary passes every admission check.
+
+Claim boundary:
+
+- completing raw training responses does not admit them, fit a model, or open
+  validation/test evidence for model selection or final accuracy claims.
+
+### 2026-10-28 — Bulk admitted, validation selection frozen, and test opened in order
+
+Questions:
+
+- does the one deferred analyzer pass admit every train/validation pair before
+  normalization or model fitting?
+- do all declared model seeds complete and selection/calibration remain
+  validation-only before the protected test set is opened exactly once?
+
+Bulk admission evidence:
+
+- `bulk_summary.json` reports `status=passed`,
+  `training_dataset_ready=true`, 48/16/0 train/validation/test counts, and all
+  eight aggregate checks true;
+- all 64 train/validation episodes are complete and admitted, all five
+  surface-specific preparations are accepted, stress and elastic remain the
+  qualified H2 families, and plastic remains excluded;
+- bulk-summary SHA-256:
+  `d8090a355d1d0bcee75fc0bf383e29dae3cb11cdaccd14c57fffc980e25dd731`.
+
+Training and validation-only selection evidence:
+
+- the frozen training plan records Python 3.11.15, NumPy 2.4.6, PyTorch
+  2.13.0+cu130, CUDA 13.0, RTX 5090 capability 12.0, train-only
+  normalization, and equal 289,172-parameter B3/H0/H1/H2 models;
+- all four variants completed all three declared seeds: 12 model cards,
+  checkpoints, and histories are hash-bound;
+- selected validation results are:
+
+| Variant | Seed | Best epoch | Epochs run | Validation twice-radius RMSE, mm |
+| --- | ---: | ---: | ---: | ---: |
+| B3 | 20261024 | 144 | 180 | 1.926194 |
+| H0 | 20261023 | 16 | 52 | 3.091343 |
+| H1 | 20261023 | 234 | 270 | 2.991279 |
+| H2 | 20261023 | 289 | 300 | 3.126597 |
+
+- the nominal-90% validation conformal multipliers for loaded/post-unload are
+  B3 1.223013/1.219725, H0 1.488343/1.458998, H1 1.779016/1.735759, and H2
+  1.595651/1.776142;
+- training-plan, normalization-file, and selection-summary SHA-256 values are
+  `c5054641d72645de0a7f3f24be31f507b8cbb6de82965c15a09f14d17d46da21`,
+  `42e0d5b264215c87300fc162c328fa17b52122ebeb74c2c3859054321b945bb0`,
+  and `bc2b77f3ca66b2a9eaffac681e6180dc12c4ad200db37909624924d7850e8b79`.
+
+Ordered test opening evidence:
+
+- only after selection, the evaluator froze the 24-episode plan with SHA-256
+  `789720e5b58922d8a860e06c73b9abfa96910415e55709bc714e0e9333d001c4`;
+- the explicit unlock marker has SHA-256
+  `1927e11750b8b7ff6f37d458893c734a5b3b6e31770cf01f0c824729216b4f4c`
+  and binds the frozen selection, test manifest, and original test lock;
+- the open-once marker has SHA-256
+  `f806643a6b8665123f619dd784531a5f17fa3ad1a44e4eee98ed56502b5cf593`
+  and records `targets_opened=true` for exactly 24 identities;
+- three test Chrono targets are accepted and
+  `p1_test_unseen-position_003` is active at 99.9% CPU. Test Newton generation
+  has not started.
+
+Decision and next gate:
+
+- continue the single fail-closed locked-evaluation chain through all 24
+  Chrono targets, per-surface preparations, 24 Newton responses, admission,
+  prediction, sensitivity, and final report;
+- make no Phase 1 success claim from validation metrics. Only the predeclared
+  locked report may decide accuracy, parameter use, uncertainty, particle
+  integrity, latent value, and Phase 1 exit.
+
+Claim boundary:
+
+- this proves leakage-safe bulk admission, fitting, validation selection, and
+  ordered test opening. It does not yet prove any locked-test performance gate.
+
+### 2026-10-29 — Locked test Chrono generation completed and Newton evaluation started
+
+Question and frozen execution:
+
+- can the single post-selection evaluation chain generate every protected
+  Chrono target and advance into Newton without reopening selection, changing
+  the domain, or bypassing a failed episode;
+- the active chain remains bound to evaluation-plan SHA-256
+  `789720e5b58922d8a860e06c73b9abfa96910415e55709bc714e0e9333d001c4`,
+  unlock SHA-256
+  `1927e11750b8b7ff6f37d458893c734a5b3b6e31770cf01f0c824729216b4f4c`,
+  and open-once SHA-256
+  `f806643a6b8665123f619dd784531a5f17fa3ad1a44e4eee98ed56502b5cf593`;
+- the shell supervisor retains `set -e`, so bed preparation, Newton response,
+  admission, prediction, sensitivity, and reporting cannot run after a failed
+  prerequisite.
+
+Measured evidence:
+
+- all 24 locked Chrono directories contain accepted manifests, covering the
+  five frozen holdout groups and every planned test identity;
+- the completed bed stage produced metric-bed metadata for all five test
+  surface seeds: 1101, 1102, 1103, 1104, and 3101;
+- the surface-1101 Newton preparation manifest records `status=accepted` and
+  `accepted=true`;
+- no Newton response manifest exists yet; response
+  `p1_test_unseen-position_000` is active at 100% process utilization;
+- no admission, prediction, sensitivity, or final-report artifact exists yet.
+
+Decision and next gate:
+
+- continue the same fail-closed chain through all 24 Newton responses, then
+  require the aggregate test admission summary before inference;
+- keep every final accuracy, parameter-use, uncertainty, latent-value, and
+  Phase 1 exit claim closed until the locked report exists.
+
+Claim boundary:
+
+- this proves complete locked-test Chrono generation and ordered entry into
+  Newton evaluation. It does not prove Newton admission or any predictive gate.
+
+### 2026-10-29 — Newton responses reached 21/24 and exposed one guide failure
+
+Question and frozen execution:
+
+- can the locked Newton stage complete the five reusable surface preparations
+  and advance through the 24 responses without changing the already opened
+  evaluation contract;
+- the original supervisor and frozen evaluator remain in control, with no
+  duplicate response generation or early admission run.
+
+Measured evidence:
+
+- all five surface preparation manifests record `accepted=true`;
+- response manifests exist for the first 21 planned identities, indices
+  000--020, and response 021 is active;
+- all 21 completed responses are finite, preparation-converged, schema-v2,
+  independently timed, and record that Chrono target time does not control the
+  Newton observation time;
+- 20/21 completed responses pass the vertical-guide guard;
+- `p1_test_unseen-force_009` records horizontal speed
+  `1.0746966052822614e-6` m/s against the frozen `1.0e-6` m/s guide tolerance,
+  so `guide_constraint_passed=false` despite passing the other inspected raw
+  response checks;
+- the locked admission implementation requires every numerical check,
+  including `guide`, to pass. No admission summary exists yet.
+
+Decision and next gate:
+
+- preserve the observed guide failure and continue the same chain through the
+  remaining three Newton responses and aggregate admission;
+- do not loosen the tolerance, regenerate episode 009, or permit prediction
+  after a failed admission, because any such post-test change would violate the
+  frozen evaluation contract;
+- use the generated aggregate summary as the authoritative admission result.
+
+Claim boundary:
+
+- this establishes raw Newton progress and one prospective numerical-integrity
+  failure. It does not yet establish the aggregate test-admission result or any
+  predictive-performance gate.
+
+### 2026-10-30 — Locked test admission failed 23/24 and prediction was refused
+
+Question and frozen execution:
+
+- after all 24 Newton responses complete, does the prospectively frozen
+  aggregate admit every episode and permit the locked prediction stage;
+- the original `set -e` supervisor ran Newton, admission, and then attempted
+  prediction without any rule, source, threshold, or episode regeneration.
+
+Measured evidence:
+
+- 24/24 Chrono targets, 5/5 reusable preparations, and 24/24 Newton response
+  manifests are complete;
+- all 24 responses are finite, preparation-converged, schema-v2, independently
+  timed, and pass support, duration, gross-interaction, and tensor checks;
+- the aggregate admits 23/24 episodes. `p1_test_unseen-force_009` is the only
+  rejected episode and `numerical_checks.guide=false` is its only failed check;
+- episode 009 records horizontal guide speed
+  `1.0746966052822614e-6` m/s against the frozen `1.0e-6` m/s tolerance;
+- `test_dataset_summary.json` records `status=failed_or_incomplete`,
+  `prediction_permitted=false`, `all_complete=true`, and
+  `all_admitted=false`; its SHA-256 is
+  `b44f9852faf9d90d849e5e3b2cf6ef5bcb3295f3a4d5fe37fc36a28a31aacb06`;
+- its evaluation-plan, unlock, open, selected-test-manifest, and test-lock
+  identities match the frozen values;
+- all 24 episode summaries and locked tensor manifests exist. Every tensor
+  check passes for all 24 episodes;
+- the frozen evaluation plan binds the Newton response source SHA-256
+  `df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783`;
+- the prediction stage raised `RuntimeError: locked test admission does not
+  permit prediction`, the supervisor exited with status 1, and no prediction,
+  sensitivity, or final-evaluation report exists.
+
+Decision and next gate:
+
+- preserve the failed admission as the authoritative outcome of evaluation v1;
+- do not relax the guide threshold, alter the hash-bound response source,
+  regenerate episode 009, exclude it, or bypass `prediction_permitted` after
+  seeing the test result;
+- the current evaluation cannot satisfy the Phase 1 exit contract. Any further
+  attempt would require a separately authorized, prospectively frozen recovery
+  design with new protected test evidence rather than rewriting v1.
+
+Claim boundary:
+
+- this proves the complete ordered v1 execution and its integrity-gate failure.
+  It does not establish predictive accuracy, parameter use, uncertainty,
+  particle-lift integrity on predictions, latent value, or Phase 1 success.
+
+### 2026-10-30 — Prospective v2 recovery feasibility checked without opening targets
+
+Question:
+
+- if separately authorized, can a new evaluation correct the dimensional guide
+  tolerance prospectively, retain the frozen selected models, and use entirely
+  new protected test inputs rather than rewriting the failed v1 result.
+
+Read-only numerical evidence:
+
+- all 64 admitted train/validation Newton responses pass the original guide
+  guard. Their maximum horizontal guide speed is
+  `4.86764403939447e-7` m/s, with p95 `3.084474765634814e-7` m/s;
+- across 83 available non-test Phase 1 response manifests, all pass the guide
+  guard and the maximum horizontal guide speed is
+  `5.484218449073836e-7` m/s;
+- a candidate v2 rule would keep the original `1.0e-6` tolerances for
+  horizontal position, angular speed, and orientation error, while declaring
+  a separate horizontal-speed tolerance of `5.0e-6` m/s. That value is a
+  rounded 10x envelope over the canonical 64 train/validation maximum and is
+  still roughly 9x the broader non-test maximum;
+- this is a prospective design proposal, not a reinterpretation of v1. The v1
+  episode-009 failure and aggregate remain unchanged.
+
+Read-only split feasibility:
+
+- an in-memory candidate construction produced 24 unique inputs with the same
+  required 5/5/5/4/5 holdout-group counts;
+- none of the 24 physical input tuples overlaps any train, validation, or v1
+  test tuple in the frozen 88-episode plan;
+- the unseen-position centers, unseen-force values, and unseen-material pairs
+  have zero exact overlap with train/validation, and the proposed reserved
+  surface seed 3102 is absent from all existing episodes;
+- no candidate manifest, contract, unlock marker, target, preparation, response,
+  or prediction was written by this feasibility check.
+
+Required authorization boundary:
+
+- a valid v2 would need a new versioned contract, explicit component-specific
+  guide tolerances, source/tests, output roots, qualified surface seed 3102,
+  and a frozen target-free 24-input manifest before generating any target;
+- the v1-selected checkpoints, normalization, calibration, architecture, and
+  selection SHA-256 must remain fixed, so v1 test observations cannot influence
+  training or model selection;
+- only a new one-shot unlock/open sequence may release the new protected test
+  targets. The failed v1 artifacts remain immutable provenance;
+- this is a meaningful expansion beyond the frozen v1 evaluation and therefore
+  awaits explicit user authorization before implementation or simulation.
+
+Claim boundary:
+
+- this establishes that a leakage-safe recovery design appears technically
+  feasible. It does not authorize v2, qualify seed 3102, freeze a replacement
+  test set, or change the failed Phase 1 status.
+
+### 2026-10-30 — Dual-Newton quick throughput preflight passed
+
+Question and isolation:
+
+- can two independent Newton responses share the single RTX 5090 with useful
+  aggregate speedup, bounded resources, and no material change to outputs;
+- the benchmark used two admitted train episodes, their existing accepted
+  preparations, the frozen Newton source/configuration, shortened fixed
+  durations, distinct fresh `/tmp` outputs, and no locked-test artifacts.
+
+Frozen workload:
+
+- cases: `p1_train_joint-design_000` on surface 1101 and
+  `p1_train_joint-design_001` on surface 1102;
+- timestep 0.25 ms, pre-settle 0.35 s with a required 0.02 s speed hold,
+  loaded duration 0.05 s, and residual duration 0.05 s;
+- source SHA-256
+  `df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783`;
+- configuration SHA-256
+  `8808c41c64d2e70c966d1c8ba527e1a02f0e08b68551e13acee184d81040cefa`;
+- reproducible harness and machine-readable result are in
+  `diagnostics/phase1_newton_dual_benchmark_20261030/`.
+
+Measured throughput and resources:
+
+- serial case times were 451.67 s and 450.37 s; serial batch wall time was
+  902.064498 s;
+- concurrent case times were 675.33 s and 675.09 s; dual batch wall time was
+  675.337420 s;
+- dual execution therefore gives 1.3357x aggregate throughput, a 33.57%
+  throughput increase and 25.13% batch-wall reduction, while each individual
+  case slows by about 49.7%;
+- median/peak GPU utilization rose from 44%/49% serial to 92%/93% dual;
+- peak GPU memory rose from 1,827 MiB to 3,682 MiB, peak power from 218.15 W to
+  278.8 W, and peak temperature from 66 C to 70 C. All remain bounded on the
+  32,607 MiB RTX 5090.
+
+Numerical and gate comparison:
+
+- all four runs exited zero, remained finite, converged their preparations,
+  passed the guide guard, and recorded zero maximum inside particle centers;
+- case A state arrays and heightmaps are bitwise equal between serial and dual;
+- case B's largest height difference is `7.450580596923828e-9` m, largest
+  particle-position difference is `3.5390257835388184e-8` m, largest velocity
+  difference is `8.756751412875019e-7` m/s, and largest stress difference is
+  `0.3330078125` Pa;
+- both cases preserve exact sinkage and every admission-relevant Boolean
+  outcome. The observed floating-point drift is negligible at the surface
+  metric scale but proves concurrency is not universally bitwise deterministic.
+
+Decision and next gate:
+
+- the quick dual-worker preflight passes and supports two Newton workers as the
+  provisional v2 execution setting;
+- before freezing v2 device/execution identity, run one full-duration dual pair
+  on non-test episodes and compare it with their existing serial bulk responses;
+- do not infer support for three or more workers, and do not change the failed
+  v1 result or its artifacts.
+
+Claim boundary:
+
+- this establishes a bounded two-case throughput and stability result. It does
+  not yet qualify dual execution for the full v2 test campaign or authorize v2.
+
+### 2026-10-30 — Full-duration dual-Newton qualification passed with measured drift
+
+Question and isolation:
+
+- does the two-worker result persist at the complete frozen Newton durations,
+  without touching any locked test input, target, response, or prediction;
+- the qualification reran the same two admitted train episodes used by the
+  quick preflight in distinct fresh `/tmp` outputs and compared them with their
+  existing serial bulk responses produced by the identical source and config.
+
+Frozen workload and identity:
+
+- cases: `p1_train_joint-design_000` on surface 1101 and
+  `p1_train_joint-design_001` on surface 1102;
+- timestep 0.25 ms, pre-settle 2.0 s with a required 0.02 s speed hold, loaded
+  duration 0.35 s, and residual duration 0.25 s;
+- source SHA-256
+  `df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783`;
+- configuration SHA-256
+  `8808c41c64d2e70c966d1c8ba527e1a02f0e08b68551e13acee184d81040cefa`;
+- full-duration harness SHA-256
+  `897742e407f818791756a264f55108b66db527f9740d4dfa127ae3c6457f5115`;
+- reproducible harness and machine-readable result are in
+  `diagnostics/phase1_newton_dual_benchmark_20261030/`.
+
+Measured throughput and resources:
+
+- existing serial case times were 2,577.92 s and 2,563.22 s, for a summed
+  serial baseline of 5,141.145235 s (85.69 min);
+- concurrent case times were 3,879.67 s and 3,874.67 s, with a dual batch wall
+  time of 3,879.682623 s (64.66 min);
+- dual execution therefore gives 1.3251x aggregate throughput, a 32.51%
+  throughput increase and 24.54% batch-wall reduction;
+- over 1,911 telemetry samples, median/peak GPU utilization was 92%/93%, peak
+  GPU memory was 3,810 MiB of 32,607 MiB, peak power was 279.72 W, and peak
+  temperature was 69 C;
+- if the complete 24-response Newton stage scales by the measured factor, its
+  historical approximately 17.4 h serial duration projects to approximately
+  13.1 h with two workers, saving about 4.3 h. This is a projection, not a
+  measured end-to-end v2 duration.
+
+Numerical and gate comparison:
+
+- both concurrent jobs exited zero, remained finite, converged preparation,
+  passed the guide constraint, and preserved all compared admission-relevant
+  Boolean outcomes from the serial baselines;
+- concurrency is not bitwise deterministic at full duration. The largest
+  particle-position difference was `1.853369176387787e-4` m (maximum RMSE
+  `2.5300840678935122e-6` m), and the largest sinkage differences were
+  `9.909272193908691e-7` m and `1.341104507446289e-6` m;
+- the largest heightmap difference was `0.02243602555245161` m at an individual
+  cell, while the maximum heightmap RMSE was `1.929494808520769e-4` m. Loaded
+  contact counts changed from 326/403 serial to 331/401 dual;
+- the largest particle-velocity difference was `0.016404508613049984` m/s
+  (maximum RMSE `9.590996489925675e-5` m/s), and the largest stress difference
+  was 17,758.484375 Pa (maximum RMSE 69.63468 Pa);
+- guide horizontal speeds remained well below the proposed prospective v2
+  `5.0e-6` m/s threshold: dual values were `1.1913311715136694e-7` and
+  `2.3580015287581918e-8` m/s.
+
+Decision and execution freeze:
+
+- the full-duration two-worker operational qualification passes: the speedup
+  persists, resource use is bounded, both runs complete, and gate outcomes are
+  stable on these representative non-test cases;
+- use exactly two Newton workers as the recommended prospective v2 execution
+  identity, and freeze that identity before producing any new protected target;
+- the measured numerical drift must remain part of the provenance. Do not
+  claim bitwise equivalence to serial execution, and do not mix serial and dual
+  target generation within one frozen evaluation;
+- do not infer support for three or more workers. No v2 simulation is authorized
+  by this benchmark, and the failed v1 result remains unchanged.
+
+Claim boundary:
+
+- this qualifies the two-worker execution mode operationally on two full-length
+  non-test responses. It does not prove deterministic equivalence, qualify
+  three-worker execution, authorize v2, or establish Phase 1 success.
+
+### 2026-10-30 — Authorized v2 recovery frozen before target generation
+
+Authorization and invariant:
+
+- the user explicitly authorized resuming the Phase 1 goal through evaluation
+  v2;
+- v1 remains immutable failed evidence. Its evaluation-plan SHA-256 is
+  `789720e5b58922d8a860e06c73b9abfa96910415e55709bc714e0e9333d001c4`
+  and its failed dataset-summary SHA-256 is
+  `b44f9852faf9d90d849e5e3b2cf6ef5bcb3295f3a4d5fe37fc36a28a31aacb06`;
+- v2 reuses the exact v1 validation-selected checkpoints, normalization, and
+  uncertainty calibration without fitting or selection. The bound selection
+  summary remains
+  `bc2b77f3ca66b2a9eaffac681e6180dc12c4ad200db37909624924d7850e8b79`.
+
+Prospective contract and tests:
+
+- the new versioned contract is
+  `configs/phase1_evaluation_v2.json`, SHA-256
+  `c06c75f587dc1af868a48eeb6651f3a5b51a23fd9247f84a1415c4b9537d21cf`;
+- it declares component-specific guide tolerances before any v2 target:
+  1 micrometer horizontal position error, 5 micrometers/second horizontal
+  speed, 1 microradian/second angular speed, and 1e-6 quaternion error;
+- it freezes exactly two independent Newton processes on `cuda:0`, matching
+  the passed full-duration throughput qualification. Serial and dual target
+  generation may not be mixed inside v2, and three workers remain unqualified;
+- the target-free planner SHA-256 is
+  `eb6d71561431a43cc3258e1a0cb29f225638dcb02a006c172e8db06f0c97bff8`;
+  the component-aware evaluator SHA-256 is
+  `d8e18b80112090dc1d1cb8d792e4931f2b090d6107690c2d6d82a47004551201`;
+- 45 relevant contract, surface, dataset, bulk, lift, evaluator, and v2 tests
+  pass. The five v2-specific tests cover recovery identity, split disjointness,
+  guide dimensions, surface routing, and target-absence refusal.
+
+Target-free manifest:
+
+- the frozen manifest contains 24 unique v2 identities with the required
+  5 unseen-position, 5 unseen-force, 5 unseen-material-combination, 4
+  unseen-initial-surface, and 5 joint-combination counts;
+- all physical inputs are unique and have zero exact overlap with any train,
+  validation, or v1 test input in the original 88-episode plan;
+- the holdout-specific position centers, force values, and material pairs have
+  zero exact overlap with train/validation, and reserved seed 3102 is absent
+  from all v1 episodes;
+- manifest SHA-256:
+  `c419accc02799134d169993f6adf0b43a68050bba5416f1bf9a3b34b1cdace30`;
+  test-lock SHA-256:
+  `569a5fc323ee3c82039e1504cb6172bc51d47904a73277bf2a23ec02aa85a520`;
+  selected-test payload SHA-256:
+  `5cebc673f4be6c9e80167a85f378455a0d4f9102e9399d95c1090c5177469c27`.
+
+Reserved-surface qualification:
+
+- deterministic surface 3102 passes shape, finiteness, zero-mean, relief,
+  slope, correlation-floor, and flat-boundary checks;
+- its maximum relief is 4.75 mm, maximum local slope is 4.861 degrees, and
+  spectral correlation floor is 51.702 mm;
+- native Chrono SCM round-trip maximum error is 4.612 micrometers, below the
+  prospective 10-micrometer gate;
+- qualification-summary SHA-256:
+  `2307c45de630f192a1e1b218a6135e034737dbb6f10d293f46dab9d86c4b3d8b`.
+
+Frozen evaluator plan and next gate:
+
+- evaluator-plan SHA-256:
+  `3c5c92d52aa915178da908df999791ac1ce793690182e36e4073dd70d1b96f62`;
+- it hashes the v2 config and sources, all five heightmaps/generator records/
+  qualification records, the unchanged selection summary and model artifacts,
+  the v1 failure evidence, and the new target-free manifest;
+- the Chrono v2 output root, per-episode v2 output directory, unlock marker,
+  and open-once marker were all absent at plan freeze;
+- the next permitted action is the explicit v2 unlock followed by one-shot
+  Chrono generation. No target existed or was opened by the work above.
+
+Claim boundary:
+
+- this establishes a prospectively frozen, leakage-safe recovery evaluation and
+  qualifies its reserved surface. It does not establish v2 target admission,
+  predictive accuracy, parameter use, uncertainty validity, latent value, or
+  Phase 1 success.
+
+### 2026-10-31 — V2 unlocked; responses complete with retry identity deviation
+
+Unlock and protected-target generation:
+
+- the already frozen v2 plan was unlocked exactly once against the unchanged
+  validation selection; unlock SHA-256 is
+  `94770f15eb6abd6ef06a36848863419a6d2d116084f580a33c177a445612ebbc`
+  and open-once marker SHA-256 is
+  `61c0bb96d581e97fe6248bf589640f87a3c1f8e9bbffb6ad1f04cec2aaafb336`;
+- all 24 locked Chrono episodes completed and passed the oracle contract. The
+  minimum valid-cell count is 14,161; loaded observation times span
+  0.349--0.379 s; no episode failed validation;
+- four independent Chrono lanes were used. Near the end, the sequential lane
+  began a duplicate episode 012 immediately before the independently running
+  authoritative 012 published. The duplicate was interrupted before
+  publication; process inspection confirmed only one authoritative process
+  remained for episodes 012, 016, and 020, and those original runs completed.
+  No destination had two live writers after the intervention, and the final
+  24 artifacts validate individually. This operational race is retained here
+  rather than hidden by the aggregate pass.
+
+Newton preparation and execution:
+
+- metric beds were built for surface seeds 1101, 1102, 1103, 1104, and 3102;
+- all five serial prior preparations completed and the evaluator then launched
+  exactly two response workers on `cuda:0`, as prospectively frozen;
+- the first pair, `p1_v2_test_unseen-position_000` and
+  `p1_v2_test_unseen-position_001`, completed in 3,875.943 s and 3,873.916 s.
+  The evaluator immediately advanced to episodes 002 and 003;
+- both completed responses are finite, their fresh in-process preparations
+  converged, their independent fixed durations are 0.35 s loaded and 0.25 s
+  post-unload, and both expose state schema v2 with 14,161 valid surface cells;
+- all four prospective guide components pass. Maximum values across the pair
+  are `1.5947939246040944e-9` m horizontal-position error,
+  `6.903726521288223e-8` m/s horizontal speed,
+  `3.409574201234187e-8` rad/s angular speed, and
+  `2.365264897151059e-9` quaternion error;
+- the diagnostic manifests mark strict zero-center mechanics false because
+  transient maxima are 18 and 12 inside particle centers, with maximum depths
+  `1.2209638953208923e-5` m and `5.461275577545166e-6` m. This is not silently
+  relabeled as strict mechanics success. The prospectively frozen Phase 1
+  evaluator instead applies the inherited gross-interaction depth and affected-
+  fraction bounds; both completed cases are inside those test-admission bounds.
+- by 05:42 EDT, responses 000--009 were complete and exactly two workers were
+  active on 010/011. Across the first 10 responses, wall times span
+  3,866.590--3,875.943 s; every response is finite, preparation-converged,
+  independently timed, schema v2, and has at least 14,161 valid cells;
+- no prospective guide component fails in the first 10. Their maxima are
+  `3.1389341566924633e-9` m horizontal-position error,
+  `2.3989860168501543e-7` m/s horizontal speed,
+  `1.1858849027373984e-7` rad/s angular speed, and
+  `2.700738133969118e-9` quaternion error. The maximum transient inside count
+  is 23 and maximum center depth is `1.2977048754692078e-5` m; strict mechanics
+  remains false where declared, while the prospective gross-interaction checks
+  remain within their frozen bounds.
+
+Episode-012 failure and retry provenance:
+
+- the original two-worker queue produced 23 complete manifests. Episode
+  `p1_v2_test_unseen-material-combination_012` failed after the loaded solve
+  when schema-v2 export rejected a non-finite `plastic_jacobian`; it published
+  no response manifest, and the enclosing Newton stage exited nonzero after
+  the remaining already-queued episodes completed;
+- the failed log SHA-256 is
+  `3326fc283565293ab619ac6fdb33b2daa4bd88bb574a2c131e2e535cd881650a`.
+  Its 32 MiB partial initial-state artifacts and log were moved, not deleted,
+  to the episode-local
+  `failed_attempts/attempt_1_nonfinite_plastic_jacobian/` archive;
+- after the user explicitly authorized a retry, the unchanged frozen Newton
+  stage skipped the 23 existing manifests and ran only missing episode 012.
+  The retry completed in 2,597.432 s, is finite, preparation-converged,
+  independently timed, schema v2, and has 14,161 valid cells. Its response-
+  manifest SHA-256 is
+  `c6caddb5d25ac91478aacefb8d3024c707e3a1359ca7958c5d425a6c9cb596ea`;
+- all 24 response manifests now exist. Every response is finite, preparation-
+  converged, independently timed, schema v2, and has at least 14,161 valid
+  cells. There are no prospective guide failures; maxima are
+  `3.741965133550808e-9` m horizontal-position error,
+  `2.3989860168501543e-7` m/s horizontal speed,
+  `1.1858849027373984e-7` rad/s angular speed, and
+  `2.700738133969118e-9` quaternion error. The maximum transient inside count
+  is 25 and maximum center depth is `1.3265758752822876e-5` m;
+- numerical completeness does not repair provenance. Although the frozen
+  configuration still declared `newton_workers=2`, only episode 012 was
+  missing, so its successful retry ran with one live Newton process. This
+  mixes a serial response with the 23 dual-worker responses and directly
+  violates the prospective statement that exactly two independent processes
+  would be used and serial/dual target generation would not be mixed.
+
+Decision and next gate:
+
+- Chrono target generation, Newton-prior preparation, and 24 response artifacts
+  are complete;
+- do not run aggregate admission or prediction as if v2 were a clean pass. The
+  current evaluator checks configured worker count but does not prove per-run
+  concurrent occupancy, so a machine-green admission would not cure the
+  execution-identity violation;
+- preserve v1 and v2 evidence. Any further recovery must be prospective and
+  must define failure/retry semantics and a consistent execution identity
+  before producing another protected response set.
+
+Claim boundary:
+
+- the evidence above proves target completeness and numerical response-contract
+  checks for all 24 artifacts. It also disproves compliance with v2's frozen
+  execution identity. It does not prove aggregate v2 admission, predictive
+  accuracy, parameter use, calibrated uncertainty, H2 value, or Phase 1 exit.
 
 ## Maintenance contract
 

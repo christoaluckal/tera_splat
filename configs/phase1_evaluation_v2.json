@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "phase1_bed_state_evaluation_v2",
+  "status": "prospective_recovery_before_target_generation",
+  "authority": "docs/newton/phase1.md",
+  "purpose": "Leakage-safe recovery evaluation using new protected inputs, the unchanged v1-selected models, an explicit component guide contract, and a frozen two-worker Newton execution identity.",
+  "phase1_contract": "configs/phase1_bed_state_v1.json",
+  "dataset_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/target_free_test_manifest.json",
+  "bulk_config": "configs/phase1_dataset_bulk_v1.json",
+  "bulk_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/dataset_bulk_v1/bulk_summary.json",
+  "training_config": "configs/phase1_training_v1.json",
+  "training_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/training_plan.json",
+  "normalization": "outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/normalization.json",
+  "selection_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/training_v1/selection_summary.json",
+  "phase0_model": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/matrix/residual_pilot_v2_multiload/model.npz",
+  "phase0_model_sha256": "cc31209737d69a059f64627e19d9c9f76b2ba1e36be86f528802470d05b0c23f",
+  "phase0_training_summary": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/matrix/residual_pilot_v2_multiload/training_summary.json",
+  "phase0_training_summary_sha256": "5109b4266451751898f9e42b50fbbe8b7610587a65ee9f9d5a4193452a2a3c11",
+  "recovery_v2": {
+    "source_evaluation_id": "phase1_bed_state_evaluation_v1",
+    "v1_evaluation_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v1/evaluation_plan.json",
+    "v1_evaluation_plan_sha256": "789720e5b58922d8a860e06c73b9abfa96910415e55709bc714e0e9333d001c4",
+    "v1_failed_dataset_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v1/test_dataset_summary.json",
+    "v1_failed_dataset_summary_sha256": "b44f9852faf9d90d849e5e3b2cf6ef5bcb3295f3a4d5fe37fc36a28a31aacb06",
+    "selection_summary_sha256": "bc2b77f3ca66b2a9eaffac681e6180dc12c4ad200db37909624924d7850e8b79",
+    "reuse_selected_models_without_refit": true,
+    "v1_test_observations_must_not_affect_training_selection_or_calibration": true,
+    "v1_artifacts_are_immutable": true
+  },
+  "surface_qualification": {
+    "reserved_seed": 3102,
+    "root": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/surface_qualification",
+    "summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/surface_qualification/surface_3102/qualification_summary.json",
+    "maximum_scm_roundtrip_error_m": 0.00001
+  },
+  "additional_locked_sources": {
+    "v2_manifest_and_surface_planner": "scripts/plan_phase1_evaluation_v2.py",
+    "v2_contract_tests": "tests/test_phase1_evaluation_v2.py"
+  },
+  "guide_tolerances": {
+    "horizontal_position_error_m": 0.000001,
+    "horizontal_speed_mps": 0.000005,
+    "angular_speed_radps": 0.000001,
+    "orientation_quaternion_error": 0.000001
+  },
+  "sensitivity": {
+    "screening_plan": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_plan.json",
+    "screening_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/screening/screening_summary.json",
+    "pairing_summary": "outputs/validity_experiment/newton/phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json",
+    "chrono_repeatability_summary": "outputs/validity_experiment/newton/static_proxy_hierarchical_v3_20261017/repeatability/repeatability_summary.json",
+    "case_source": "the five frozen material_cases sharing surface 1101, center action, and force",
+    "use_for_training_normalization_calibration_or_selection": false,
+    "use_for_locked_accuracy": false,
+    "use_only_for_directional_parameter_sensitivity": true,
+    "quantities": ["loaded_peak_sinkage_m", "loaded_displaced_volume_m3", "peak_recovery_m"],
+    "chrono_repeatability_floor": {
+      "loaded_peak_sinkage_m": 0.0,
+      "loaded_displaced_volume_m3": 0.0,
+      "peak_recovery_m": 0.0
+    },
+    "minimum_prediction_change": {
+      "loaded_peak_sinkage_m": 1e-9,
+      "loaded_displaced_volume_m3": 1e-12,
+      "peak_recovery_m": 1e-9
+    },
+    "maximum_center_bilinear_deviation_fraction": 0.5
+  },
+  "membership": {
+    "test": 24,
+    "required_holdout_groups": {
+      "unseen_position": 5,
+      "unseen_force": 5,
+      "unseen_material_combination": 5,
+      "joint_combination": 5,
+      "unseen_initial_surface": 4
+    },
+    "required_surface_seeds": [1101, 1102, 1103, 1104, 3102],
+    "selection_must_precede_unlock": true,
+    "single_unlock_marker": true
+  },
+  "parameter_controls": {
+    "shuffle_algorithm": "seeded_derangement_of_test_episode_soil_vectors",
+    "shuffle_seed": 20261030,
+    "constant_parameters": "train_mean_normalized_to_zero",
+    "minimum_shuffle_degradation_m": 0.0,
+    "minimum_constant_degradation_m": 0.0,
+    "require_paired_bootstrap_lower_bound_above_zero": true
+  },
+  "metrics": {
+    "checkpoints": ["loaded", "post_unload"],
+    "regions": ["footprint", "twice_radius", "valid_bed"],
+    "deformation_threshold_m": 0.0005,
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20261030,
+    "episode_is_resampling_unit": true
+  },
+  "success_thresholds": {
+    "h1_median_reduction_vs_raw_newton": 0.3,
+    "h1_episode_improvement_fraction_vs_raw_and_no_deformation": 0.9,
+    "maximum_episode_regression_fraction_vs_raw_newton": 0.1,
+    "maximum_episode_regression_absolute_m": 0.001,
+    "h1_median_reduction_vs_phase0_mlp": 0.1,
+    "h1_median_reduction_vs_h0_on_material_holdout": 0.1,
+    "matched_sensitivity_direction_fraction": 0.9,
+    "uncertainty_coverage_minimum": 0.8,
+    "uncertainty_coverage_maximum": 1.0
+  },
+  "test_dataset": {
+    "newton_prior": {
+      "builder_contract": "configs/phase1_newton_common_base_v2.json",
+      "preparation_reuse_scope": "one fresh preparation per v2 test initial_surface_seed",
+      "response_reuse_prohibited": true,
+      "newton_material_fixed_across_episodes": true,
+      "observation_time_mode": "independent_fixed",
+      "loaded_duration_s": 0.35,
+      "post_unload_duration_s": 0.25,
+      "chrono_target_time_must_not_control_newton_rollout": true,
+      "coarse_prior_only": true,
+      "strict_mechanics_claim_permitted": false
+    },
+    "required_episode_count": 24,
+    "required_test_count": 24,
+    "require_all_chrono_accepted": true,
+    "require_all_newton_admitted": true,
+    "require_schema_v2": true,
+    "require_all_tensor_fields_finite": true,
+    "minimum_target_action_rms_m": 0.000001,
+    "maximum_uncompressed_tensor_bytes_per_episode": 536870912,
+    "require_finite_raw_newton_and_no_deformation_losses": true
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2",
+    "chrono_output_root": "../tera_splat_sim/validity_experiment/chrono_episodes/phase1_bed_state_v1/evaluation_v2",
+    "newton_python": "/data/christoa/conda/envs/newton_splat/bin/python",
+    "training_python": "/eng/home/christoa/miniconda3/envs/test/bin/python",
+    "device": "cuda:0",
+    "newton_workers": 2,
+    "newton_execution_mode": "two_independent_processes_shared_cuda_device",
+    "freeze_plan_after_selection_before_first_test_target": true
+  }
+}

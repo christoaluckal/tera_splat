@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "status": "passed_quick_preflight",
+  "scope": "two representative non-test responses with shortened fixed observation durations",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_mib": 32607,
+    "cpu_logical_cores": 24,
+    "system_memory_gib": 62
+  },
+  "identity": {
+    "benchmark_harness_sha256": "99671a98d385206ad04c21eed9cd2e8984972d6014c087fa3852510112ecc4ba",
+    "newton_response_source_sha256": "df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783",
+    "newton_config_sha256": "8808c41c64d2e70c966d1c8ba527e1a02f0e08b68551e13acee184d81040cefa",
+    "episodes": [
+      "p1_train_joint-design_000",
+      "p1_train_joint-design_001"
+    ]
+  },
+  "workload": {
+    "dt_s": 0.00025,
+    "pre_settle_duration_s": 0.35,
+    "pre_settle_required_duration_s": 0.02,
+    "loaded_duration_s": 0.05,
+    "residual_duration_s": 0.05,
+    "serial_workers": 1,
+    "dual_workers": 2,
+    "device": "cuda:0"
+  },
+  "serial": {
+    "case_wall_s": [451.67, 450.37],
+    "batch_wall_s": 902.064498,
+    "gpu_utilization_median_percent": 44.0,
+    "gpu_utilization_p95_percent": 49.0,
+    "gpu_utilization_peak_percent": 49.0,
+    "gpu_memory_peak_mib": 1827.0,
+    "gpu_power_peak_w": 218.15,
+    "gpu_temperature_peak_c": 66.0
+  },
+  "dual": {
+    "case_wall_s": [675.33, 675.09],
+    "batch_wall_s": 675.33742,
+    "exit_status": [0, 0],
+    "gpu_utilization_median_percent": 92.0,
+    "gpu_utilization_p95_percent": 93.0,
+    "gpu_utilization_peak_percent": 93.0,
+    "gpu_memory_peak_mib": 3682.0,
+    "gpu_power_peak_w": 278.8,
+    "gpu_temperature_peak_c": 70.0
+  },
+  "throughput": {
+    "speedup": 1.3357241451243735,
+    "batch_wall_reduction_fraction": 0.2513424245191833,
+    "throughput_gain_fraction": 0.33572414512437354,
+    "individual_case_slowdown_fraction_approximate": 0.497
+  },
+  "integrity": {
+    "all_four_runs_exit_zero": true,
+    "all_four_runs_finite": true,
+    "all_four_preparations_converged": true,
+    "all_four_guide_checks_passed": true,
+    "all_four_max_inside_particle_centers": 0,
+    "case_a_state_arrays_exact": true,
+    "maximum_heightmap_absolute_difference_m": 7.450580596923828e-09,
+    "maximum_heightmap_rmse_m": 1.428135244496024e-09,
+    "maximum_particle_position_absolute_difference_m": 3.5390257835388184e-08,
+    "maximum_particle_velocity_absolute_difference_mps": 8.756751412875019e-07,
+    "maximum_stress_absolute_difference_pa": 0.3330078125,
+    "sinkage_exact_for_both_cases": true,
+    "admission_relevant_boolean_outcomes_equal": true
+  },
+  "manifest_sha256": {
+    "serial_a": "1b0113fbf77758576bcd7e5f929cbdd782c490c1ea8e7019d1f235637a8fa41e",
+    "serial_b": "4aa505ad13425f4e836406806cbd9841f04eb0edcc077651132ac0e97cdd9671",
+    "dual_a": "bd95f5ce207e5d3ba23b2aac86a202dc8c916c2e8038abef17741f1379eaf230",
+    "dual_b": "2d3d59950b2884c23380573a6e1722170e2c8a58e478c38729e978803af01e6b"
+  },
+  "decision": {
+    "dual_worker_quick_preflight_passed": true,
+    "recommended_v2_newton_workers": 2,
+    "full_duration_non_test_pair_required_before_freeze": true,
+    "locked_test_artifacts_touched": false
+  },
+  "raw_output_root": "/tmp/phase1_newton_dual_benchmark_20261030.6K9Er8"
+}

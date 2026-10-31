@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "status": "passed_full_duration_qualification_with_non_bitwise_drift",
+  "scope": "two representative non-test responses at the frozen full Phase 1 observation durations",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_mib": 32607
+  },
+  "identity": {
+    "benchmark_harness_sha256": "897742e407f818791756a264f55108b66db527f9740d4dfa127ae3c6457f5115",
+    "newton_response_source_sha256": "df7176babca225bc50ceab08cc9bc69e8ce69a9be9e23d85474a0858c6c5c783",
+    "newton_config_sha256": "8808c41c64d2e70c966d1c8ba527e1a02f0e08b68551e13acee184d81040cefa",
+    "episodes": [
+      "p1_train_joint-design_000",
+      "p1_train_joint-design_001"
+    ]
+  },
+  "workload": {
+    "dt_s": 0.00025,
+    "pre_settle_duration_s": 2.0,
+    "pre_settle_required_duration_s": 0.02,
+    "loaded_duration_s": 0.35,
+    "residual_duration_s": 0.25,
+    "serial_workers": 1,
+    "dual_workers": 2,
+    "device": "cuda:0"
+  },
+  "serial_baseline": {
+    "case_wall_s": [
+      2577.920598682016,
+      2563.2246365882456
+    ],
+    "batch_wall_s": 5141.145235270262
+  },
+  "dual": {
+    "case_wall_s": [
+      3879.67,
+      3874.67
+    ],
+    "batch_wall_s": 3879.682623,
+    "exit_status": [
+      0,
+      0
+    ],
+    "telemetry_samples": 1911,
+    "gpu_utilization_median_percent": 92.0,
+    "gpu_utilization_peak_percent": 93.0,
+    "gpu_memory_peak_mib": 3810.0,
+    "gpu_power_peak_w": 279.72,
+    "gpu_temperature_peak_c": 69.0
+  },
+  "throughput": {
+    "speedup": 1.325145826308551,
+    "batch_wall_reduction_fraction": 0.2453660720603915,
+    "throughput_gain_fraction": 0.32514582630855095
+  },
+  "integrity": {
+    "both_dual_runs_exit_zero": true,
+    "both_dual_runs_finite": true,
+    "both_dual_preparations_converged": true,
+    "both_dual_guide_checks_passed": true,
+    "admission_relevant_boolean_outcomes_equal_to_serial": true,
+    "state_arrays_bitwise_equal_to_serial": false,
+    "maximum_heightmap_absolute_difference_m": 0.02243602555245161,
+    "maximum_heightmap_rmse_m": 0.0001929494808520769,
+    "maximum_particle_position_absolute_difference_m": 0.0001853369176387787,
+    "maximum_particle_position_rmse_m": 0.0000025300840678935122,
+    "maximum_particle_velocity_absolute_difference_mps": 0.016404508613049984,
+    "maximum_particle_velocity_rmse_mps": 0.00009590996489925675,
+    "maximum_stress_absolute_difference_pa": 17758.484375,
+    "maximum_stress_rmse_pa": 69.63467999766054,
+    "loaded_contact_count_serial": [
+      326,
+      403
+    ],
+    "loaded_contact_count_dual": [
+      331,
+      401
+    ],
+    "sinkage_absolute_difference_m": [
+      9.909272193908691e-7,
+      1.341104507446289e-6
+    ],
+    "guide_horizontal_speed_mps_serial": [
+      1.3611515909035842e-7,
+      3.929130947893595e-8
+    ],
+    "guide_horizontal_speed_mps_dual": [
+      1.1913311715136694e-7,
+      2.3580015287581918e-8
+    ]
+  },
+  "manifest_sha256": {
+    "serial_a": "e5696405579ccf2cb3dad1ab0ae09de66dc5e836305a03ab425b28710a31d460",
+    "serial_b": "78ef4e7d6d77cbe1aa17b87fa042f72a98be3d04679d60e831004cd88e3babd8",
+    "dual_a": "3183a8373c27c64c8a5d796e94d0911103814070a6158c32235f52680f58c379",
+    "dual_b": "85fc03ca30b1de0157c8388aeb35add848bf01db9e11a93af3f31dd7c9f04012"
+  },
+  "decision": {
+    "dual_worker_full_duration_qualification_passed": true,
+    "recommended_v2_newton_workers": 2,
+    "freeze_execution_identity_before_generating_new_targets": true,
+    "three_or_more_workers_qualified": false,
+    "locked_test_artifacts_touched": false
+  },
+  "raw_output_root": "/tmp/phase1_newton_dual_full_20261030.r5PYjL"
+}

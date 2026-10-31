@@ -109,6 +109,15 @@ def prior_root(config: Mapping[str, Any], surface_seed: int) -> Path:
     return output_root(config) / "newton_priors" / f"surface_{int(surface_seed)}"
 
 
+def surface_input_root(
+    config: Mapping[str, Any], contract: Mapping[str, Any], surface_seed: int
+) -> Path:
+    qualification = config.get("surface_qualification")
+    if qualification and int(surface_seed) == int(qualification["reserved_seed"]):
+        return fresh.repo_path(qualification["root"]) / f"surface_{int(surface_seed)}"
+    return screening.surface_dir(contract, int(surface_seed))
+
+
 def response_root(config: Mapping[str, Any], episode_id: str) -> Path:
     return episode_root(config, episode_id) / "newton_response"
 
@@ -311,7 +320,7 @@ def build_plan(
     episodes = selected_episodes(config, dataset_plan)
     surface_inputs: dict[str, str] = {}
     for seed in sorted({int(x["initial_surface_seed"]) for x in episodes}):
-        root = screening.surface_dir(contract, seed)
+        root = surface_input_root(config, contract, seed)
         for label, filename in (
             ("heightmap", "initial_heightmap_m.npy"),
             ("qualification", "qualification_summary.json"),
@@ -452,7 +461,7 @@ def chrono_result(
     action = json.loads((root / manifest["action"]).read_text(encoding="utf-8"))
     surface_summary = json.loads(
         (
-            screening.surface_dir(contract, int(episode["initial_surface_seed"]))
+            surface_input_root(config, contract, int(episode["initial_surface_seed"]))
             / "generator_summary.json"
         ).read_text(encoding="utf-8")
     )
@@ -512,7 +521,7 @@ def run_chrono(
         raise RuntimeError(f"refusing incomplete Chrono episode: {destination}")
     cfg = contract["chrono"]
     source = (
-        screening.surface_dir(contract, int(episode["initial_surface_seed"]))
+        surface_input_root(config, contract, int(episode["initial_surface_seed"]))
         / "initial_heightmap_m.npy"
     )
     command = [
