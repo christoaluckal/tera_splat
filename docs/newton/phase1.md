@@ -2,15 +2,18 @@
 
 Created: 2026-10-23
 
-Last updated: 2026-10-30
+Last updated: 2026-10-31
 
-Status: active Phase 1 goal and exit contract
+Status: v1/v2 evaluated and failed; prospective successor scope active
 
 ## Authority
 
-This document is the sole operational definition of Phase 1. It states the
-result Phase 1 must deliver, the permitted domain, the model and data contract,
-the evidence required for success, and the work deferred to Phase 2.
+This document is the sole operational authority for Phase 1. It preserves the
+frozen v1/v2 domain, model/data contract, exit gates, and failed result, and it
+defines the research and claim boundary for a prospective successor. The
+successor's exact domain, model ladder, and numerical exit are not yet frozen;
+they must receive a new versioned contract before new protected targets are
+generated. Work deferred to the sequential stage remains explicit below.
 
 [Phase 0](phase0.md) remains the authority for the completed proof and its
 artifacts. The phase numbering in the older
@@ -23,7 +26,8 @@ all new work.
 This section is the entry point for a new agent or session. Read the sources in
 the order below before changing code or launching simulations:
 
-1. this document for the active Phase 1 goal, domain, ordering, and exit gates;
+1. this document for the completed v1/v2 result and the active prospective
+   scope, research ordering, and claim boundary;
 2. the [Phase 1 chronological record](phase1-running.md) for dated
    implementation evidence, frozen hashes, decisions, blockers, and the next
    permitted gate;
@@ -434,9 +438,9 @@ to Newton admission or permission for bulk generation. The repository-relative
 current machine; preserve repository-relative paths in contracts so the data
 volume can be relocated.
 
-### Current Phase 1 state and first permitted work
+### Current Phase 1 state and next permitted work
 
-As of 2026-10-30, the machine-readable Phase 1 contract and target-free
+As of 2026-10-31, the machine-readable Phase 1 contract and target-free
 prospective 48/16/24 episode plan are frozen. The plan fixes all 88 input
 identities, assigns whole episodes, reserves disjoint initial-surface seeds,
 defines five protected test groups, and records per-input, manifest, source,
@@ -463,7 +467,8 @@ maximum error. One independent, fixed-time Newton response is validly shared
 across the five cases because they have the same initial bed, action, and
 frozen Newton material; only their Chrono soil parameters and targets differ.
 All five pairings pass inherited numerical and gross-interaction admission, so
-the physical screen permits later bulk generation. Strict mechanics remains
+the operational simulator screen permits later bulk generation. Strict
+mechanics remains
 unqualified: 20 of 303,829 particle centers briefly entered the analytic
 cylinder, by at most 6.285 micrometers, within the declared 0.5 mm coarse
 limit. This is a bounded coarse prior, not a strict-contact result.
@@ -537,11 +542,39 @@ plastic Jacobian, then succeeded only when retried alone after the other 23
 were skipped. All 24 numerical response checks and prospective guide limits
 pass, but the successful serial retry violates v2's frozen requirement to use
 exactly two independent Newton processes without mixing serial and dual target
-generation. Aggregate admission and prediction therefore remain withheld.
-Exact surface, material,
+generation. This deviation remains part of the provenance and prevents v2
+from being relabeled as a clean prospective confirmation.
+
+After explicit authorization to advance the experiment while retaining v3 as
+the prospective branch, v2 continued as a qualified engineering analysis. The
+machine admission passes all seven checks and admits 24/24 episodes. All 24
+predictions, particle lifts, matched sensitivity results, and the integrity-
+checked final report now exist. Prediction exposed a NumPy-Boolean JSON
+serialization defect only after the 24 episode artifacts completed. The
+frozen evaluator and test hashes were restored unchanged, and a separate
+[v2 continuation wrapper](../../scripts/continue_phase1_evaluation_v2.py)
+converted only NumPy JSON scalars before resuming aggregation. The final report
+passes 33/49 checks and fails 16, so `phase1_exit_demonstrated=false`: H1
+strongly improves on raw Newton without a bad failure tail, but does not beat
+B3 on joint holdouts, does not reach the frozen H0 material-ablation margin,
+shows weak parameter-control dependence, and matches only 6/8 eligible
+sensitivity directions. H2 is worse than H1. V2 is therefore a completed,
+informative failed evaluation rather than an unfinished blocker; v3 is the
+prospective branch for any model or protocol revision. Exact surface, material,
 preparation-failure, export-diagnosis,
 qualification, smoke, and contract evidence is recorded in the
 [Phase 1 chronological record](phase1-running.md).
+
+The post-v2 direction is now explicit. The immediate objective is reliable
+one-action prediction over a prospectively justified, engineering-plausible
+parameter domain, while measuring where Newton fails and whether a network
+corrects it. The completed parameter box is operationally qualified but has
+not been established as realistic for a named soil. Inputs should remain
+robotics-defensible or directly exported by MPM; deeper soil constitutive
+modeling is not an implicit next step. If it becomes necessary for acceptable
+prediction, the claim boundary and expertise requirements must be reviewed
+before another contract is frozen. Sequential world-model work follows only
+after the one-action mapping succeeds.
 
 The bulk route is complete and passed: all five preparations and all 64
 train/validation Chrono/Newton/tensor pairs are admitted, with stress and
@@ -573,14 +606,14 @@ These are the canonical locations and their current evidence state:
 | Future artifact | Canonical location | Current state |
 | --- | --- | --- |
 | machine contract | [phase1_bed_state_v1.json](../../configs/phase1_bed_state_v1.json) | frozen pre-screening contract |
-| chronological evidence | [phase1-running.md](phase1-running.md) | active through preserved v1 failure, v2 unlock, complete Chrono generation, and the running Newton response queue |
+| chronological evidence | [phase1-running.md](phase1-running.md) | active through preserved v1 failure, v2 execution deviation, conditional admission, prediction, sensitivity, and failed final report |
 | dataset plan | `.../phase1_bed_state_v1/dataset_plan.json` | frozen locally; 48/16/24 inputs; test identities opened once only after selection |
 | contract planner | [run_phase1_contract_screen.py](../../scripts/run_phase1_contract_screen.py) | frozen target-free plan complete |
 | surface/material screening | [run_phase1_screening.py](../../scripts/run_phase1_screening.py) and [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py) | six surfaces and Chrono 5/5 pass; original Newton screen preserved failed; common-base v2 admits all 5 pairings as a bounded coarse prior |
 | surface generator | [phase1_surface.py](../../scripts/phase1_surface.py) | six declared seeds qualified |
 | screening plan | `.../phase1_bed_state_v1/screening/screening_plan.json` | frozen source/environment identity |
 | original screening summary | `.../phase1_bed_state_v1/screening/screening_summary.json` | surfaces pass; original fixed-depth Newton route failed and is preserved |
-| repaired physical-screen summary | `.../phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json` | all five pairings admitted; bulk permission true at bounded coarse-prior level |
+| repaired operational-screen summary | `.../phase1_bed_state_v1/newton_common_base_v2/qualification_summary.json` | all five pairings admitted; bulk permission true at bounded coarse-prior level; no real-soil realism claim |
 | smoke contract and dataset generator | [phase1_dataset_smoke_v1.json](../../configs/phase1_dataset_smoke_v1.json) and [run_phase1_dataset.py](../../scripts/run_phase1_dataset.py) | complete; frozen 8/4/0 set passes 12/12, test targets unopened, full-dataset permission true |
 | bulk train/validation generator | [phase1_dataset_bulk_v1.json](../../configs/phase1_dataset_bulk_v1.json) and [run_phase1_dataset_bulk.py](../../scripts/run_phase1_dataset_bulk.py) | complete and passed for 48/16/0: five preparations and 64/64 Chrono/Newton/tensor pairs admitted; all aggregate checks true |
 | latent qualification | [phase1_latent_export_v3.json](../../configs/phase1_latent_export_v3.json), [run_phase1_latent_qualification.py](../../scripts/run_phase1_latent_qualification.py), and `diagnostics/phase1_latent_export_v3/` | v2 preserved and audit-rejected; corrected v3 passes three fresh repeats; stress and elastic admitted, plastic excluded |
@@ -588,9 +621,9 @@ These are the canonical locations and their current evidence state:
 | shared direct/hybrid trainer | [phase1_training_v1.json](../../configs/phase1_training_v1.json) and [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) | training plan and train-only normalization frozen; 12 fits complete; per-variant selection and uncertainty calibration completed on validation only |
 | deterministic particle lift | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) | implemented; synthetic suite and one admitted 303,829-particle state pass surface-reproduction and preservation audit |
 | locked evaluator | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) | frozen after selection; 24/24 test Chrono targets, 5/5 preparations, and 24/24 Newton responses complete; aggregate admission is `failed_or_incomplete` because episode 009 alone fails the guide guard; prediction correctly refused |
-| v2 recovery contract and planner | [phase1_evaluation_v2.json](../../configs/phase1_evaluation_v2.json), [plan_phase1_evaluation_v2.py](../../scripts/plan_phase1_evaluation_v2.py), and [test_phase1_evaluation_v2.py](../../tests/test_phase1_evaluation_v2.py) | 24/24 Chrono, five/five preparations, and 24/24 response manifests exist; episode 012 first failed non-finite and its successful retry ran alone, violating the frozen two-worker/no-mix identity; aggregate admission withheld |
-| Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | bulk and training/selection passed; v1 admission failed 23/24; v2 numerical artifacts are complete but execution identity failed; prediction, sensitivity, and final report absent |
-| final report | `docs/newton/phase1-completion-YYYYMMDD.md` | created only at exit |
+| v2 recovery contract and planner | [phase1_evaluation_v2.json](../../configs/phase1_evaluation_v2.json), [plan_phase1_evaluation_v2.py](../../scripts/plan_phase1_evaluation_v2.py), [test_phase1_evaluation_v2.py](../../tests/test_phase1_evaluation_v2.py), and [continue_phase1_evaluation_v2.py](../../scripts/continue_phase1_evaluation_v2.py) | numerical admission passes 24/24; the serial episode-012 retry remains a prospective-identity deviation; conditional prediction/reporting is complete and the final gate fails 16/49 checks |
+| Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | bulk and training/selection passed; v1 admission failed 23/24; v2 conditional admission passed 24/24 and its complete report records `phase1_exit_demonstrated=false` |
+| final report | `outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/final_evaluation_report.json` | conditional v2 report complete and failed; no Phase 1 completion report is created |
 
 Whenever Phase 1 evidence changes, update the current-state paragraph and this
 routing table in the same change. Record measurements in machine-readable
@@ -609,22 +642,31 @@ loaded and post-unload checkpoints:
 \]
 
 Here `B0` is the pre-action bed, `a` is the action, `p` is the known
-conditioning vector, and `N` is the frozen Newton MPM prior. The primary model
-learns a bounded correction to the Newton state. It must make a prediction
-without access to the Chrono loaded or post-unload target at inference.
+conditioning vector, and `N` is the frozen Newton MPM prior. In the frozen
+v1/v2 contract, the primary model learns a bounded correction to the Newton
+state. It must make a prediction without access to the Chrono loaded or
+post-unload target at inference.
 
-Phase 1 is successful when one frozen neural model predicts whole held-out bed
-states across unseen combinations of position, normal force, initial surface,
-and at least two explicitly varied soil parameters inside the declared domain.
+The frozen v1/v2 contract defined success as one neural model predicting whole
+held-out bed states across unseen combinations of position, normal force,
+initial surface, and two explicitly varied simulator bed controls inside the
+declared domain.
 It must outperform raw Newton, no deformation, the Phase 0 residual, and a
 same-capacity direct neural baseline under the locked tests below.
 
-This is intentionally closer to a neural physical model than the Phase 0
-241-parameter MLP. The model operates on a structured spatial state, mixes
-information across neighboring cells, is conditioned on action and material
-parameters, consumes qualified MPM mechanics fields, and predicts an entire
-state field. It remains a modest one-step hybrid model, not a general learned
-simulator.
+This is intentionally a richer spatial predictor than the Phase 0
+241-parameter MLP. The hybrid operates on a structured spatial state, mixes
+information across neighboring cells, is conditioned on action and declared
+simulator controls, may consume qualified MPM fields, and predicts an entire
+state field. It remains a modest one-step model, not a general learned
+simulator or a validated terramechanics model.
+
+That v1/v2 exit failed and remains immutable. A successor contract must be
+frozen prospectively and may select either a direct or Newton-conditioned
+predictor according to held-out evidence. It may claim that a network corrects
+Newton when it reliably improves raw Newton; it may claim added value from the
+Newton prior only when the hybrid also beats the capacity-controlled direct
+model.
 
 ### Relationship to NeuralMPM-style models
 
@@ -639,6 +681,35 @@ Chrono SCM provides surfaces, not particle trajectories or subsurface
 correspondence, so Phase 1 learns an observable endpoint residual around
 Newton. The direct U-Net baseline tests how much can be learned without that
 physics prior; autoregressive particle-grid evolution remains Phase 2 work.
+
+### Long-term destination and disciplinary boundary
+
+The eventual system goal is an action-conditioned world model for footprint
+planning: a planner proposes a sequence of contacts, the model predicts the
+bed state after each contact, and those states feed the planner's accumulated
+cost. That destination does not change the present research order. First
+establish, for one bounded action, where the frozen Newton prior fails to
+generalize and whether a learned predictor can reliably correct or replace its
+observable bed response. Only after a satisfactory one-action mapping exists
+should a prospective sequential contract train and test repeated application
+from already deformed beds.
+
+This is an empirical comparison, not a premise that Newton must fail or that a
+hybrid must win. Raw Newton, a direct network, and Newton-conditioned hybrids
+must be compared on held-out combinations. If a direct model generalizes
+better than a hybrid, the evidence may support a learned surrogate, but it
+does not support a claim that the present Newton representation adds value.
+
+The representation should remain within quantities that can be defended and
+validated from a robotics perspective. Geometry, displacement, velocity,
+momentum, contact, load, and MPM-provided stress or deformation state are in
+scope as simulator-native features. Consuming an MPM stress field does not
+assert that its constitutive law is correct for real soil or make a new
+terramechanical claim. Soil-specific constitutive descriptors, hand-built
+higher-order features, or interpretations that require specialized
+terramechanics are outside the default scope. If satisfactory prediction or a
+sequential restart cannot be achieved without them, stop and revisit the claim
+boundary and expertise requirements before expanding the pipeline.
 
 ## What "bed state" means in Phase 1
 
@@ -656,12 +727,15 @@ The required checkpoints are the accepted loaded state and the state 0.25 s
 after removal. Predicting both is one action-to-state query, not two unrelated
 models.
 
-Newton stress, strain, plastic state, velocity, occupancy, and contact fields
-are candidate *inputs* to the residual. Chrono SCM supplies no corresponding
-subsurface truth, so Phase 1 does not claim that corrected stress or plastic
-state is ground truth. "Bed state" in the Phase 1 claim therefore means the
-observable geometry and its audited particle realization, not a complete
-constitutive restart state.
+Newton velocity, occupancy, contact, stress, deformation, and plastic fields
+may be tested as candidate *inputs* to the residual. Chrono SCM supplies no
+corresponding subsurface truth, so repeatability inside Newton makes a field a
+usable solver feature, not validated soil truth. Phase 1 does not claim that
+Newton stress, deformation, or plastic state is correct for real soil, and it
+does not predict corrected versions of those fields. "Bed state" in the Phase
+1 claim therefore means observable geometry and its audited particle
+realization, not a complete constitutive restart state. A future sequential
+model must define and validate its restart state separately.
 
 ## Fixed prediction domain
 
@@ -723,6 +797,31 @@ frozen at the Phase 0 baseline. Thus `p` describes a known synthetic bed
 condition that the residual must account for; it is not a fitted Newton
 material and not an inferred real-soil property.
 
+### Parameter plausibility policy
+
+The completed v1/v2 screen demonstrates that the declared box is numerically
+usable and produces accepted simulator responses. It does **not** demonstrate
+that the box is a realistic domain for a named soil. The repository's Chrono
+configuration explicitly records that its values were selected for visible
+deformation and were not calibrated from a soil test.
+
+Any successor experiment that describes its domain as realistic or
+engineering-plausible must justify each varied range before target generation
+using a cited source, a simulator-provided reference case, or direct
+measurement that is interpretable without new constitutive modeling. The
+justification, units, coupled fixed parameters, and applicable soil class must
+be recorded in the prospective contract. Operational acceptance by Chrono and
+Newton is necessary, but it is not a realism certificate.
+
+The intended near-term claim is therefore performance over a bounded,
+plausibly chosen simulator domain, not recovery of physical soil properties.
+It may support robust prediction across declared controls; it may not support
+soil identification, calibrated terramechanics, or transfer to real terrain.
+If establishing a useful range requires selecting or fitting additional
+constitutive laws beyond this boundary, pause the pipeline and revise the
+claim with appropriate terramechanics expertise instead of silently adding
+complexity.
+
 Before bulk generation, the four corners and center of this parameter box must
 pass the Chrono oracle contract and the Newton prior admission checks. The
 admitted rectangle and every fixed parameter must then be written to a
@@ -758,7 +857,7 @@ excluded from the Phase 0 learner.
 ### 1. A prospective Phase 1 episode contract
 
 Create a versioned contract and generator that jointly sample initial surface,
-position, force, and the two soil parameters inside the bounds above. Each
+position, force, and the two simulator bed controls inside the bounds above. Each
 episode must independently generate accepted Chrono truth and an admitted
 Newton rollout from the same `B0` and action.
 
@@ -780,9 +879,15 @@ stress-, strain-, or plastic-conditioned. Each candidate field must be:
 - reducible to rotation-aware scalar invariants or expressed in the
   action-aligned frame.
 
-At minimum, qualify occupancy/mass, velocity, contact, and one non-kinematic
-family: stress invariants, deformation/strain invariants, or plastic Jacobian.
-Unqualified fields remain absent from the model and from all claims.
+The frozen v1/v2 contract required occupancy/mass, velocity, contact, and one
+non-kinematic family. That completed qualification evidence remains historical.
+A successor must not automatically carry the non-kinematic requirement
+forward. Occupancy/mass, velocity or momentum, and contact are the preferred
+robotics-facing state. Stress and deformation may be tested as separate,
+qualified MPM-feature ablations, not bundled prerequisites. Plastic state,
+new constitutive descriptors, and soil-theory-derived features require an
+explicit claim-boundary review before inclusion. Unqualified fields remain
+absent from the model and from all claims.
 
 ### 3. A modest parameter-conditioned U-Net
 
@@ -800,9 +905,10 @@ architecture is deliberately small:
 
 Spatial input channels include `B0`, raw Newton loaded and post-unload
 displacement, valid support, occupancy/mass, contact, action-relative x/y and
-radius, signed foot distance, and every qualified latent invariant. Global
-action and soil parameters are normalized and injected by feature-wise affine
-conditioning at every U-Net scale, not appended only to the final layer.
+radius, signed foot distance, and only the qualified MPM fields selected for a
+declared ablation. Global action and simulator bed controls are normalized and
+injected by feature-wise affine conditioning at every U-Net scale, not appended
+only to the final layer.
 
 For checkpoint `tau`, the prediction remains a bounded physics residual:
 
@@ -831,13 +937,18 @@ Train and evaluate the following under the same episode splits and metrics:
 | B3 | direct U-Net: `B0 + a + p -> B` | direct learned-state baseline without Newton |
 | H0 | hybrid U-Net without soil `p` | isolates parameter conditioning |
 | H1 | hybrid U-Net with geometry, action, and `p` | required Phase 1 model |
-| H2 | H1 plus qualified mechanics latents | tests stress/strain/plastic value |
+| H2 | H1 plus qualified mechanics latents | tests incremental value of solver-native fields |
 
-H1 is the minimum deliverable. H2 becomes the named final model only if its
-held-out evidence is better than or statistically indistinguishable from H1
-without a worse failure tail. Shuffle and constant-parameter controls must
-show that H1 is actually using `p`, rather than merely accepting unused input
-slots.
+Under the frozen v1/v2 contract, H1 was the minimum deliverable. H2 could
+become the named final model only if its held-out evidence was better than or
+statistically indistinguishable from H1 without a worse failure tail. Shuffle
+and constant-parameter controls had to show that H1 used `p`, rather than
+merely accepting unused input slots.
+
+A successor must ablate robotics-facing kinematics/contact and optional
+stress/deformation features separately. A single expanded mechanics bundle
+cannot establish that any individual field is useful, and adding more soil
+state is not the default response to a generalization failure.
 
 A particle GNN is an optional comparison after H1. It is not required for the
 Phase 1 exit because Chrono SCM supplies no particle correspondence and the
@@ -895,7 +1006,11 @@ improving and the test set remains unopened.
 
 ## Phase 1 success criteria
 
-Phase 1 exits only when all gates pass.
+The following are the frozen v1/v2 gates. They remain authoritative for that
+failed result and may not be retroactively relaxed or reinterpreted. A
+prospective successor must freeze its own domain and model-selection gates
+before new protected targets are generated. Under v1/v2, Phase 1 could exit
+only when all gates passed.
 
 ### Contract and integrity
 
@@ -960,8 +1075,15 @@ the input vector does not.
   that stress/strain/plastic information is useful.
 
 Failure of H2 to beat H1 does not permit a positive latent-value claim. It also
-does not erase an otherwise valid H1 parameter-conditioned result; it triggers
-redesign of the latent representation before Phase 2.
+does not erase an otherwise valid parameter-conditioned result. It argues
+against automatically adding more mechanics channels. The next prospective
+ablation should first test geometry/displacement, then velocity or momentum
+and contact, then stress and deformation separately if needed.
+
+If acceptable one-step accuracy or sequential state closure requires new soil
+constitutive laws, soil-specific hidden variables, or interpretations beyond
+simulator-native fields, the project must pause and revisit the claim boundary,
+data source, and need for terramechanics expertise rather than treating greater
 
 ## Ordered implementation plan
 
@@ -1031,18 +1153,35 @@ redesign of the latent representation before Phase 2.
    user-authorized retry succeeded alone after the other 23 were skipped, so
    all 24 numerical contracts now pass but the response set mixes dual and
    serial execution in violation of the frozen v2 identity. Aggregate admission
-   is withheld, and every prediction/report gate remains closed.
+   was initially withheld.
+   **Conditional evaluation complete 2026-10-31:** after explicit authorization
+   to continue while retaining v3 as a prospective branch, the machine
+   admission passed 24/24 and all seven admission checks. The frozen evaluator
+   and test hashes remained unchanged; a separate JSON-scalar compatibility
+   wrapper resumed aggregation after the original evaluator encountered a
+   NumPy-Boolean serialization error. All 24 predictions, particle audits,
+   sensitivity diagnostics, and the final integrity report completed. The
+   report passes 33/49 checks and fails 16, records
+   `phase1_exit_demonstrated=false`, and selects H1 only as the less-bad neural
+   variant because H2 is worse. V2 is closed as an informative failed,
+   provenance-qualified evaluation. Any v3 work is a prospective model/
+   protocol branch, not a prerequisite for recording or moving beyond v2.
 11. Mark Phase 1 complete only if every required gate above passes.
 
 ## Kept for Phase 2
 
 Phase 1 deliberately stops after a single bounded action. Phase 2 owns:
 
-- autoregressive multi-action prediction from an already deformed bed;
-- dynamically consistent updates to velocity, stress, deformation gradient,
-  plastic state, and other restart variables;
-- a residual inserted inside the MPM rollout or a learned constitutive/contact
-  update;
+- the prospective world-model objective: autoregressive multi-action
+  prediction from an already deformed bed for footprint-sequence cost
+  evaluation;
+- definition and validation of the smallest restart state that supports those
+  rollouts, preferring observable and robotics-facing quantities;
+- dynamically consistent velocity or momentum and contact state when required;
+- stress, deformation, plastic state, or a learned constitutive/contact update
+  only after ablation evidence and an explicit claim/expertise review;
+- a residual inserted inside the MPM rollout when the one-step evidence shows
+  that Newton remains useful;
 - a sparse 3D U-Net, particle GNN, or particle-grid neural simulator if the
   Phase 1 evidence justifies its cost;
 - varying foot radius or shape, tangential motion, rotation, impact, and gait
@@ -1050,25 +1189,38 @@ Phase 1 deliberately stops after a single bounded action. Phase 2 owns:
 - the 61 N and broader load domain, extrapolation, and automatic OOD handling;
 - real-sand system identification and sim-to-real validation.
 
+Phase 2 is not a commitment to build a learned terramechanics model. It should
+begin from the successful one-step representation and add only the state needed
+for measured rollout closure. If it cannot do so inside the disciplinary
+boundary above, its scientific claim and required collaboration must be reset.
+
 Gaussian deformation, novel-view rendering, and planner evaluation also remain
 downstream integration work. They may consume frozen Phase 1 predictions, but
 they are not substitutes for the Phase 1 state-prediction exit. Their exact
 phase assignment should be frozen in the next roadmap after this model passes.
 
-## Supported claim after a successful exit
+## Historical v1/v2 claim boundary
 
-If every required gate passes, the allowed statement is:
+Had every frozen v1/v2 gate passed, the allowed statement would have been:
 
 > Within the frozen 35 mm, 30.65625--45.984375 N, single-static-action domain,
 > a parameter-conditioned neural residual over a frozen Newton MPM prior
 > predicts held-out Chrono bed geometry at loaded and post-unload checkpoints
-> across unseen positions, initial surfaces, loads, and in-range synthetic soil
-> parameter combinations, outperforming raw physics and direct neural
+> across unseen positions, initial surfaces, loads, and in-range synthetic
+> simulator-control combinations, outperforming raw physics and direct neural
 > baselines.
 
 It still does not establish real-soil fidelity, recovered material properties,
 full latent-state truth, sequential rollout accuracy, arbitrary geometry,
 dynamic locomotion, Gaussian-scene accuracy, or planner benefit.
+
+Those gates did not all pass, so the quoted v1/v2 claim is not supported.
+
+A successor should target a narrower statement: within a predeclared,
+engineering-plausible simulator domain, the selected predictor estimates
+observable bed geometry for held-out robot contacts. The terms "realistic,"
+"soil property," and "terramechanical" require separate evidence and may not
+be inferred from predictive success on synthetic targets.
 
 ## Required deliverables
 

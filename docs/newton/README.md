@@ -1,6 +1,6 @@
 # Newton documentation index
 
-Last updated: 2026-10-22
+Last updated: 2026-10-31
 
 This directory contains the Newton-specific numerical contracts, experiment
 reports, transfer evidence, and handoff material for the Chrono-to-MPM terrain
@@ -8,10 +8,11 @@ forward-model study.
 
 ## Read in this order
 
-1. [Active Phase 1 goal](phase1.md) — sole operational goal and exit contract
-   for parameter-conditioned neural bed-state prediction.
+1. [Active Phase 1 goal](phase1.md) — sole operational authority for the
+   completed failed v1/v2 exit and the prospective one-action redesign,
+   world-model destination, and expertise-aware claim boundary.
 2. [Phase 1 chronological record](phase1-running.md) — dated implementation
-   evidence, frozen identities, decisions, blockers, and next gate.
+   evidence, frozen identities, decisions, blockers, and next permitted work.
 3. [Completed Phase 0](phase0.md) — frozen action ledger, claims, evidence, and
    artifact routing for the completed residual proof.
 4. [Fresh hierarchical Phase 0 protocol](fresh-hierarchical-phase0-20261017.md)
@@ -29,7 +30,13 @@ forward-model study.
 9. [Fixed-domain contract](fixed-domain.md) — qualified historical numerical and mechanics
    configuration.
 10. [Hybrid model design](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
-   — current destination for the Newton physics prior.
+   — historical design background; `phase1.md` owns the current destination.
+
+The current ordering is: first establish reliable one-action prediction over a
+prospectively justified, engineering-plausible simulator domain; then build a
+sequential footprint world model. Inputs remain robotics-defensible or
+simulator-native. If progress requires deeper constitutive soil theory, the
+claim and expertise boundary must be revisited before the pipeline expands.
 
 `phase1.md` owns all new Phase 1 work. `phase0.md` remains the sole authority
 for its completed campaign; all other files are frozen protocols,
@@ -39,8 +46,8 @@ compatibility pointers, or dated provenance.
 
 | Date | Document | Purpose |
 | --- | --- | --- |
-| live | [Active Phase 1 goal](phase1.md) | Current neural state-prediction goal, scope, work, and exit gates |
-| live | [Phase 1 chronological record](phase1-running.md) | Append-only implementation evidence, hashes, decisions, and next gate |
+| live | [Active Phase 1 goal](phase1.md) | Failed v1/v2 result, prospective one-action scope, world-model destination, and claim boundary |
+| live | [Phase 1 chronological record](phase1-running.md) | Append-only implementation evidence, hashes, decisions, and next permitted work |
 | 2026-10-22 | [Completed Phase 0](phase0.md) | Frozen ledger, chronology, result, and claims |
 | 2026-09-21 | [Fixed-domain contract](fixed-domain.md) | Public stock-contact Newton domain and local material study |
 | 2026-09-28 | [Original handoff](handoff-20260928.md) | State before A2-A10; retained for provenance |

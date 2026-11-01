@@ -74,9 +74,11 @@ instructions.
   decisions. Phase 0 remains frozen evidence and must not be rerun or re-fit.
 - No pre-2026-10-17 Chrono episode, particle bed, MPM preparation, or response
   is admissible for the current Phase 0 dataset or model score.
-- The 31 N and 46 N Phase 0 rungs and frozen v2 exit are complete. The active
-  work is the parameter-conditioned neural bed-state model in `phase1.md`.
-- The current hard gates are provenance and numerical integrity.
+- The 31 N and 46 N Phase 0 rungs are complete. The Phase 1 v1/v2 evaluation is
+  also complete and failed its frozen exit; the active work is a prospective
+  one-action redesign under the boundary in `phase1.md`.
+- The current hard gates include provenance, numerical integrity, held-out
+  predictive generalization, and an expertise-aware claim boundary.
   Contact overlap is classified as an artifact unless it is gross; local
   geometric skill in the footprint and twice-radius region is the primary
   physics-utility gate.
@@ -86,17 +88,23 @@ instructions.
 - Broad parameter-only tuning of the current Newton model form is stopped.
   Newton is retained as a bounded mechanics prior.
 - The completed Phase 0 model is an offline, post-rollout displacement
-  residual. Phase 1 replaces its independent-cell MLP with a modest spatial
-  U-Net conditioned on action and synthetic soil parameters.
+  residual. Phase 1 v1/v2 tested a spatial U-Net conditioned on action and
+  synthetic simulator bed controls; its final exit failed.
 - Corrected particle position is the primary output. Local orientation and
   Gaussian covariance come from a compatible deformation gradient, not an
   independent particle quaternion.
-- Newton material and numerics remain frozen for the Phase 1 experiment.
-  Chrono `bekker_kphi` and friction vary inside a prospectively qualified box
-  and enter the residual as known conditioning values.
-- Stress, deformation, plastic, and velocity-gradient features may enter only
-  after an informative export passes the Phase 1 semantic checks. The current
-  placeholders are not evidence against those features.
+- Newton material and numerics were frozen for the Phase 1 v1/v2 experiment.
+  Chrono `bekker_kphi` and friction varied inside an operationally qualified
+  synthetic box and entered the residual as known controls. That screen did
+  not establish a realistic range for a named soil.
+- V1/v2 repeat-qualified velocity, contact, stress, and elastic fields, but H2
+  was worse than H1 and plastic was excluded. A successor should ablate
+  robotics-facing kinematics/contact and optional MPM stress/deformation
+  separately; solver availability is not evidence of predictive value or
+  real-soil validity.
+- New soil constitutive descriptors or theory are not an automatic next step.
+  If required for acceptable prediction, revisit the claim boundary and need
+  for terramechanics expertise before expanding the pipeline.
 - Historical 35 mm runs failed strict zero penetration and were not declared
   converged. In the fresh campaign, overlap is measured and classified; only
   gross interaction failure blocks geometric-utility evaluation.
@@ -105,8 +113,11 @@ instructions.
   campaign.
 - Planned Gaussian transfer will update terrain means, covariance, and
   orientation without retraining the scene; it is not yet validated.
-- Initial planning is offline and open loop. Candidate contacts are independent
-  counterfactuals from the same initial terrain.
+- Current evaluated planning support is offline and open loop. Candidate
+  contacts are independent counterfactuals from the same initial terrain; this
+  is not a sequential world model.
+- The eventual goal is to roll proposed footprint sequences through a learned
+  bed-state world model after the one-action mapping generalizes reliably.
 
 ## Stable cross-backend evidence
 

@@ -16,24 +16,34 @@ must not redefine Phase 1 or maintain a competing success criterion.
 | goal and fresh-session handoff | complete | [phase1.md](phase1.md) |
 | machine-readable pre-screening contract | complete and frozen | [contract](../../configs/phase1_bed_state_v1.json) |
 | prospective target-free 48/16/24 plan | complete and frozen | phase1_bed_state_v1/dataset_plan.json |
-| parameter-box physical screening | complete at bounded coarse-prior level | surfaces 6/6, Chrono 5/5, and common-base v2 Newton pairings 5/5 pass; strict mechanics remains false |
+| parameter-box operational screening | complete at bounded coarse-prior level | surfaces 6/6, Chrono 5/5, and common-base v2 Newton pairings 5/5 pass; strict mechanics remains false; real-soil realism was not established |
 | initial-surface generator and qualification | complete | all six analytic and native SCM checks pass |
-| informative Newton latent export | complete for model inputs | corrected v3 passes three fresh repeats; stress and elastic admitted to H2, plastic excluded |
+| Newton field export | repeat-qualified for v1/v2 H2; predictive value failed | corrected v3 passes three fresh repeats; stress and elastic entered H2, plastic was excluded; H2 is worse than H1 |
 | neural-training environment | frozen in training plan | conda `test`: Python 3.11.15, NumPy 2.4.6, PyTorch 2.13.0+cu130, CUDA 13.0, RTX 5090 |
 | 12-episode engineering smoke set | complete and passed | 12/12 admitted: 8 train/4 validation/0 test; protected test targets unopened; full-dataset permission true |
 | 88-episode admitted dataset | train/validation subset complete and passed | 64/64 train/validation Chrono/Newton/tensor pairs admitted, five preparations accepted, all aggregate checks true; bulk SHA-256 `d8090a35...`; protected test remained unopened through this gate |
 | U-Net model ladder | fit and selected on validation | 12 models completed; B3/H0/H1/H2 share 289,172 parameters; selected seeds are 20261024/20261023/20261023/20261023; calibration fit on validation only |
 | v1 locked evaluator | preserved failed | evaluation plan SHA-256 `789720e5...`; 24/24 responses complete; 23/24 admitted; episode 009 alone fails the frozen guide guard; prediction correctly refused |
-| v2 recovery contract | response artifacts complete; execution identity violated | 24/24 Chrono targets, five/five priors, and 24/24 response manifests exist; episode 012 first failed non-finite, then succeeded alone after the other 23 were skipped, violating the frozen no-mix two-worker identity |
-| Phase 1 exit | blocked, not demonstrated | v1 remains failed; v2 aggregate admission is withheld because the successful episode-012 retry was serial; prediction, sensitivity, and final report remain absent |
+| v2 recovery contract | conditional evaluation complete; prospective identity deviation preserved | numerical admission passes 24/24; all predictions and audits exist; the episode-012 serial retry and post-lock JSON compatibility shim remain explicit qualifications |
+| Phase 1 exit | evaluated and failed, not demonstrated | conditional v2 report passes 33/49 checks and fails 16; H1 improves raw Newton but fails joint, material-use, parameter-control, and sensitivity gates; H2 is worse than H1 |
+| post-v2 research boundary | documented; next contract remains prospective | first prove one-action prediction over a justified plausible simulator domain; sequential world model follows; deeper terramechanics triggers claim/expertise review |
 
-The physical screen, corrected v3 latent-input qualification, and 12-episode
-engineering smoke set have passed. The smoke aggregate now permits generation
+The operational simulator screen, corrected v3 latent-input qualification, and
+12-episode engineering smoke set have passed. The smoke aggregate now permits
+generation
 of the already frozen 88-episode dataset. V2's generated pass remains
 audit-rejected; v3 supersedes it with three fresh repeats and enforcement of
 every required family. Stress and elastic channels are admitted to H2, while
-plastic is excluded. Predictive usefulness is deliberately unresolved until
-H2 is compared with H1 on the frozen splits.
+plastic is excluded. Predictive usefulness is now measured: H1 improves
+substantially on raw Newton, but the complete conditional v2 report fails the
+Phase 1 exit; H2 is worse than H1. V3 remains the prospective branch for any
+revised model or protocol rather than a retroactive requirement for closing v2.
+
+The next branch does not inherit a claim that the current parameter box is
+realistic or that more internal soil state is desirable. Its parameter domain
+must be justified prospectively as engineering-plausible, its inputs should
+remain robotics-defensible or directly exported by MPM, and any need for new
+constitutive soil theory pauses execution for a claim/expertise review.
 
 ## Chronology
 
@@ -2441,6 +2451,180 @@ Claim boundary:
   checks for all 24 artifacts. It also disproves compliance with v2's frozen
   execution identity. It does not prove aggregate v2 admission, predictive
   accuracy, parameter use, calibrated uncertainty, H2 value, or Phase 1 exit.
+
+### 2026-10-31 — Conditional v2 analysis completed; predictive exit failed
+
+Question and authorization:
+
+- advance from complete numerical artifacts into admission and prediction,
+  while preserving the serial episode-012 retry as a qualification and keeping
+  v3 as the prospective branch instead of repeatedly moving the current exit;
+- treat v2 as an engineering/conditional analysis, not as a clean prospective
+  confirmation and not as permission to erase either the v1 or v2 failures.
+
+Admission and implementation evidence:
+
+- the five v2 contract tests and twelve frozen evaluator tests pass before
+  admission;
+- `test_dataset_summary.json` passes all seven aggregate checks, admits 24/24
+  episodes, and sets `prediction_permitted=true`; its SHA-256 is
+  `786f88be0a047a1bd28d6849ab3c1b4d674a87399070cdec01902cca4e313c96`;
+- all 24 episode predictions and particle-lift audits completed. The original
+  prediction process then reached matched sensitivity and failed while writing
+  a NumPy scalar Boolean through Python's standard JSON encoder. This was a
+  serialization boundary defect after inference, not a numerical-model or
+  artifact failure;
+- the frozen evaluator and evaluator-test SHA-256 values were restored and
+  verified against the locked plan as
+  `d8e18b80112090dc1d1cb8d792e4931f2b090d6107690c2d6d82a47004551201`
+  and
+  `d99f9cf7cd6333aa478599fe1ac6c7a128a77ad2f564c1e88e6b4a66df64dea2`;
+- `scripts/continue_phase1_evaluation_v2.py`, SHA-256
+  `db0b7e0812699e37cfb724492f5da17d1b52caecafe06b070bc71dc41a01df9b`,
+  is a separate post-lock compatibility wrapper. It recursively converts NumPy
+  JSON scalars to value-equivalent built-ins and delegates every computation to
+  the unchanged evaluator. Its focused regression test passes. This shim is
+  part of the conditional-analysis qualification and is not represented as a
+  prospectively frozen v2 source;
+- resumed prediction wrote `prediction_summary.json`, SHA-256
+  `bb5bdfc24a9b7f4fbe43129804ff62a7be66bf7bb2f2888697c9009dc37e85af`,
+  and `sensitivity_summary.json`, SHA-256
+  `e1c5a42c6a0c6f08148f92bae5ea601b9b9d692450f8d3d1384c9e99c91e0cbd`;
+- final reporting revalidated all ten artifact-integrity checks and wrote
+  `final_evaluation_report.json`, SHA-256
+  `0182a02015051d6c58e78323a306eb4e5f133fbab27fe73726403868777f00be`.
+
+Measured predictive evidence:
+
+- H1 median RMSE reduction versus raw Newton is 74.23% loaded/footprint,
+  63.18% loaded/twice-radius, 60.52% post-unload/footprint, and 46.13%
+  post-unload/twice-radius. All 24 episodes improve over both raw Newton and the
+  no-deformation baseline in every local checkpoint/region combination; no
+  episode is worse than raw Newton or exceeds the 1 mm failure-tail allowance;
+- H1 reduction versus the Phase 0 MLP is 23.21%, 11.56%, 14.73%, and 4.06% in
+  those same four combinations. The post-unload/twice-radius comparison misses
+  the frozen 10% threshold and its paired-bootstrap interval crosses zero;
+- B3 is better than H1 on all four five-episode joint-holdout comparisons, so
+  every frozen H1-versus-B3 joint gate fails;
+- H1 improves on H0 by only 1.58--5.97% on material holdouts, below the frozen
+  10% requirement in all four comparisons. Shuffling soil parameters degrades
+  H1 significantly in three of four comparisons, but the loaded/twice-radius
+  lower bound crosses zero. Replacing parameters with the train mean fails to
+  degrade H1 significantly in all four comparisons. The report therefore does
+  not support strong parameter use;
+- matched sensitivity is nonsaturated and smooth inside the material box, but
+  direction agreement is 6/8 eligible comparisons, or 0.75 versus the frozen
+  0.90 gate. Both mismatches occur on the low-`bekker_kphi` friction edge for
+  loaded peak sinkage and loaded displaced volume. The report's
+  `sensitivity:identity` composite is false because sensitivity status failed;
+  the stored evaluation-plan hash itself still matches;
+- nominal-90% uncertainty coverage estimates span 0.892--0.924 and all
+  uncertainty checks pass;
+- H2 is worse than H1 in every local checkpoint/region aggregate, so latent
+  status is `worse_or_solver_artifact`, positive latent-value claims are not
+  permitted, and H1 is retained only as the report's fallback final model.
+
+Decision and next branch:
+
+- the conditional final report passes 33/49 checks and fails 16. It records
+  `status=failed`, `phase1_exit_demonstrated=false`, and
+  `supported_claim_permitted=false`;
+- v2 is complete as a measured, informative failed evaluation. It is no longer
+  an unfinished execution blocker, and no additional rerun is required merely
+  to close or report it;
+- if pursued, v3 must be frozen prospectively after deciding what model or
+  protocol changes address the measured joint-generalization, parameter-use,
+  sensitivity, and H2 failures. Its goal is confirmation of a specific repair,
+  not automatic regeneration of another test set until a pass appears.
+
+Claim boundary:
+
+- the evidence establishes conditional v2 admission, inference behavior,
+  uncertainty, sensitivity, particle-artifact integrity, and a failed Phase 1
+  exit under explicit provenance qualifications. It does not establish a clean
+  prospective v2 confirmation, strong parameter-conditioned generalization,
+  useful H2 latent mechanics, or Phase 1 success.
+
+### 2026-10-31 — World-model destination and expertise-aware boundary recorded
+
+Question:
+
+- what longer-term capability should the one-action predictor support;
+- how can the experiment vary meaningful parameters without claiming soil
+  expertise or calibrated terramechanics; and
+- when should increasing mechanics complexity trigger a claim review instead
+  of another routine model revision?
+
+Decision:
+
+- the eventual goal is an action-conditioned world model that predicts bed
+  state across a proposed footprint sequence so a cost planner can score it;
+- the immediate research question remains one action: characterize where the
+  frozen Newton prior does not generalize and test whether a learned direct or
+  Newton-conditioned predictor supplies a reliable observable-state estimate;
+- sequential training follows only after a satisfactory one-action mapping is
+  demonstrated. Independent endpoint accuracy is not sequential-world-model
+  evidence;
+- the v1/v2 parameter rectangle is operationally qualified inside Chrono and
+  Newton, but it has not been established as realistic for a named soil. A
+  successor that calls its range realistic or engineering-plausible must cite
+  the range basis, units, coupled fixed values, and applicable soil class
+  before target generation;
+- the preferred inputs are quantities defensible in robotics: geometry,
+  displacement, velocity or momentum, load, contact, and support. Qualified
+  MPM stress and deformation may be evaluated as simulator-native features,
+  but their use does not validate the MPM constitutive law or real-soil
+  interpretation;
+- new soil-specific constitutive descriptors, hand-built higher-order soil
+  features, fitted material laws, and claims about real-soil properties remain
+  outside the default scope;
+- the simplest model that passes the prospective generalization contract
+  should be selected. Improvement over raw Newton supports a neural-correction
+  claim; added value from Newton requires the hybrid also to beat the
+  capacity-controlled direct model.
+
+Complexity stop/review gate:
+
+Before adding a new soil parameter, internal field, constitutive relation, or
+derived soil feature, the next prospective plan must answer:
+
+1. Which measured held-out failure requires it?
+2. Is it already a semantically qualified simulator state, or does it require
+   new soil theory?
+3. Can its range and meaning be justified without implying unsupported
+   calibration or material identification?
+4. Can a controlled ablation isolate its predictive value?
+
+If these questions cannot be answered inside the robotics-facing boundary,
+pause the pipeline and revisit the claim, data source, and need for
+terramechanics collaboration. Do not treat deeper soil theory as an automatic
+consequence of model underperformance.
+
+Interpretation of completed v2:
+
+- H1's large improvement over raw Newton shows that neural supplementation is
+  plausible in the bounded one-action task;
+- B3 beating H1 on every joint holdout means the present experiment did not
+  demonstrate added generalization value from the Newton prior;
+- H2 being worse than H1 means the bundled stress/elastic expansion did not
+  demonstrate predictive value and does not justify adding more mechanics
+  channels;
+- the next model revision should use separate low-complexity ablations rather
+  than broaden the terramechanical representation.
+
+Documentation changes:
+
+- [phase1.md](phase1.md) now records the world-model destination, parameter
+  plausibility policy, robotics-facing representation boundary, prospective
+  direct-versus-hybrid decision rule, and explicit complexity stop gate;
+- the completed v1/v2 contracts, metrics, failures, and historical chronology
+  remain unchanged.
+
+Claim boundary:
+
+- this is a research-order and scope decision. It does not prove that the
+  current parameter box is realistic, validate any constitutive model, reopen
+  v2, establish one-action success, or demonstrate sequential planning.
 
 ## Maintenance contract
 
