@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "identity": "phase1_one_action_successor_v1",
+  "status": "draft_precontract_no_target_generation",
+  "created_date": "2026-10-31",
+  "purpose": "Source-backed one-action bed-state prediction before sequential world-model work.",
+  "claim_boundary": {
+    "positive_target": "Predict observable Chrono bed geometry for held-out vertical robot contacts over an engineering-plausible dry-sand-like synthetic SCM domain.",
+    "not_claimed": [
+      "calibration to a named real soil",
+      "soil parameter identification",
+      "constitutive-model validation",
+      "real-terrain transfer",
+      "sequential rollout accuracy",
+      "planner benefit"
+    ],
+    "complexity_stop": "If success requires new soil constitutive laws, fitted soil-specific hidden variables, or interpretation beyond qualified simulator-native fields, stop and revisit the claim and expertise boundary."
+  },
+  "source_basis": [
+    {
+      "id": "chrono_scm_api",
+      "url": "https://api.projectchrono.org/classchrono_1_1vehicle_1_1_s_c_m_terrain.html",
+      "use": "SCMTerrain parameter meanings, units, n range, and elastic/damping semantics."
+    },
+    {
+      "id": "chrono_wheel_rig_schema",
+      "url": "https://api.projectchrono.org/_y_a_m_l_schema_wheel_rig_terrain.html",
+      "use": "Official cohesionless SCM reference: Kphi=2e6, Kc=0, n=1.1, cohesion=0, friction=30 deg, Janosi=0.01 m."
+    },
+    {
+      "id": "lim_2021_pressure_sinkage",
+      "url": "https://doi.org/10.5140/JASS.2021.38.4.237",
+      "use": "Published dry-sand Bekker point: n=1.1, Kc=0.99 kN/m^(n+1), Kphi=1528.43 kN/m^(n+2); parameters are test-condition dependent."
+    },
+    {
+      "id": "gallina_2014_scm_identification",
+      "url": "https://elib.dlr.de/104615/1/jrf_paper.pdf",
+      "use": "Dry quartz sand evidence for approximately zero cohesion, 30 deg friction, n=1.1, and explicit uncertainty/transfer limits for SCM soil parameters."
+    }
+  ],
+  "domain": {
+    "terrain_family": "cohesionless_dry_sand_like_synthetic_scm",
+    "interpretation": "Engineering-plausible simulator family bracketed by a published dry-sand point and the official Chrono SCM reference; not a named-soil calibration.",
+    "action": {
+      "contact_body": "vertically_guided_cylinder",
+      "radius_m": 0.035,
+      "center_radius_max_m": 0.10,
+      "normal_force_n": {
+        "minimum": 30.65625,
+        "maximum": 45.984375
+      },
+      "tangential_motion": false,
+      "rotation": false
+    },
+    "chrono_scm": {
+      "varied": {
+        "bekker_kphi": {
+          "minimum": 1500000.0,
+          "maximum": 2000000.0,
+          "reference": 2000000.0,
+          "units": "N/m^(n+2)",
+          "role": "effective vertical pressure-sinkage stiffness control"
+        }
+      },
+      "fixed": {
+        "bekker_kc": 0.0,
+        "bekker_n": 1.1,
+        "mohr_cohesion_pa": 0.0,
+        "mohr_friction_deg": 30.0,
+        "janosi_shear_m": 0.01,
+        "elastic_k_pa_per_m": 200000000.0,
+        "damping_r_pa_s_per_m": 30000.0
+      },
+      "fixed_parameter_rationale": "The action is vertical and slip-free. Shear parameters remain at the official reference rather than being varied in a modality that weakly excites them."
+    },
+    "newton": {
+      "policy": "retain_phase1_frozen_material_and_numerics_for_initial_successor_screen",
+      "young_modulus_pa": 100000.0,
+      "poisson_ratio": 0.2,
+      "friction_coefficient": 0.68,
+      "selected_dt_s": 0.00025,
+      "voxel_size_m": 0.0078125
+    }
+  },
+  "analytic_precheck": {
+    "status": "passed_as_sanity_check_not_simulator_evidence",
+    "formula": "z=(pressure/Kphi)^(1/n), with Kc=0 and circular-foot pressure",
+    "foot_pressure_kpa": {
+      "minimum_force": 7.965867304752516,
+      "maximum_force": 11.948800957128775
+    },
+    "predicted_sinkage_mm": {
+      "minimum": 6.582129598968351,
+      "maximum": 12.360329876905451
+    },
+    "interpretation": "The proposed bracket gives millimetric response at the declared loads and is similar in scale to the completed operational v1/v2 box. Chrono screening remains mandatory."
+  },
+  "prospective_screen": {
+    "engineering_screen_execution_permitted_after_input_plan_freeze": true,
+    "bulk_training_validation_test_or_protected_target_generation_permitted": false,
+    "common_input": {
+      "initial_surface_seed": 1101,
+      "center_xy_m": [0.0, 0.0],
+      "qualification_basis": "Previously qualified Phase 1 surface and centered vertical action identity.",
+      "reuse_policy": "Reuse input identity only; do not reuse Chrono or Newton response artifacts as successor evidence."
+    },
+    "kphi_points": [1500000.0, 1750000.0, 2000000.0],
+    "normal_force_points_n": [30.65625, 45.984375],
+    "episode_count": 6,
+    "requirements": [
+      "all Chrono oracle and initialization checks pass",
+      "response is finite and remains inside declared deformation bounds",
+      "Kphi response direction is monotone where change exceeds repeatability",
+      "endpoint response separation exceeds the Chrono repeatability floor",
+      "frozen Newton prior remains numerically admitted for both actions"
+    ]
+  },
+  "model_ladder": [
+    {
+      "id": "B0",
+      "inputs": ["initial_surface"],
+      "role": "no-deformation baseline"
+    },
+    {
+      "id": "B1",
+      "inputs": ["raw_newton_loaded_surface", "raw_newton_post_surface"],
+      "role": "raw-Newton baseline"
+    },
+    {
+      "id": "D0",
+      "inputs": ["initial_surface", "action_geometry", "normal_force", "bekker_kphi"],
+      "role": "direct learned predictor without Newton"
+    },
+    {
+      "id": "R0",
+      "base_model": "D0",
+      "additional_inputs": ["raw_newton_loaded_displacement", "raw_newton_post_displacement"],
+      "role": "minimal Newton-surface residual"
+    },
+    {
+      "id": "R1",
+      "base_model": "R0",
+      "additional_inputs": ["occupancy", "mass", "action_aligned_vertical_velocity", "contact_count", "normal_impulse"],
+      "role": "robotics-facing Newton state ablation"
+    },
+    {
+      "id": "R2S",
+      "base_model": "R1",
+      "additional_inputs": ["mean_stress", "von_mises_stress"],
+      "role": "isolated MPM stress ablation; no constitutive-validity claim"
+    },
+    {
+      "id": "R2E",
+      "base_model": "R1",
+      "additional_inputs": ["elastic_jacobian", "elastic_isochoric_shear"],
+      "role": "isolated MPM deformation ablation; no constitutive-validity claim"
+    }
+  ],
+  "model_policy": {
+    "shared_capacity": true,
+    "plastic_state_permitted": false,
+    "combined_stress_elastic_variant_permitted_initially": false,
+    "selection_pool": ["D0", "R0", "R1"],
+    "optional_promotion_pool": ["R2S", "R2E"],
+    "newton_correction_claim": "Selected residual must reliably improve B1.",
+    "newton_added_value_claim": "Selected residual must also beat capacity-controlled D0 on joint holdouts.",
+    "field_value_claim": "R2S or R2E must beat R1 without a worse failure tail; qualification alone is insufficient."
+  },
+  "data_policy": {
+    "existing_v1_v2_data": "engineering_preflight_only_because_domain_and_targets_differ",
+    "new_protected_targets": "prohibited_until_screen_and_successor_contract_are_frozen",
+    "sequential_episodes": "deferred_until_one_action_exit",
+    "reuse_newton_outputs": "permitted_only_when initial surface, action, Newton material, numerics, timing, and source hashes are identical; Chrono targets remain new identities"
+  },
+  "next_permitted_action": "Execute the six-episode engineering screen from a separately frozen source-hashed input plan; do not generate bulk or protected targets.",
+  "frozen": false
+}

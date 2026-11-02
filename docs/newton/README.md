@@ -1,6 +1,6 @@
 # Newton documentation index
 
-Last updated: 2026-10-31
+Last updated: 2026-11-02
 
 This directory contains the Newton-specific numerical contracts, experiment
 reports, transfer evidence, and handoff material for the Chrono-to-MPM terrain
@@ -19,7 +19,8 @@ forward-model study.
    — frozen fresh-only evidence boundary, variation characterization, and
    geometric-utility hierarchy.
 5. [Running analysis through 2026-10-19](running-analysis.md) — detailed
-   pre-consolidation decision provenance; new entries belong in `phase0.md`.
+   pre-consolidation decision provenance; current entries belong in
+   `phase1-running.md`.
 6. [Static 35 mm proxy qualification](static-proxy-qualification-20261009.md)
    — original strict Phase 0 sentinel result and expansion stop gate.
 7. [Bounded coarse-prior admission](coarse-prior-admission-20261016.md) —
@@ -48,6 +49,7 @@ compatibility pointers, or dated provenance.
 | --- | --- | --- |
 | live | [Active Phase 1 goal](phase1.md) | Failed v1/v2 result, prospective one-action scope, world-model destination, and claim boundary |
 | live | [Phase 1 chronological record](phase1-running.md) | Append-only implementation evidence, hashes, decisions, and next permitted work |
+| live | [Newton handoff pointer](handoff.md) | Compatibility entry point to the active Phase 1 handoff and current smoke gate |
 | 2026-10-22 | [Completed Phase 0](phase0.md) | Frozen ledger, chronology, result, and claims |
 | 2026-09-21 | [Fixed-domain contract](fixed-domain.md) | Public stock-contact Newton domain and local material study |
 | 2026-09-28 | [Original handoff](handoff-20260928.md) | State before A2-A10; retained for provenance |
@@ -89,10 +91,14 @@ compatibility pointers, or dated provenance.
 
 ## Maintenance rules
 
-- Update [phase0.md](phase0.md) whenever the active contract, ledger,
-  conclusion, claim boundary, or next permitted work changes.
-- Append new dated evidence to `phase0.md`; do not add live state to
-  `handoff.md` or `running-analysis.md`.
+- Update [phase1.md](phase1.md) whenever the active Phase 1 contract, gate,
+  conclusion, claim boundary, or next permitted work changes; append measured
+  runtime evidence to [phase1-running.md](phase1-running.md) in the same change.
+- Keep [handoff.md](handoff.md) as a concise compatibility entry point to those
+  two authorities. Do not turn it or `running-analysis.md` into a competing
+  operational ledger.
+- Update [phase0.md](phase0.md) only when correcting or extending the frozen
+  Phase 0 evidence; Phase 1 work must not rewrite that completed campaign.
 - Add a separate dated report when the evidence needs tables, protocols, or
   detailed artifact routing.
 - Do not rewrite dated reports to reflect later conclusions; link forward to

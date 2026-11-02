@@ -1,6 +1,6 @@
 # Phase 1 chronological implementation and evidence record
 
-Last updated: 2026-10-31
+Last updated: 2026-11-01
 
 Status: active append-only evidence record
 
@@ -2626,7 +2626,613 @@ Claim boundary:
   current parameter box is realistic, validate any constitutive model, reopen
   v2, establish one-action success, or demonstrate sequential planning.
 
+### 2026-10-31 — Source-backed one-action successor draft started
+
+Question:
+
+- can the post-v2 experiment begin inside a defensible parameter domain without
+  expanding into soil identification or deeper terramechanics; and
+- what minimum model ladder distinguishes neural correction, Newton-added
+  value, and individual MPM field value?
+
+Source audit:
+
+- official Chrono documentation defines the SCM parameter semantics and supplies
+  a cohesionless reference at `Kphi=2e6`, `Kc=0`, `n=1.1`, cohesion `0 Pa`,
+  friction `30 degrees`, and Janosi shear `0.01 m`;
+- Lim et al. report a dry-sand point at `n=1.1` and
+  `Kphi=1528.43 kN/m^(n+2)`, with test-condition dependence;
+- Gallina et al. report approximately zero cohesion, `30 degree` friction, and
+  `n=1.1` for dry quartz sand and warn about cross-test parameter transfer.
+
+Draft domain and precheck:
+
+- engineering-plausible, cohesionless dry-sand-like synthetic SCM; explicitly
+  not a named-soil calibration;
+- vary only `bekker_kphi=1.5e6--2.0e6 N/m^(n+2)`; fix `Kc=0`, `n=1.1`,
+  cohesion `0 Pa`, friction `30 degrees`, Janosi `0.01 m`, elastic stiffness
+  `2e8 Pa/m`, and damping `3e4 Pa s/m`;
+- retain the existing 35 mm-radius vertical action and frozen Newton prior for
+  screening; no tangential motion or rotation is introduced;
+- only `Kphi` varies because this action directly excites vertical
+  pressure-sinkage; varying friction would repeat a weakly excited control;
+- the force endpoints imply 7.966/11.949 kPa nominal pressure, and the elementary
+  `Kc=0` relation gives 6.58--12.36 mm sinkage. This is a sanity check only.
+
+Draft model ladder and decision rules:
+
+- `B0` no deformation; `B1` raw Newton; `D0` direct prediction from initial
+  surface, action, force, and `Kphi`;
+- `R0` adds raw Newton surface displacement; `R1` separately adds occupancy,
+  mass, vertical velocity, contact count, and normal impulse;
+- `R2S` and `R2E` separately test stress and elastic deformation; plastic and a
+  bundled stress-plus-elastic variant are excluded;
+- beating `B1` supports neural correction; beating both `B1` and
+  capacity-controlled `D0` on joint holdouts supports Newton-added value;
+- a solver field has value only if its isolated ablation beats `R1` without a
+  worse failure tail.
+
+Input-plan freeze:
+
+- six explicit identities reuse qualified surface seed `1101` and centered
+  action geometry while requiring entirely fresh response artifacts;
+- every canonical case hash and the draft-contract source binding recompute;
+- [screening_plan.json](../../diagnostics/phase1_one_action_successor_v1/screening_plan.json)
+  has SHA-256
+  `5878257631bd0099afae3ce0c0792dd5f90c301515855a9de2292e8ad8bde2c4`
+  and status `input_only_frozen_no_execution`.
+
+Next permitted gate:
+
+- execute the six fresh engineering-screen cases; do not generate bulk,
+  training, validation, or protected targets;
+- test response validity, direction above repeatability, endpoint separation,
+  and Newton admission before freezing a successor data/evaluation contract.
+
+Artifact and claim boundary:
+
+- [phase1_one_action_successor_v1.json](../../configs/phase1_one_action_successor_v1.json)
+  records sources, domain, precheck, screen, ladder, and data policy with status
+  `draft_precontract_no_target_generation` and `frozen=false`;
+- this starts successor design but does not qualify its range, authorize bulk
+  or protected target generation, demonstrate Newton failure or neural
+  correction, or support a real-soil claim.
+
+### 2026-10-31 — Six-case successor engineering screen launched
+
+Implementation and preflight:
+
+- added explicit Chrono CLI overrides for `Kc`, `n`, cohesion, Janosi shear,
+  elastic stiffness, and damping so the successor cannot inherit the historical
+  v1 fixed soil values;
+- added `run_phase1_one_action_successor_screen.py`, an isolated runner that
+  binds the frozen six identities to fresh Chrono and Newton artifacts while
+  refusing bulk or protected target generation;
+- syntax, CLI, case-hash, contract-binding, fixed-Newton, and clean-output-root
+  preflights pass;
+- the reused input is qualified surface seed `1101`; no prior Chrono or Newton
+  response artifact is reused.
+
+Frozen execution:
+
+- execution plan:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/screening/successor_screen_execution_plan.json`;
+- execution-plan SHA-256:
+  `f9347f18b7dc3c1f09b6fe2425f4c341c91abecb3b54f5c5037eb5ea527bb0b1`;
+- command: `python3 scripts/run_phase1_one_action_successor_screen.py --stage all --workers 2`;
+- supervisor PID: `1908840`;
+- run log:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/screening/run.log`.
+
+Launch status:
+
+- two Chrono workers are active on the `Kphi=1.5e6` force endpoints;
+- all six Chrono cases are queued, followed by metric-bed construction, six
+  fresh Newton responses, and admission analysis;
+- status is running; no screen result or successor qualification is claimed
+  until the final summary exists and is checked.
+
+### 2026-11-01 — Common-flat-base successor recovery frozen and launched
+
+Measured antecedent result:
+
+- all six successor Chrono episodes completed and are accepted;
+- all six legacy metric beds and Newton preparation computations completed;
+- every preparation reached equilibrium but was rejected by the frozen surface
+  gate: settled-surface RMSE is 6.072 mm versus the 5 mm limit, while maximum
+  absolute error is 7.631 mm versus the 10 mm limit;
+- all six failures reproduce the preserved fixed-depth/undulating-bottom bed
+  defect, so no Newton response from the original screen is admissible;
+- this is not a non-finite-state or dual-worker collision failure.
+
+Recovery identity and procedure:
+
+- the six accepted Chrono episodes and all six rejected preparations are
+  preserved; Chrono is not rerun;
+- the recovery verifies that all six Chrono episodes share the same initial
+  state, constructs one fresh exact-surface/global-lattice/common-flat-base
+  metric bed, and runs one fresh shared preparation;
+- after preparation admission it schedules six fresh responses, one against
+  each case's Chrono target, with independent fixed Newton timing of 0.35 s
+  loaded plus 0.25 s post-unload and exactly two workers;
+- recovery runner:
+  `scripts/recover_phase1_one_action_successor_common_base.py`;
+- frozen plan:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/recovery_plan.json`;
+- recovery-plan SHA-256:
+  `927941694b8d73b24d8063a8f65a6dd629aa435a6b9477f02097974c9ab6d91f`;
+- command:
+  `python3 scripts/recover_phase1_one_action_successor_common_base.py --stage newton --workers 2`;
+- detached supervisor PID at launch: `1940032`;
+- run log:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/run.log`.
+
+Launch status and claim boundary:
+
+- the common-base metric bed exists and the fresh shared preparation is active
+  on `cuda:0`; response workers begin only if that preparation is accepted;
+- bulk, training, validation, and protected-target generation remain prohibited;
+- this launch does not establish response validity, directional signal,
+  endpoint separation, Newton generalization failure, or neural-correction
+  value. Those decisions require the completed recovery and subsequent
+  prospective analysis.
+
+
+### 2026-11-01 — Successor recovery and directional screen passed
+
+Recovery admission:
+
+- the common-flat-base preparation is accepted and all six fresh Newton
+  responses completed;
+- all six pairings pass Chrono acceptance, preparation acceptance and
+  convergence, finite-state, guide, surface-support, independent-fixed-timing,
+  gross penetration-depth, and affected-particle-fraction checks;
+- strict mechanics remains unqualified because 19--20 particle centers enter
+  the analytic cylinder by 5.646--11.278 micrometers, but this is far inside
+  the inherited 0.5 mm coarse-prior limit;
+- `recovery_summary.json` records
+  `pipeline_passed_directional_analysis_pending` and 6/6 admission; it is not
+  rewritten after the separate directional decision.
+
+Frozen directional analysis:
+
+- analyzer: `scripts/analyze_phase1_one_action_successor_direction.py`;
+- plan:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/directional_analysis_plan.json`;
+- plan SHA-256:
+  `ac2e98fb3cab966c22ac8ae47cc4e11829fe25eae66d773b3bc80daafcfd838f`;
+- summary:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/directional_analysis_summary.json`;
+- summary SHA-256:
+  `a58d86a5f7b581f1bd3ee3aef936d68992bc7d587f2d255d9d87081277a06e1b`.
+
+Measured decision:
+
+- every adjacent `Kphi` comparison is monotone in the expected direction for
+  footprint peak depression, mean depression, and positive displaced volume at
+  loaded and post-unload checkpoints and both force levels;
+- endpoint mean-depression separation is 5.725 mm at 30.65625 N and 6.974 mm
+  at 45.984375 N; peak-depression separation is 5.750 and 6.915 mm;
+- the applicable same-build Chrono heightmaps are bitwise identical, so their
+  metric repeatability floor is zero and every endpoint separation exceeds it;
+- deformation increases with force for all `Kphi`, phases, and metrics;
+- the aggregate status is
+  `screen_passed_successor_contract_freeze_permitted`.
+
+Decision and claim boundary:
+
+- the next permitted action is to freeze a prospective successor data and
+  evaluation contract;
+- bulk, training, validation, test, and protected-target generation remain
+  prohibited until that separate contract is frozen;
+- this screen establishes usable numerical pairings and a resolvable synthetic
+  parameter signal. It does not demonstrate Newton generalization failure,
+  neural correction, sequential rollout accuracy, real-soil fidelity, or
+  planner benefit.
+
+### 2026-11-01 — Successor contract frozen and 12-episode smoke launched
+
+Prospective contract and target-free split:
+
+- froze
+  [phase1_one_action_successor_contract_v1.json](../../configs/phase1_one_action_successor_contract_v1.json)
+  at SHA-256
+  `834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd`;
+- froze 48 training, 16 validation, 24 protected test, and six protected
+  matched-sensitivity inputs before any new response target was generated;
+- the target-free dataset plan, physical manifest, test lock, and sensitivity
+  lock have SHA-256 values
+  `b326a96bbbcd82e863984eef016e0d320c479f5ec1b7ff937ec4da031d1070ef`,
+  `2df4ced81aa85a88536b72bd28c8a736e8dabf898ffeb891891678b9e7682725`,
+  `0390d46bfd5860b08518f3b99ab116084f24138939c04435f29582c3feedf713`,
+  and `a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139`;
+- all 94 physical input hashes are unique; split and holdout labels are not
+  allowed to hide a duplicate physical condition;
+- only `bekker_kphi` varies and enters the global parameter vector. Fixed SCM
+  and Newton values are explicit. Plastic state remains excluded, while stress
+  and elastic fields are separately optional R2S/R2E ablations.
+
+Fresh-surface qualification:
+
+- generated and qualified surface seeds 4101, 4102, 4103, 4104, 4201, and
+  4301 using analytic checks and an exact native Chrono SCM initialization;
+- qualification plan SHA-256:
+  `1fc635c1ed468b00316fcce62a32d98012e524c0f4c6ef5ed1bf2b32b99e9a9e`;
+- passing summary SHA-256:
+  `a3935396fa99362c1a94aa4fa960408cd0efedc158b3dbf0649e2645ec13d7f1`;
+- no Chrono response target was generated during surface qualification.
+
+Smoke implementation and preflight:
+
+- added an isolated runner that adapts the proven Phase 1 data pipeline while
+  binding every fixed SCM parameter, preserving the common-flat-base Newton
+  prior, and reducing the model parameter vector to `bekker_kphi` alone;
+- an initial no-target preflight exposed a recursive base-result binding and a
+  missing config argument in source-manifest construction. Both were repaired
+  before a runtime plan or response target existed, and regression coverage was
+  added;
+- eight focused smoke-runner tests and seven target-free planner tests pass;
+- froze exactly train members 000--007 and validation members 000--003, with
+  zero test and zero protected-sensitivity members;
+- frozen smoke-plan SHA-256:
+  `3d861da58edaf697ca7b5b494589fce99b926a7a3c13c19dec19026eedbafee7`;
+- selected-membership SHA-256:
+  `9eee6ab977f499a475debc94e589d031a4657a7e3b68cd59a9e5ee5a7f38a042`;
+- rerunning `--stage plan --workers 2` reproduces the identical plan and hash.
+
+Launch and current evidence:
+
+- command:
+  `python3 scripts/run_phase1_one_action_successor_smoke.py --stage all --workers 2`;
+- detached supervisor PID at launch: `1955843`;
+- run log:
+  `outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/run.log`;
+- exactly two Chrono workers are active on the first two authorized training
+  members; their live commands include every frozen soil override;
+- the remaining ten smoke members are queued by the two-worker executor;
+- remaining train/validation generation, all protected test and sensitivity
+  targets, and all model training remain prohibited until the completed smoke
+  summary passes its aggregate gate.
+
+Claim boundary:
+
+- freezing and launching the smoke set does not demonstrate Newton
+  generalization failure, neural correction, Newton-added value, sequential
+  rollout accuracy, real-soil fidelity, or planner benefit;
+- the immediate next decision is solely whether the 12 engineering episodes
+  pass numerical, tensor, routing, and signal checks strongly enough to permit
+  the remaining unprotected train/validation dataset.
+
+### 2026-11-01 — Successor bulk handoff prepared behind the smoke gate
+
+Question:
+
+- can the next stage be prepared without polling the active smoke set,
+  changing its frozen identity, rerunning its 12 members, or weakening either
+  protected-target lock?
+
+Prepared implementation:
+
+- config:
+  [phase1_one_action_successor_bulk_v1.json](../../configs/phase1_one_action_successor_bulk_v1.json),
+  SHA-256
+  `9fabff0b6a22d5858b33afb129dc1fe4d2dd87717e242309d239752ec99a3935`;
+- runner:
+  [run_phase1_one_action_successor_bulk.py](../../scripts/run_phase1_one_action_successor_bulk.py),
+  SHA-256
+  `1f69d5ddb02de88129f429eef90ec19bcb31f8d1fa70a5f8b4137bbc63e3b21b`;
+- focused tests:
+  [test_phase1_one_action_successor_bulk.py](../../tests/test_phase1_one_action_successor_bulk.py),
+  SHA-256
+  `5a3cbef2c78845a968934f284abd4e77a2733956bd65734480634e5d91bc09ee`.
+
+Frozen behavior:
+
+- the bulk campaign shares the smoke local and Chrono output roots so admitted
+  smoke targets become dataset members rather than being regenerated;
+- after a passing smoke result, bulk-plan freeze will bind the exact hashes of
+  every reused episode summary, tensor manifest, input archive, target archive,
+  Newton manifest, and Chrono manifest;
+- the execution selector excludes the eight smoke train and four smoke
+  validation identities, leaving exactly 40 new train and 12 new validation
+  episodes;
+- requesting a smoke identity raises a regeneration error; requesting a test,
+  sensitivity, or unknown identity raises a protected/unknown error;
+- the 24 test and six protected-sensitivity locks are independently recomputed
+  from the target-free dataset plan before planning;
+- the reserved validation surface 4201 is already qualified, but its first
+  response remains prohibited until the smoke gate passes and the bulk plan is
+  frozen.
+
+Gate and verification:
+
+- `require_smoke_pass` requires the exact smoke config and plan hashes, a
+  passing 12-member summary bound to that plan, 12/12 complete and admitted,
+  explicit remaining-train/validation permission, and explicit denial of
+  test/sensitivity permission;
+- the future bulk plan will additionally bind source, environment, dataset,
+  surface, smoke-summary, and reused-artifact hashes before the first remaining
+  target;
+- eight focused bulk tests pass, and the combined successor planner, smoke,
+  and bulk suites pass 23/23;
+- the test suite caught and corrected a copied test-lock typo in the human
+  documentation and new wrapper. The authoritative dataset and smoke plans
+  were unchanged; the correct lock ends in `...feedf713`.
+
+Current boundary:
+
+- no smoke status was polled during this work;
+- no bulk plan was frozen and no bulk, test, sensitivity, or training target
+  was generated;
+- on the next user-requested recheck, the smoke summary must be evaluated first.
+  Only a verified pass can permit freezing the bulk plan, which still opens
+  only the remaining unprotected train/validation members.
+
+### 2026-11-01 — Successor model and training layer prepared behind the bulk gate
+
+Question:
+
+- can the frozen successor ladder be implemented now without polling smoke,
+  weakening the first/second-order representation boundary, opening protected
+  targets, or fitting against an incomplete dataset?
+
+Prepared sources:
+
+- training contract:
+  [phase1_one_action_successor_training_v1.json](../../configs/phase1_one_action_successor_training_v1.json),
+  SHA-256
+  `eabe4e5d689a6d8fbf698ac64a3c5a46c3e96f818281446c21e2140de28185f3`;
+- successor model:
+  [phase1_one_action_successor_model.py](../../scripts/phase1_one_action_successor_model.py),
+  SHA-256
+  `ed1d865f4592adb834fd9bb61280c07df88615acd97a2db843e9f6fb85c9c4cf`;
+- isolated trainer adapter:
+  [train_phase1_one_action_successor.py](../../scripts/train_phase1_one_action_successor.py),
+  SHA-256
+  `790dc3ac1c4222638634e454053bb5f6602b8b4f080da7451e0d8935071a0470`;
+- focused tests:
+  [test_phase1_one_action_successor_training.py](../../tests/test_phase1_one_action_successor_training.py),
+  SHA-256
+  `d2d81c1196337ad8d4eb05015df7dc4657a067bbbb154f0c84758ac5bd39500b`.
+
+Model I/O and ablations:
+
+- one shared three-level U-Net retains identical trainable capacity for D0,
+  R0, R1, R2S, and R2E through immutable input masks;
+- D0 receives initial geometry, action geometry, force, and `Kphi` and predicts
+  a bounded correction around the initial surface;
+- R0 adds loaded/post-unload Newton displacement and predicts around the raw
+  Newton surfaces;
+- R1 separately adds column occupancy/count, mass, action-aligned vertical
+  velocity, contact count, and normal impulse at both checkpoints;
+- R2S adds mean and von Mises stress to R1; R2E instead adds elastic Jacobian
+  and isochoric shear. No combined R2 model is present;
+- plastic state is absent from the channel schema;
+- the global condition is exactly center x/y, normal force, and `Kphi`.
+  Friction is fixed by the experiment and is not passed as a model feature.
+
+Training and selection boundary:
+
+- three seeds are frozen prospectively: 20261101, 20261102, and 20261103;
+- normalization and correction bounds fit the 48 training episodes only;
+- early stopping, per-variant seed selection, conformal calibration, and any
+  optional-ablation promotion use the 16 validation episodes only;
+- D0/R0/R1 are the core selection pool. R2S/R2E are separate optional
+  ablations and may be promoted only by the later frozen margin/failure-tail
+  rules;
+- the selection artifact explicitly records both pools and keeps test and
+  sensitivity targets unopened;
+- the existing loss, bounded residual, uncertainty, particle-lift, and
+  preservation machinery is reused through an isolated adapter; historical
+  B3/H0/H1/H2 sources and evidence are not rewritten.
+
+Gate and verification:
+
+- training-plan freeze requires a passing 64-member bulk summary, 48/16/0/0
+  counts, all episodes complete and admitted, the exact test and sensitivity
+  locks, and explicit denial of protected-target permission;
+- nine focused successor model/training tests pass in the declared PyTorch
+  environment;
+- the six historical model tests and eight historical trainer tests also pass,
+  proving the adapter did not alter their implementation path;
+- the default system Python lacks Torch and the declared PyTorch environment
+  lacks Pytest, so the repository-consistent direct `unittest` entry points
+  were used. This is an environment fact, not a model failure.
+
+Current boundary:
+
+- no smoke status was polled, no bulk or training plan was frozen, no model was
+  fit, and no validation, test, or sensitivity prediction was inspected;
+- the immediate runtime order is unchanged: verify smoke on user request,
+  freeze and complete the remaining unprotected bulk dataset only after a
+  pass, then freeze training before the first fit.
+
+### 2026-11-01 — Successor evaluation and protected runtime prepared behind selection
+
+Question:
+
+- can the final one-action evaluation path be implemented prospectively without
+  polling the active smoke set, freezing an evaluation plan before validation
+  selection, opening either protected set, or weakening the frozen claim
+  boundary?
+
+Prepared sources:
+
+- evaluation contract:
+  [phase1_one_action_successor_evaluation_v1.json](../../configs/phase1_one_action_successor_evaluation_v1.json),
+  SHA-256
+  `2c86c607c0c9839a3b806345a76e41a76e61e1e2501d23a0e37056ce2261dd5f`;
+- evaluator, integrity checks, statistical gates, and claim router:
+  [evaluate_phase1_one_action_successor.py](../../scripts/evaluate_phase1_one_action_successor.py),
+  SHA-256
+  `8b9b91dc717dc69621152ddf9f798db786fe846c0b43e0dd0b15f7f9633df367`;
+- jointly unlocked protected-data runtime bridge:
+  [run_phase1_one_action_successor_protected.py](../../scripts/run_phase1_one_action_successor_protected.py),
+  SHA-256
+  `03360908d485073df020b1966ccd42a3f59c796c3a7cc2696b56d6544d7f16d8`;
+- selected-model protected prediction adapter:
+  [predict_phase1_one_action_successor.py](../../scripts/predict_phase1_one_action_successor.py),
+  SHA-256
+  `33ae2cac1af1ceaa98380a87ab67d7ae4971376633c816c820d4345ab75eea54`;
+- evaluator tests:
+  [test_phase1_one_action_successor_evaluation.py](../../tests/test_phase1_one_action_successor_evaluation.py),
+  SHA-256
+  `c131ebd2a72f232395f342c2e89a9e7f5b375959e7f951560b7e1bf90b42eaac`;
+- protected-runtime tests:
+  [test_phase1_one_action_successor_protected.py](../../tests/test_phase1_one_action_successor_protected.py),
+  SHA-256
+  `c320b79320804adbf1d4f08e41f4a6b77ad5ce49412617b881d8227db93342bc`;
+- prediction-adapter tests:
+  [test_predict_phase1_one_action_successor.py](../../tests/test_predict_phase1_one_action_successor.py),
+  SHA-256
+  `eed73c1bc8fdcf12d91490d3335ea226dfb045d9425f688489a301b119fc09af`.
+
+Frozen evaluation behavior:
+
+- the plan gate requires a passing 48/16 bulk summary, the frozen dataset,
+  test, and sensitivity identities, the training plan, train-only
+  normalization, all five selected D0/R0/R1/R2S/R2E cards and checkpoints,
+  and all five validation-only uncertainty calibrations;
+- plan freeze binds source, input, selection, model-card, checkpoint, history,
+  normalization, calibration, exact 24-test membership, exact six-case
+  matched-sensitivity grid, and every threshold before the first protected
+  target;
+- test and sensitivity generation share one explicit unlock and one open-once
+  marker. The open marker is written immediately before the first protected
+  Chrono target, matching the proven historical evaluation ordering;
+- the runtime bridge reuses the qualified two-worker Chrono, common-flat-base
+  Newton, analysis, tensor-export, and admission path. It selects only the 24
+  test and six sensitivity identities and refuses unknown identities or any
+  worker count other than two;
+- prediction remains prohibited until all 30 protected episodes are complete
+  and admitted. The final report rehashes every episode summary, model-input
+  archive, target archive, Newton response manifest, and Chrono manifest.
+- the prediction adapter loads only the validation-selected model identities;
+  evaluates no deformation, raw Newton, D0/R0/R1/R2S/R2E, deterministic
+  shuffled-`Kphi`, and train-mean constant-`Kphi` conditions; applies only the
+  frozen validation calibration; and writes immutable per-episode prediction
+  summaries and archives for all 30 protected members;
+- the six protected sensitivity episodes produce 24 adjacent-`Kphi`
+  direction comparisons per model: two force levels, two adjacent edges,
+  loaded/post-unload, and peak depression, mean depression, and displaced
+  volume. They remain excluded from fitting, normalization, calibration, and
+  selection;
+- report generation verifies the exact 30-member prediction artifact manifest
+  in addition to the protected simulator/tensor manifest and refuses a changed
+  or partial prediction payload.
+- the final audit additionally reconstructs each of the 24 test rows and all
+  24 eligible sensitivity comparisons per model from the hashed per-episode
+  summaries. A coherent aggregate-file edit cannot bypass those records;
+- incomplete sensitivity evidence, including 23/24 eligible comparisons,
+  fails the model gate. Newton-added-value and R2S/R2E optional-field-value
+  status also require the candidate to pass every general accuracy, control,
+  coverage, failure-tail, and sensitivity gate;
+- R0 and R1 remain separately prespecified hypotheses. The protected test does
+  not choose a deployment model; the report lists every passing correction
+  and every passing Newton-added-value hypothesis.
+
+Metrics and claim routing:
+
+- every learned model is scored at loaded and post-unload checkpoints in the
+  footprint and twice-radius regions with whole episodes as the bootstrap
+  unit;
+- the frozen gates include median RMSE no greater than 3 mm, at least 30%
+  median reduction from raw Newton, at least 90% episode improvement against
+  both raw Newton and no deformation, the 10%/1 mm per-episode regression
+  tolerance, both `Kphi` controls, 80--100% accepted calibrated coverage, and
+  at least 90% protected sensitivity direction agreement;
+- R0/R1 can support `neural_correction_with_newton_added_value` only if a
+  passing correction also beats equal-capacity D0 by at least 5% on every
+  joint-holdout checkpoint/region with a positive paired-bootstrap lower
+  bound. Otherwise a passing correction routes to
+  `neural_correction_without_newton_added_value`;
+- if neither correction passes but D0 does, the only positive route is
+  `learned_direct_surrogate`. R2S/R2E value is reported separately against R1
+  at the frozen 5% margin and cannot silently redefine the core claim;
+- the claim remains one-action, synthetic, and observable-state only. It does
+  not establish sequential rollout, planner benefit, constitutive validation,
+  named-soil calibration, or sim-to-real transfer.
+
+Verification and current boundary:
+
+- 47 successor planning, smoke, bulk, evaluation, protected-runtime, and
+  prediction tests pass together under system Python;
+- nine Torch-dependent successor model/training tests pass in the declared
+  PyTorch environment, and the 12 historical evaluator tests remain green;
+- no smoke status was polled during this work;
+- no bulk, training, or evaluation plan was frozen; no model was fit; no
+  unlock/open marker, protected target, prediction payload, or successor final
+  report was created;
+- the runtime order remains smoke verification on user request, remaining
+  unprotected bulk generation, training and validation selection, evaluation
+  plan freeze, explicit joint unlock, 30 protected episodes, prediction, and
+  the locked report.
+
+### 2026-11-02 — Live successor handoff reconciled with the running smoke
+
+Requested handoff update:
+
+- recheck the active successor smoke once, record its authoritative state in
+  the Phase 1 goal and handoff documents, and leave the experiment running;
+- do not open protected targets, freeze a downstream plan, start another
+  supervisor, or infer aggregate admission from partial episode output.
+
+Observed runtime state at 00:05 EST:
+
+- the original supervisor PID `1955843` is alive under
+  `python3 scripts/run_phase1_one_action_successor_smoke.py --stage all --workers 2`;
+- two live `chrono_splat` workers are executing
+  `p1s_train_joint-design_002` and `p1s_train_joint-design_003` with the frozen
+  action, surface, and SCM arguments;
+- Chrono members `p1s_train_joint-design_000` and `001` have complete manifests,
+  maps, metrics, and accepted `converged_speed_hold` termination records;
+- members `002` and `003` have not yet written complete Chrono destinations,
+  and the other eight smoke members remain queued by the same two-worker
+  supervisor;
+- `run.log` last records completion of 000 and 001 and launch of 002 and 003;
+  no `smoke_summary.json` exists;
+- no bulk plan, bulk target, training plan, fit, selection artifact,
+  evaluation plan, unlock/open marker, protected target, prediction payload,
+  or successor final report exists.
+
+Decision and continuation guard:
+
+- the smoke is **running**, not stalled, passed, or failed. Partial Chrono
+  completion does not admit an episode or satisfy the 12-member aggregate
+  gate;
+- leave PID `1955843` and its workers alone. Do not launch a duplicate smoke
+  command while they are active;
+- the user requested manual rechecks rather than automatic polling. On the next
+  explicit status request, inspect the supervisor, worker commands, `run.log`,
+  and aggregate summary once;
+- if the supervisor is still active, continue waiting. If it exits without a
+  summary, preserve partial artifacts and diagnose the exact incomplete member
+  before any restart; do not delete or overwrite a partial Chrono destination;
+- only a summary bound to smoke-plan SHA-256
+  `3d861da58edaf697ca7b5b494589fce99b926a7a3c13c19dec19026eedbafee7`,
+  with 12/12 complete and admitted members, explicit remaining
+  train/validation permission, and explicit protected denial may permit the
+  bulk-plan freeze.
+
+Downstream handoff after a verified smoke pass:
+
+1. freeze the bulk plan, then generate only the remaining 40 training and 12
+   validation members with two workers; the 12 smoke members must be reused;
+2. require a passing 48/16 bulk summary, then freeze the training plan and fit
+   all three declared seeds for D0/R0/R1/R2S/R2E;
+3. select checkpoints and calibrate uncertainty using validation only;
+4. freeze the evaluation plan from the selected artifacts before any protected
+   target exists;
+5. perform the explicit joint unlock/open transition, run exactly 24 protected
+   test plus six protected sensitivity episodes, predict with only the selected
+   checkpoints, and generate the locked report.
+
+The successor source/config hashes recorded in the preceding entries were
+rechecked and are unchanged. The smoke, bulk, training, and evaluation gates
+therefore remain bound to their documented implementations.
+
 ## Maintenance contract
+
 
 For every subsequent experiment:
 

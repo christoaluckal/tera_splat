@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "training_id": "phase1_one_action_successor_training_v1",
+  "status": "prepared_bulk_gate_locked",
+  "authority": "docs/newton/phase1.md",
+  "successor_contract": "configs/phase1_one_action_successor_contract_v1.json",
+  "bulk_config": "configs/phase1_one_action_successor_bulk_v1.json",
+  "bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_summary.json",
+  "required_bulk_status": "passed",
+  "required_training_plan_freeze_permitted": true,
+  "require_test_or_protected_sensitivity_permitted": false,
+  "models": ["D0", "R0", "R1", "R2S", "R2E"],
+  "selection_pool": ["D0", "R0", "R1"],
+  "optional_ablation_pool": ["R2S", "R2E"],
+  "model": {
+    "family": "shared_capacity_three_level_parameter_conditioned_2d_unet",
+    "base_channels": 16,
+    "channel_multipliers": [1, 2, 4],
+    "residual_blocks_per_scale": 2,
+    "normalization": "group_norm",
+    "activation": "silu",
+    "conditioning": "feature_wise_affine_at_every_encoder_bottleneck_and_decoder_scale",
+    "phase_output": "shared_decoder_with_separate_loaded_and_post_unload_heads",
+    "mean_head_initialization": "zero",
+    "variance_head_initialization": "zero_weight_fixed_bias",
+    "initial_variance_m2": 0.000025,
+    "variance_floor_m2": 1e-8,
+    "parameter_count_minimum": 100000,
+    "parameter_count_maximum": 1000000,
+    "fixed_capacity_across_variants": true
+  },
+  "input_contract": {
+    "global_features": ["center_x_m", "center_y_m", "normal_force_n", "bekker_kphi"],
+    "soil_parameter_count": 1,
+    "fixed_friction_is_not_a_model_feature": true,
+    "plastic_state_excluded": true,
+    "target_arrays_are_never_inputs": true
+  },
+  "normalization": {
+    "fit_split": "train",
+    "spatial_method": "per_channel_finite_valid_cells_mean_std_with_binary_support_masks_passthrough",
+    "global_method": "per_feature_episode_mean_std",
+    "minimum_std": 1e-8,
+    "correction_scale_quantile": 0.995,
+    "correction_scale_minimum_m": 0.001,
+    "boundary_taper_width_cells": 8,
+    "validation_may_not_refit": true,
+    "test_may_not_refit": true,
+    "protected_sensitivity_may_not_refit": true
+  },
+  "optimization": {
+    "training_seeds": [20261101, 20261102, 20261103],
+    "batch_size": 4,
+    "maximum_epochs": 300,
+    "early_stopping_patience": 35,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.00001,
+    "gradient_clip_norm": 1.0,
+    "mixed_precision": true,
+    "deterministic_algorithms": true,
+    "selection_metric": "validation_mean_loaded_and_post_twice_radius_rmse_m"
+  },
+  "uncertainty_calibration": {
+    "fit_split": "validation",
+    "method": "absolute_standardized_residual_conformal_multiplier",
+    "nominal_coverage": 0.9,
+    "region": "twice_radius",
+    "quantile_method": "higher",
+    "separate_loaded_and_post_unload": true
+  },
+  "loss_weights": {
+    "robust_footprint": 1.0,
+    "robust_twice_radius": 1.0,
+    "robust_valid_bed": 0.25,
+    "heteroscedastic_nll": 0.25,
+    "peak_depression": 0.1,
+    "mean_footprint_depression": 0.1,
+    "displaced_volume": 0.1,
+    "deformation_footprint": 0.05,
+    "deformation_centroid": 0.05,
+    "recovery": 0.1,
+    "residual_magnitude": 0.0001,
+    "spatial_smoothness": 0.001,
+    "no_action_identity": 0.1,
+    "boundary_taper": 0.1,
+    "particle_surface_reproduction": 0.0,
+    "particle_state_preservation": 0.0
+  },
+  "hard_constraints": {
+    "particle_surface_reproduction": "deterministic grid-to-particle lift must reproduce the predicted surface within the frozen tolerance",
+    "particle_state_preservation": "only particle position z may change; count and all other archived fields must remain bitwise identical"
+  },
+  "particle_lift": {
+    "method": "columnwise_linear_depth_taper",
+    "cutoff_depth_m": 0.1,
+    "surface_reproduction_tolerance_m": 1e-6,
+    "require_every_valid_cell_observed": true,
+    "preserve_particles_outside_valid_support": true
+  },
+  "controls": {
+    "kphi_shuffled": true,
+    "kphi_constant_reference": true,
+    "same_capacity_across_all_variants": true,
+    "same_splits_and_train_only_normalization": true,
+    "model_selection_before_test_or_sensitivity_unlock": true,
+    "optional_ablation_promotion_requires_margin_and_no_worse_failure_tail": true
+  },
+  "execution": {
+    "python": "/eng/home/christoa/miniconda3/envs/test/bin/python",
+    "device": "cuda:0",
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1",
+    "freeze_plan_after_bulk_pass_before_first_fit": true
+  }
+}

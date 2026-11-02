@@ -2,18 +2,24 @@
 
 Created: 2026-10-23
 
-Last updated: 2026-10-31
+Last updated: 2026-11-02
 
-Status: v1/v2 evaluated and failed; prospective successor scope active
+Status: v1/v2 evaluated and failed; successor contract frozen; engineering smoke running; all later stages locked
 
 ## Authority
 
 This document is the sole operational authority for Phase 1. It preserves the
 frozen v1/v2 domain, model/data contract, exit gates, and failed result, and it
 defines the research and claim boundary for a prospective successor. The
-successor's exact domain, model ladder, and numerical exit are not yet frozen;
-they must receive a new versioned contract before new protected targets are
-generated. Work deferred to the sequential stage remains explicit below.
+successor now has a source-backed draft in
+[phase1_one_action_successor_v1.json](../../configs/phase1_one_action_successor_v1.json)
+and a frozen data/evaluation contract in
+[phase1_one_action_successor_contract_v1.json](../../configs/phase1_one_action_successor_contract_v1.json).
+Its target-free 48/16/24 plan is frozen. Only the separately frozen 8/4
+engineering smoke membership is currently authorized; remaining train,
+validation, test, protected-sensitivity, and training work stays locked until
+the smoke gate passes. Work deferred to the sequential stage remains explicit
+below.
 
 [Phase 0](phase0.md) remains the authority for the completed proof and its
 artifacts. The phase numbering in the older
@@ -58,6 +64,36 @@ The first two documents are sufficient to identify the live goal and current
 gate. Items 3--12 recover why the inherited baseline exists and where its
 evidence lives. Dated historical reports are provenance, not alternative live
 instructions.
+
+### Live successor checkpoint and continuation guard
+
+As verified at 2026-11-02 00:05 EST, the frozen successor smoke supervisor is
+still running as PID `1955843` under the original command
+`python3 scripts/run_phase1_one_action_successor_smoke.py --stage all --workers 2`.
+Chrono members `p1s_train_joint-design_000` and `001` have completed. The two
+authorized workers are currently executing members `002` and `003`; the other
+eight smoke members remain queued. No `smoke_summary.json` exists yet, so no
+smoke episode is admitted at the aggregate level and the smoke gate has not
+passed or failed.
+
+Do not launch a second smoke supervisor while PID `1955843` or either of its
+workers remains active. Do not infer permission from partial Chrono outputs,
+an empty per-episode log, or process exit alone. On the next explicit status
+request, check the supervisor, workers, `run.log`, and the aggregate summary
+once. If the current process is still active, leave it alone. If it exits
+without a summary, preserve every partial artifact and diagnose the exact
+episode before any restart; the runner intentionally refuses an incomplete
+Chrono destination. Only a verified passing summary with 12/12 complete and
+admitted members may permit the bulk plan.
+
+The guarded runtime order after that pass is: freeze and run only the remaining
+40 training plus 12 validation episodes; freeze the training plan; fit the
+three declared seeds for D0/R0/R1/R2S/R2E; select and calibrate on validation;
+freeze the evaluation plan; explicitly unlock the joint protected set; run the
+24 test plus six sensitivity episodes; predict with selected checkpoints; and
+produce the locked report. Each command must consume the passing artifact from
+the preceding gate. Protected targets remain closed until the explicit unlock
+and open-once transition.
 
 ### Frozen baseline inherited from Phase 0
 
@@ -196,6 +232,32 @@ The currently frozen Phase 1 identities are:
 | bulk train/validation tests, before plan freeze | `3bad3072facb067db84ae3ac7a4f9a5e3708f61882c45f18e1c693c71607ef2d` |
 | frozen 64-target bulk plan | `a42db0a6a49142620cf276cb8337ffff4c8b804ad0d0a73af71569e883e4cb18` |
 | selected 48/16/0 bulk membership | `37e5f1cc405bc92a72a0644848e6b08a4d8709931486b22cb54efe3069097e26` |
+| successor data/evaluation contract | `834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd` |
+| successor target-free dataset plan | `b326a96bbbcd82e863984eef016e0d320c479f5ec1b7ff937ec4da031d1070ef` |
+| successor 94-input physical manifest | `2df4ced81aa85a88536b72bd28c8a736e8dabf898ffeb891891678b9e7682725` |
+| successor protected test lock | `0390d46bfd5860b08518f3b99ab116084f24138939c04435f29582c3feedf713` |
+| successor protected sensitivity lock | `a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139` |
+| successor surface-qualification plan | `1fc635c1ed468b00316fcce62a32d98012e524c0f4c6ef5ed1bf2b32b99e9a9e` |
+| successor surface-qualification summary | `a3935396fa99362c1a94aa4fa960408cd0efedc158b3dbf0649e2645ec13d7f1` |
+| successor smoke config | `d81c099c39ecedf6901c84c72e0d825a50a95b9855ec0ac927fb6f7656906c55` |
+| successor smoke runner at plan freeze | `992ee513562a50ba62e76c5481f393c88530a838dfe0c10d4d7c54cac73e0bd8` |
+| successor smoke focused tests at plan freeze | `cb29192f03f4b2ebd0bad4636182d0574b3be0327c722d99dd725d8318e42e48` |
+| frozen successor 8/4 smoke plan | `3d861da58edaf697ca7b5b494589fce99b926a7a3c13c19dec19026eedbafee7` |
+| selected successor 12-episode membership | `9eee6ab977f499a475debc94e589d031a4657a7e3b68cd59a9e5ee5a7f38a042` |
+| prepared successor bulk config, smoke-gate locked | `9fabff0b6a22d5858b33afb129dc1fe4d2dd87717e242309d239752ec99a3935` |
+| prepared successor bulk runner, smoke-gate locked | `1f69d5ddb02de88129f429eef90ec19bcb31f8d1fa70a5f8b4137bbc63e3b21b` |
+| successor bulk focused tests | `5a3cbef2c78845a968934f284abd4e77a2733956bd65734480634e5d91bc09ee` |
+| prepared successor training config, bulk-gate locked | `eabe4e5d689a6d8fbf698ac64a3c5a46c3e96f818281446c21e2140de28185f3` |
+| successor D0/R0/R1/R2S/R2E model | `ed1d865f4592adb834fd9bb61280c07df88615acd97a2db843e9f6fb85c9c4cf` |
+| prepared successor trainer adapter, bulk-gate locked | `790dc3ac1c4222638634e454053bb5f6602b8b4f080da7451e0d8935071a0470` |
+| successor model/training focused tests | `d2d81c1196337ad8d4eb05015df7dc4657a067bbbb154f0c84758ac5bd39500b` |
+| prepared successor evaluation config, selection-gate locked | `2c86c607c0c9839a3b806345a76e41a76e61e1e2501d23a0e37056ce2261dd5f` |
+| prepared successor evaluator and claim router | `8b9b91dc717dc69621152ddf9f798db786fe846c0b43e0dd0b15f7f9633df367` |
+| prepared protected-data runtime bridge | `03360908d485073df020b1966ccd42a3f59c796c3a7cc2696b56d6544d7f16d8` |
+| prepared protected prediction adapter | `33ae2cac1af1ceaa98380a87ab67d7ae4971376633c816c820d4345ab75eea54` |
+| successor evaluation focused tests | `c131ebd2a72f232395f342c2e89a9e7f5b375959e7f951560b7e1bf90b42eaac` |
+| successor protected-runtime focused tests | `c320b79320804adbf1d4f08e41f4a6b77ad5ce49412617b881d8227db93342bc` |
+| successor protected-prediction focused tests | `eed73c1bc8fdcf12d91490d3335ea226dfb045d9425f688489a301b119fc09af` |
 
 The dataset-plan file hash covers provenance and plan metadata; the manifest
 payload hash covers the canonical episode identities only. They are expected
@@ -227,6 +289,12 @@ Tracked Phase 1 sources and checks are:
 | train-only normalization, loss, fitting, and validation selection | [train_phase1_bed_state.py](../../scripts/train_phase1_bed_state.py) and [test_train_phase1_bed_state.py](../../tests/test_train_phase1_bed_state.py) |
 | deterministic surface-to-particle lift and invariant audit | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) |
 | prospective selection-locked final evaluation | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) |
+| frozen one-action successor data/evaluation contract and planner | [phase1_one_action_successor_contract_v1.json](../../configs/phase1_one_action_successor_contract_v1.json), [plan_phase1_one_action_successor.py](../../scripts/plan_phase1_one_action_successor.py), and [test_phase1_one_action_successor_plan.py](../../tests/test_phase1_one_action_successor_plan.py) |
+| successor surface qualification | [qualify_phase1_one_action_successor_surfaces.py](../../scripts/qualify_phase1_one_action_successor_surfaces.py) |
+| frozen successor engineering smoke | [phase1_one_action_successor_smoke_v1.json](../../configs/phase1_one_action_successor_smoke_v1.json), [run_phase1_one_action_successor_smoke.py](../../scripts/run_phase1_one_action_successor_smoke.py), and [test_phase1_one_action_successor_smoke.py](../../tests/test_phase1_one_action_successor_smoke.py) |
+| smoke-gated successor bulk continuation | [phase1_one_action_successor_bulk_v1.json](../../configs/phase1_one_action_successor_bulk_v1.json), [run_phase1_one_action_successor_bulk.py](../../scripts/run_phase1_one_action_successor_bulk.py), and [test_phase1_one_action_successor_bulk.py](../../tests/test_phase1_one_action_successor_bulk.py) |
+| bulk-gated successor model and training | [phase1_one_action_successor_training_v1.json](../../configs/phase1_one_action_successor_training_v1.json), [phase1_one_action_successor_model.py](../../scripts/phase1_one_action_successor_model.py), [train_phase1_one_action_successor.py](../../scripts/train_phase1_one_action_successor.py), and [test_phase1_one_action_successor_training.py](../../tests/test_phase1_one_action_successor_training.py) |
+| selection-gated successor evaluation and protected runtime | [phase1_one_action_successor_evaluation_v1.json](../../configs/phase1_one_action_successor_evaluation_v1.json), [evaluate_phase1_one_action_successor.py](../../scripts/evaluate_phase1_one_action_successor.py), [run_phase1_one_action_successor_protected.py](../../scripts/run_phase1_one_action_successor_protected.py), [predict_phase1_one_action_successor.py](../../scripts/predict_phase1_one_action_successor.py), [test_phase1_one_action_successor_evaluation.py](../../tests/test_phase1_one_action_successor_evaluation.py), [test_phase1_one_action_successor_protected.py](../../tests/test_phase1_one_action_successor_protected.py), and [test_predict_phase1_one_action_successor.py](../../tests/test_predict_phase1_one_action_successor.py) |
 | preserved, validator-rejected common-base v1 contract | [phase1_newton_common_base_v1.json](../../configs/phase1_newton_common_base_v1.json) |
 | passing common-flat-base Newton repair contract | [phase1_newton_common_base_v2.json](../../configs/phase1_newton_common_base_v2.json) |
 | common-base builder and rescreen | [phase1_metric_bed.py](../../scripts/phase1_metric_bed.py), [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py), [test_phase1_metric_bed.py](../../tests/test_phase1_metric_bed.py), and [test_phase1_newton_common_base.py](../../tests/test_phase1_newton_common_base.py) |
@@ -440,7 +508,7 @@ volume can be relocated.
 
 ### Current Phase 1 state and next permitted work
 
-As of 2026-10-31, the machine-readable Phase 1 contract and target-free
+As of 2026-11-02, the original machine-readable Phase 1 contract and target-free
 prospective 48/16/24 episode plan are frozen. The plan fixes all 88 input
 identities, assigns whole episodes, reserves disjoint initial-surface seeds,
 defines five protected test groups, and records per-input, manifest, source,
@@ -576,6 +644,145 @@ prediction, the claim boundary and expertise requirements must be reviewed
 before another contract is frozen. Sequential world-model work follows only
 after the one-action mapping succeeds.
 
+The first successor draft is now machine-readable and source-backed. It narrows
+the candidate terrain to a cohesionless, dry-sand-like synthetic SCM family,
+varies only `bekker_kphi=1.5e6--2.0e6 N/m^(n+2)`, and fixes `Kc=0`, `n=1.1`,
+cohesion `0 Pa`, friction `30 degrees`, Janosi shear `0.01 m`, elastic stiffness
+`2e8 Pa/m`, and damping `3e4 Pa s/m`. This is an engineering-plausible
+simulator family, not a calibrated named soil. Friction is fixed because the
+declared action has no tangential motion or rotation.
+
+The candidate ladder contains no-deformation and raw-Newton baselines; a
+capacity-controlled direct predictor (`D0`); a minimal Newton-surface residual
+(`R0`); a robotics-facing occupancy, mass, vertical-velocity, and contact
+ablation (`R1`); then stress (`R2S`) and elastic deformation (`R2E`) as separate
+optional ablations. Plastic state and a bundled stress-plus-elastic variant are
+excluded. A Newton-added-value claim requires a residual to beat both raw
+Newton and `D0` on joint holdouts.
+
+The six input identities are now frozen in the source-hashed
+[screening plan](../../diagnostics/phase1_one_action_successor_v1/screening_plan.json),
+SHA-256 `5878257631bd0099afae3ce0c0792dd5f90c301515855a9de2292e8ad8bde2c4`.
+Execution began on 2026-10-31 with two workers under the frozen
+[execution plan](../../outputs/validity_experiment/newton/phase1_one_action_successor_v1/screening/successor_screen_execution_plan.json),
+SHA-256 `f9347f18b7dc3c1f09b6fe2425f4c341c91abecb3b54f5c5037eb5ea527bb0b1`.
+All six fresh Chrono episodes pass. The six legacy fixed-depth metric beds also
+completed, but all six Newton preparations were correctly rejected at the
+surface gate with the already known 6.072 mm RMSE; therefore no response was
+admitted from that path. The rejected preparations and execution log remain
+preserved.
+
+On 2026-11-01 a separate common-flat-base recovery was frozen before runtime at
+`outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/recovery_plan.json`,
+SHA-256 `927941694b8d73b24d8063a8f65a6dd629aa435a6b9477f02097974c9ab6d91f`.
+It reuses the six accepted Chrono episodes, verifies their common initial-state
+identity, generates one fresh shared common-base preparation, and schedules six
+fresh fixed-time Newton responses with two workers. It does not rerun Chrono or
+delete the rejected evidence. No bulk, training, validation, or protected
+target may be generated from this draft. Only after this recovery establishes
+valid responses, directional behavior above the repeatability floor, endpoint
+separation, and numerical admission can the successor data/evaluation contract
+and its exit gates be frozen prospectively.
+
+That recovery and its separately frozen directional analysis are now complete.
+The common-flat-base preparation is accepted, all six fresh responses pass
+numerical and coarse-interaction admission, and every declared `Kphi`
+comparison is monotone for footprint peak depression, mean depression, and
+displaced volume at loaded and post-unload checkpoints. Mean-depression
+endpoint separation is 5.725 mm at 30.65625 N and 6.974 mm at 45.984375 N;
+the inherited same-build Chrono repeatability floor is exactly zero. All three
+`Kphi` cases also show greater deformation at the higher force. The directional
+analysis plan has SHA-256
+`ac2e98fb3cab966c22ac8ae47cc4e11829fe25eae66d773b3bc80daafcfd838f`
+and its summary has SHA-256
+`a58d86a5f7b581f1bd3ee3aef936d68992bc7d587f2d255d9d87081277a06e1b`.
+The engineering screen therefore passes and permits freezing a prospective
+successor data/evaluation contract. It does not itself permit bulk or protected
+target generation, establish neural correction, or validate a real-soil model.
+
+The successor data/evaluation contract is now prospectively frozen at SHA-256
+`834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd`.
+Its target-free plan fixes 48 training, 16 validation, 24 protected test, and
+six protected matched-sensitivity episodes. The 94 physical input identities
+are unique; the physical manifest, test lock, and sensitivity lock have
+SHA-256 values
+`2df4ced81aa85a88536b72bd28c8a736e8dabf898ffeb891891678b9e7682725`,
+`0390d46bfd5860b08518f3b99ab116084f24138939c04435f29582c3feedf713`,
+and `a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139`.
+Only `bekker_kphi` varies or enters the global parameter vector. The contract
+freezes the D0/R0/R1 ladder, separate optional R2S/R2E ablations, explicit
+Newton-added-value gates, and the exclusion of plastic state.
+
+All six fresh surface seeds 4101--4104, 4201, and 4301 pass analytic and native
+Chrono SCM initialization qualification. No response target was generated by
+that qualification. The separately frozen successor smoke plan has SHA-256
+`3d861da58edaf697ca7b5b494589fce99b926a7a3c13c19dec19026eedbafee7`;
+it selects exactly eight training and four validation episodes on seeds
+4101--4104, with zero test and zero protected-sensitivity members. Fifteen
+focused planner and smoke-runner tests pass. The two-worker smoke execution
+remains active as PID `1955843`. At the 2026-11-02 00:05 EST handoff, Chrono
+members 000 and 001 were complete, members 002 and 003 were running, and the
+other eight members were queued. No aggregate smoke summary existed. This is
+runtime progress only, not smoke admission: all remaining train/validation,
+protected, and training permissions remain false pending a passing 12/12
+aggregate result.
+
+The next train/validation continuation is prepared but remains hard-locked.
+It shares the smoke output roots, binds the exact hashes of all 12 admitted
+smoke episode summaries, tensors, Newton manifests, and Chrono manifests when
+its plan is eventually frozen, refuses to regenerate those members, and can
+generate only the remaining 40 training and 12 validation targets. Both the
+24-test and six-case protected-sensitivity target sets stay inaccessible. The
+runner refuses even target-free bulk-plan creation until the smoke summary is
+present, passing, bound to the frozen smoke plan, admits 12/12, and explicitly
+permits remaining train/validation generation. Eight new focused tests pass;
+all 23 successor planner, smoke, and bulk tests pass together. No bulk plan or
+bulk target has been created.
+
+The successor model/training layer is also prepared behind the later bulk
+gate. It implements equal-capacity D0, R0, R1, R2S, and R2E variants through
+immutable masks over one three-level U-Net. The global condition is exactly
+`[center_x, center_y, normal_force, bekker_kphi]`; fixed friction is not a
+feature. D0 uses the initial surface as its base, while every R variant uses
+raw Newton. R1 adds only robotics-facing occupancy, mass, vertical velocity,
+contact count, and normal impulse; R2S and R2E add stress and elastic fields
+separately. There is no combined R2 variant and no plastic channel. D0/R0/R1
+form the core selection pool, while R2S/R2E remain optional individual
+ablations. Three seeds, train-only normalization, validation-only early
+stopping and calibration, source/tensor hashes, and protected-lock checks are
+declared. Nine focused successor tests and all 14 historical model/trainer
+regression tests pass. The adapter refuses training-plan freeze until a passing
+64-member bulk summary exists, and no training plan or fit has been created.
+
+The successor evaluation layer is prepared behind model selection and remains
+locked. Its config freezes the exact 24 test and six matched-sensitivity
+identities, D0/R0/R1 core claim routing, separate R2S/R2E value tests,
+whole-episode bootstrap, parameter-control, uncertainty-coverage,
+failure-tail, absolute-error, and Newton-added-value gates. The evaluator
+refuses plan freeze until all five selected model cards, checkpoints,
+histories, train-only normalization, validation calibration, bulk summary,
+and both protected locks agree. Plan freeze is followed by an explicit joint
+unlock and an open-once marker written before the first protected Chrono
+target. The protected runtime reuses the proven two-worker Chrono/Newton/tensor
+pipeline for exactly 24 test plus six sensitivity episodes and permits
+prediction only after all 30 are complete and admitted. The prediction adapter
+then loads only validation-selected checkpoints, applies the frozen shuffled
+and constant-`Kphi` controls, validation-only uncertainty multipliers, and 24
+adjacent protected-sensitivity direction comparisons per model, and writes
+per-episode prediction archives plus the exact report payload. Report-time
+integrity reconstructs every test row and all 24 directional comparisons from
+the hashed episode summaries, in addition to binding every protected
+input/target artifact and all 30 prediction summaries and archives. A model
+cannot receive a Newton-added-value or optional-field-value label unless it
+passes every mandatory model gate, and no model is selected on the protected
+test: all passing prespecified R0/R1 hypotheses are reported. No evaluation
+plan, unlock/open marker, protected target, prediction, or successor report
+exists. The 47 non-Torch successor
+planning, data, evaluation, protected-runtime, and prediction tests pass
+together; the nine
+Torch-dependent successor model/training tests also pass in the declared
+environment.
+
 The bulk route is complete and passed: all five preparations and all 64
 train/validation Chrono/Newton/tensor pairs are admitted, with stress and
 elastic retained for H2 and plastic excluded. Every aggregate check is true.
@@ -622,6 +829,12 @@ These are the canonical locations and their current evidence state:
 | deterministic particle lift | [phase1_particle_lift.py](../../scripts/phase1_particle_lift.py) and [test_phase1_particle_lift.py](../../tests/test_phase1_particle_lift.py) | implemented; synthetic suite and one admitted 303,829-particle state pass surface-reproduction and preservation audit |
 | locked evaluator | [phase1_evaluation_v1.json](../../configs/phase1_evaluation_v1.json), [evaluate_phase1_bed_state.py](../../scripts/evaluate_phase1_bed_state.py), and [test_evaluate_phase1_bed_state.py](../../tests/test_evaluate_phase1_bed_state.py) | frozen after selection; 24/24 test Chrono targets, 5/5 preparations, and 24/24 Newton responses complete; aggregate admission is `failed_or_incomplete` because episode 009 alone fails the guide guard; prediction correctly refused |
 | v2 recovery contract and planner | [phase1_evaluation_v2.json](../../configs/phase1_evaluation_v2.json), [plan_phase1_evaluation_v2.py](../../scripts/plan_phase1_evaluation_v2.py), [test_phase1_evaluation_v2.py](../../tests/test_phase1_evaluation_v2.py), and [continue_phase1_evaluation_v2.py](../../scripts/continue_phase1_evaluation_v2.py) | numerical admission passes 24/24; the serial episode-012 retry remains a prospective-identity deviation; conditional prediction/reporting is complete and the final gate fails 16/49 checks |
+| successor contract and target-free planner | [phase1_one_action_successor_contract_v1.json](../../configs/phase1_one_action_successor_contract_v1.json), [plan_phase1_one_action_successor.py](../../scripts/plan_phase1_one_action_successor.py), and [test_phase1_one_action_successor_plan.py](../../tests/test_phase1_one_action_successor_plan.py) | frozen 48/16/24 plus six protected sensitivity inputs; physical identities unique; test and sensitivity locks closed; seven planner tests pass |
+| successor surface qualification | [qualify_phase1_one_action_successor_surfaces.py](../../scripts/qualify_phase1_one_action_successor_surfaces.py) and `.../phase1_one_action_successor_contract_v1/surface_qualification/` | all six fresh surface identities pass analytic and native SCM initialization qualification; no response targets generated |
+| successor engineering smoke | [phase1_one_action_successor_smoke_v1.json](../../configs/phase1_one_action_successor_smoke_v1.json), [run_phase1_one_action_successor_smoke.py](../../scripts/run_phase1_one_action_successor_smoke.py), and [test_phase1_one_action_successor_smoke.py](../../tests/test_phase1_one_action_successor_smoke.py) | frozen 8/4/0 plus zero protected sensitivity members; plan hash `3d861d...fee7`; eight runner tests pass; PID 1955843 active at 2026-11-02 00:05 EST with Chrono 000--001 complete, 002--003 running, eight queued, and no aggregate summary |
+| successor bulk continuation | [phase1_one_action_successor_bulk_v1.json](../../configs/phase1_one_action_successor_bulk_v1.json), [run_phase1_one_action_successor_bulk.py](../../scripts/run_phase1_one_action_successor_bulk.py), and [test_phase1_one_action_successor_bulk.py](../../tests/test_phase1_one_action_successor_bulk.py) | target-free implementation prepared; reuses and hash-binds 12 smoke members, schedules only 52 remaining train/validation members, exposes no protected route, and refuses plan freeze until the smoke gate passes; no bulk plan or target exists |
+| successor model and training | [phase1_one_action_successor_training_v1.json](../../configs/phase1_one_action_successor_training_v1.json), [phase1_one_action_successor_model.py](../../scripts/phase1_one_action_successor_model.py), [train_phase1_one_action_successor.py](../../scripts/train_phase1_one_action_successor.py), and [test_phase1_one_action_successor_training.py](../../tests/test_phase1_one_action_successor_training.py) | target-free implementation prepared; equal-capacity D0/R0/R1 and separate R2S/R2E masks, four global features with no friction input, three seeds, train-only normalization, validation-only selection/calibration, and both protected locks enforced; refuses plan freeze until bulk pass; no training plan or fit exists |
+| successor locked evaluation | [phase1_one_action_successor_evaluation_v1.json](../../configs/phase1_one_action_successor_evaluation_v1.json), [evaluate_phase1_one_action_successor.py](../../scripts/evaluate_phase1_one_action_successor.py), [run_phase1_one_action_successor_protected.py](../../scripts/run_phase1_one_action_successor_protected.py), [predict_phase1_one_action_successor.py](../../scripts/predict_phase1_one_action_successor.py), [test_phase1_one_action_successor_evaluation.py](../../tests/test_phase1_one_action_successor_evaluation.py), [test_phase1_one_action_successor_protected.py](../../tests/test_phase1_one_action_successor_protected.py), and [test_predict_phase1_one_action_successor.py](../../tests/test_predict_phase1_one_action_successor.py) | target-free implementation prepared; exact 24+6 membership, selected-artifact binding, one joint unlock/open event, 30-member protected admission, selected-model inference, frozen controls/calibration/sensitivity/accuracy/added-value gates, prediction artifact integrity, and D0/R0/R1 claim routing implemented; refuses plan freeze until validation selection; no evaluation plan, protected target, prediction, or report exists |
 | Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | bulk and training/selection passed; v1 admission failed 23/24; v2 conditional admission passed 24/24 and its complete report records `phase1_exit_demonstrated=false` |
 | final report | `outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/final_evaluation_report.json` | conditional v2 report complete and failed; no Phase 1 completion report is created |
 
@@ -774,7 +987,7 @@ At least four accepted surface seeds are used by training and at least two
 accepted seeds are reserved for validation/test. A bed deformed by a previous
 contact is not in this domain.
 
-### Parameter domain
+### Historical v1/v2 parameter domain
 
 The conditioning vector must represent more than spatial geometry. At minimum
 it contains:
@@ -822,7 +1035,48 @@ constitutive laws beyond this boundary, pause the pipeline and revise the
 claim with appropriate terramechanics expertise instead of silently adding
 complexity.
 
-Before bulk generation, the four corners and center of this parameter box must
+### Prospective successor draft domain
+
+The candidate domain is recorded in
+[phase1_one_action_successor_v1.json](../../configs/phase1_one_action_successor_v1.json)
+with its source URLs and units. It is deliberately a one-dimensional vertical
+response family:
+
+| Quantity | Candidate value | Status and rationale |
+| --- | ---: | --- |
+| `bekker_kphi` | `1.5e6--2.0e6 N/m^(n+2)` | only varied control; brackets published and official Chrono references |
+| `bekker_kc` | `0` | fixed cohesionless reference |
+| `bekker_n` | `1.1` | fixed common dry-sand/reference exponent |
+| cohesion | `0 Pa` | fixed cohesionless reference |
+| friction | `30 degrees` | fixed; vertical no-slip action weakly excites shear |
+| Janosi shear | `0.01 m` | fixed official reference |
+| elastic stiffness | `2e8 Pa/m` | fixed official reference and greater than `Kphi` |
+| damping | `3e4 Pa s/m` | fixed official reference |
+
+The source basis is the official Chrono
+[SCMTerrain API](https://api.projectchrono.org/classchrono_1_1vehicle_1_1_s_c_m_terrain.html)
+for parameter semantics and units, the official
+[wheel-rig terrain schema](https://api.projectchrono.org/_y_a_m_l_schema_wheel_rig_terrain.html)
+for the cohesionless reference case, Lim et al.'s
+[dry-sand pressure-sinkage parameters](https://doi.org/10.5140/JASS.2021.38.4.237),
+and Gallina et al.'s
+[SCM identification and transfer analysis](https://elib.dlr.de/104615/1/jrf_paper.pdf).
+These sources justify a synthetic bracket, not named-soil calibration.
+
+For the 35 mm-radius cylinder, the two declared forces produce nominal average
+pressures of 7.966 and 11.949 kPa. The elementary Bekker relation with `Kc=0`
+predicts roughly 6.58--12.36 mm sinkage across the candidate corners. This is a
+scale sanity check only, not simulator evidence or a replacement for screening.
+
+The draft is not frozen. Its six-case screen crosses
+`Kphi={1.5e6,1.75e6,2.0e6}` with
+`force={30.65625,45.984375} N` on one qualified action identity. It must show
+accepted Chrono responses, directional separation above repeatability, and
+admitted Newton priors. Screening artifacts are engineering evidence and must
+not be reused as protected evaluation targets.
+
+For historical v1/v2, before bulk generation, the four corners and center of
+this parameter box must
 pass the Chrono oracle contract and the Newton prior admission checks. The
 admitted rectangle and every fixed parameter must then be written to a
 versioned machine-readable Phase 1 contract. If screening forces a smaller
@@ -949,6 +1203,25 @@ A successor must ablate robotics-facing kinematics/contact and optional
 stress/deformation features separately. A single expanded mechanics bundle
 cannot establish that any individual field is useful, and adding more soil
 state is not the default response to a generalization failure.
+
+The successor draft instead uses the following capacity-controlled comparison:
+
+| ID | Model input | Question |
+| --- | --- | --- |
+| B0 | initial surface only; no update | is any predicted deformation useful? |
+| B1 | raw Newton loaded/post surfaces | how good is the uncorrected prior? |
+| D0 | initial surface, action geometry, force, `Kphi` | can a direct model generalize without Newton? |
+| R0 | D0 inputs plus raw Newton loaded/post displacement | does the minimal Newton geometric prior help? |
+| R1 | R0 plus occupancy, mass, vertical velocity, contact count, normal impulse | do robotics-facing solver fields help? |
+| R2S | R1 plus mean and von Mises stress | does qualified stress add predictive value? |
+| R2E | R1 plus elastic Jacobian and isochoric shear | does qualified deformation add predictive value? |
+
+All learned variants use the same capacity and training/evaluation split.
+Selection is among `D0`, `R0`, and `R1`; `R2S` or `R2E` may be promoted only
+if it individually improves on `R1` without worsening the failure tail.
+Qualification of a field is necessary but does not establish predictive value.
+Plastic state, new constitutive descriptors, and combined higher-complexity
+variants are prohibited in the initial successor contract.
 
 A particle GNN is an optional comparison after H1. It is not required for the
 Phase 1 exit because Chrono SCM supplies no particle correspondence and the

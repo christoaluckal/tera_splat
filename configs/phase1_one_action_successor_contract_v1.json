@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "contract_id": "phase1_one_action_successor_contract_v1",
+  "status": "frozen_before_target_generation",
+  "authority": "docs/newton/phase1.md",
+  "purpose": "Prospective one-action comparison of a direct learned predictor and Newton-conditioned corrections over the screened dry-sand-like synthetic SCM domain.",
+  "antecedent_screen": {
+    "proposal": "configs/phase1_one_action_successor_v1.json",
+    "input_plan": "diagnostics/phase1_one_action_successor_v1/screening_plan.json",
+    "recovery_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/recovery_plan.json",
+    "recovery_plan_sha256": "927941694b8d73b24d8063a8f65a6dd629aa435a6b9477f02097974c9ab6d91f",
+    "recovery_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/recovery_summary.json",
+    "directional_analysis_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/directional_analysis_plan.json",
+    "directional_analysis_plan_sha256": "ac2e98fb3cab966c22ac8ae47cc4e11829fe25eae66d773b3bc80daafcfd838f",
+    "directional_analysis_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_v1/common_base_recovery_v1/directional_analysis_summary.json",
+    "directional_analysis_summary_sha256": "a58d86a5f7b581f1bd3ee3aef936d68992bc7d587f2d255d9d87081277a06e1b",
+    "required_status": "screen_passed_successor_contract_freeze_permitted",
+    "screen_artifacts_excluded_from_training_selection_and_protected_accuracy": true
+  },
+  "claim_boundary": {
+    "positive_target": "Predict observable loaded and post-unload bed geometry for held-out vertical contacts inside the declared synthetic simulator domain.",
+    "direct_success": "A passing D0 supports a learned one-action surrogate claim, not Newton-added value.",
+    "neural_correction": "A passing R0 or R1 that reliably improves raw Newton supports a neural-correction claim.",
+    "newton_added_value": "A Newton-conditioned model must also beat capacity-controlled D0 on the joint holdout group by the frozen margin.",
+    "not_claimed": [
+      "named real-soil calibration",
+      "constitutive-model validation",
+      "soil parameter identification",
+      "sequential rollout accuracy",
+      "planner benefit",
+      "sim-to-real transfer"
+    ]
+  },
+  "action_domain": {
+    "load_mode": "single_static_gravity_equivalent_vertical_load",
+    "proxy_shape": "vertically_guided_cylinder",
+    "radius_m": 0.035,
+    "height_m": 0.035,
+    "start_clearance_m": 0.02,
+    "center_domain": {
+      "shape": "closed_disk",
+      "origin_xy_m": [0.0, 0.0],
+      "max_radius_m": 0.1
+    },
+    "normal_force_n": {
+      "minimum": 30.65625,
+      "maximum": 45.984375
+    },
+    "gravity_mps2": 9.81,
+    "dynamic_loads_excluded": true,
+    "tangential_motion_excluded": true,
+    "rotation_excluded": true
+  },
+  "initial_surface_domain": {
+    "family": "seeded_smooth_zero_mean_heightfield",
+    "history_free": true,
+    "relief_limit_m": 0.005,
+    "maximum_local_slope_deg": 10.0,
+    "minimum_correlation_length_m": 0.05,
+    "bed_size_m": [0.6, 0.6],
+    "bed_depth_m": 0.1,
+    "grid_spacing_m": 0.005,
+    "generator": {
+      "representation": "sum_of_random_phase_low_frequency_cosine_modes",
+      "mode_count": 12,
+      "wavelength_range_m": [0.05, 0.3],
+      "remove_mean": true,
+      "rescale_to_relief_and_slope_limits": true
+    },
+    "surface_seeds": {
+      "train": [4101, 4102, 4103, 4104],
+      "validation_reserved": [4201],
+      "test_reserved": [4301]
+    },
+    "all_seeds_require_qualification_before_their_first_target": true
+  },
+  "chrono": {
+    "repo": "../tera_splat_sim",
+    "command": ["conda", "run", "-n", "chrono_splat", "python"],
+    "oracle_runner": "../tera_splat_sim/run_cylinder_episode.py",
+    "timestep_s": 0.001,
+    "scm_grid_spacing_m": 0.005,
+    "scm_pit_size_m": [0.6, 0.6],
+    "max_loading_time_s": 5.0,
+    "min_loading_time_s": 0.25,
+    "loading_linear_speed_threshold_mps": 0.006,
+    "loading_angular_speed_threshold_radps": 0.01,
+    "loading_hold_time_s": 0.1,
+    "residual_duration_s": 0.25,
+    "vertical_guide": true,
+    "soil_parameters": {
+      "varied": {
+        "bekker_kphi": {
+          "minimum": 1500000.0,
+          "maximum": 2000000.0,
+          "reference": 1750000.0,
+          "units": "N/m^(n+2)"
+        }
+      },
+      "fixed": {
+        "bekker_kc": 0.0,
+        "bekker_n": 1.1,
+        "mohr_cohesion_pa": 0.0,
+        "mohr_friction_deg": 30.0,
+        "janosi_shear_m": 0.01,
+        "elastic_k_pa_per_m": 200000000.0,
+        "damping_r_pa_s_per_m": 30000.0
+      }
+    }
+  },
+  "newton": {
+    "material_and_numerics_frozen_across_all_episodes": true,
+    "young_modulus_pa": 100000.0,
+    "poisson_ratio": 0.2,
+    "friction_coefficient": 0.68,
+    "selected_dt_s": 0.00025,
+    "voxel_size_m": 0.0078125,
+    "bed_builder": "exact_surface_global_vertical_lattice_common_flat_base",
+    "nominal_bed_depth_m": 0.1,
+    "particle_spacing_m": 0.005,
+    "minimum_top_gap_fraction": 0.95,
+    "preparation_reuse_scope": "one fresh preparation per initial surface seed within the successor campaign",
+    "response_reuse_prohibited": true,
+    "observation_time_mode": "independent_fixed",
+    "loaded_duration_s": 0.35,
+    "post_unload_duration_s": 0.25,
+    "chrono_target_time_must_not_control_newton_rollout": true,
+    "coarse_prior_only": true,
+    "strict_mechanics_claim_permitted": false
+  },
+  "dataset": {
+    "design": "deterministic_halton_with_named_whole_episode_holdouts",
+    "design_seed": 20261101,
+    "halton_bases": [2, 3, 5, 7],
+    "counts": {
+      "train": 48,
+      "validation": 16,
+      "test": 24,
+      "protected_sensitivity": 6
+    },
+    "test_group_counts": {
+      "unseen_position": 5,
+      "unseen_force": 5,
+      "unseen_kphi": 5,
+      "unseen_initial_surface": 4,
+      "joint_combination": 5
+    },
+    "smoke_membership": {
+      "train_ordinals": [0, 1, 2, 3, 4, 5, 6, 7],
+      "validation_ordinals": [0, 1, 2, 3],
+      "admitted_smoke_targets_become_members_of_the_bulk_dataset": true
+    },
+    "protected_sensitivity_design": {
+      "initial_surface_seed": 4301,
+      "center_xy_m": [0.06, -0.04],
+      "normal_force_points_n": [30.65625, 45.984375],
+      "bekker_kphi_points": [1500000.0, 1750000.0, 2000000.0],
+      "target_generation_locked_until_after_model_selection": true,
+      "excluded_from_fitting_normalization_calibration_and_model_selection": true
+    },
+    "whole_episode_split_required": true,
+    "target_free_plan_required": true,
+    "freeze_plan_before_target_generation": true,
+    "test_and_sensitivity_targets_locked_until_after_model_selection": true,
+    "normalization_fit_splits": ["train"],
+    "model_selection_splits": ["train", "validation"]
+  },
+  "tensor_schema": {
+    "checkpoints": ["loaded", "post_unload"],
+    "observable_targets": ["metric_height_or_vertical_displacement", "valid_support", "deformation_support"],
+    "core_inputs": [
+      "initial_height",
+      "valid_support",
+      "action_relative_x",
+      "action_relative_y",
+      "action_signed_distance",
+      "action_footprint",
+      "normal_force",
+      "bekker_kphi"
+    ],
+    "newton_surface_inputs": ["loaded_displacement", "post_unload_displacement"],
+    "robotics_facing_newton_inputs": [
+      "occupancy",
+      "mass",
+      "action_aligned_vertical_velocity",
+      "contact_count",
+      "normal_impulse"
+    ],
+    "optional_separate_ablation_inputs": {
+      "stress": ["mean_stress", "von_mises_stress"],
+      "elastic": ["elastic_jacobian", "elastic_isochoric_shear"]
+    },
+    "excluded_inputs": ["plastic_jacobian", "soil_specific_derived_features", "higher_order_constitutive_descriptors"],
+    "target_arrays_are_never_model_inputs": true
+  },
+  "model_contract": {
+    "family": "shared_capacity_three_level_parameter_conditioned_2d_unet",
+    "parameter_count_minimum": 100000,
+    "parameter_count_maximum": 1000000,
+    "training_seeds": [20261101, 20261102, 20261103],
+    "selection_pool": ["D0", "R0", "R1"],
+    "optional_ablation_pool": ["R2S", "R2E"],
+    "variants": {
+      "D0": ["core_inputs"],
+      "R0": ["core_inputs", "newton_surface_inputs"],
+      "R1": ["core_inputs", "newton_surface_inputs", "robotics_facing_newton_inputs"],
+      "R2S": ["R1", "stress"],
+      "R2E": ["R1", "elastic"]
+    },
+    "same_capacity_across_learned_variants": true,
+    "train_only_normalization": true,
+    "validation_only_selection_and_uncertainty_calibration": true
+  },
+  "evaluation_contract": {
+    "primary_regions": ["footprint", "twice_radius"],
+    "primary_metric": "whole_episode_rmse_m",
+    "baseline_models": ["no_deformation", "raw_newton", "D0"],
+    "median_rmse_reduction_vs_raw_newton_minimum": 0.3,
+    "episode_improvement_fraction_minimum": 0.9,
+    "maximum_regression_relative": 0.1,
+    "maximum_regression_absolute_m": 0.001,
+    "maximum_median_rmse_m": 0.003,
+    "parameter_control_degradation_minimum": 0.02,
+    "protected_sensitivity_direction_fraction_minimum": 0.9,
+    "newton_added_value_joint_relative_margin_minimum": 0.05,
+    "optional_field_value_relative_margin_minimum": 0.05,
+    "nominal_interval_coverage": 0.9,
+    "accepted_interval_coverage_range": [0.8, 1.0],
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "test_open_once_after_selection": true,
+    "claim_routing": {
+      "D0_passes": "learned_direct_surrogate",
+      "R0_or_R1_passes_without_beating_D0": "neural_correction_without_newton_added_value",
+      "R0_or_R1_passes_and_beats_D0": "neural_correction_with_newton_added_value"
+    }
+  },
+  "execution_order": {
+    "freeze_target_free_plan": 1,
+    "qualify_new_surface_seeds": 2,
+    "generate_and_admit_smoke_train_validation_members": 3,
+    "generate_remaining_train_validation_targets": 4,
+    "freeze_training_plan_and_fit_models": 5,
+    "select_and_calibrate_on_validation": 6,
+    "freeze_evaluation_plan_and_unlock_test_once": 7,
+    "generate_test_and_protected_sensitivity_targets": 8,
+    "publish_locked_report": 9
+  },
+  "permissions_after_dataset_plan_freeze": {
+    "surface_qualification": true,
+    "smoke_train_validation_target_generation": true,
+    "remaining_train_validation_target_generation": false,
+    "test_or_protected_sensitivity_target_generation": false,
+    "training": false
+  },
+  "provenance": {
+    "record_contract_planner_and_input_hashes": true,
+    "record_repository_revisions_and_dirty_state": true,
+    "record_environment_and_device_identity_before_runtime": true,
+    "record_episode_input_and_artifact_hashes": true,
+    "preserve_all_failed_and_superseded_evidence": true
+  }
+}

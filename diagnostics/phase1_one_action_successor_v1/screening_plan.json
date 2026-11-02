@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "identity": "phase1_one_action_successor_v1_screening_inputs",
+  "status": "input_only_frozen_no_execution",
+  "created_date": "2026-10-31",
+  "source_revision": "8026c83867d8cf738326a18a5dcf94e30c536846",
+  "source_sha256": {
+    "phase1_one_action_successor_v1_json": "6cf5170ac01a19528fb43a976873dc26d5d48e89cc9e917da37f8d9b62c26d7b"
+  },
+  "contract_path": "configs/phase1_one_action_successor_v1.json",
+  "hash_semantics": "Each input_sha256 is SHA-256 of compact canonical JSON for that case excluding input_sha256 (sorted keys, separators comma and colon).",
+  "common_input": {
+    "initial_surface_seed": 1101,
+    "center_xy_m": [
+      0,
+      0
+    ],
+    "contact_body": "vertically_guided_cylinder",
+    "radius_m": 0.035,
+    "tangential_motion": false,
+    "rotation": false
+  },
+  "cases": [
+    {
+      "case_id": "screen_kphi_1500000_force_30p65625",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 1500000,
+      "normal_force_n": 30.65625,
+      "input_sha256": "f56f5329517c3a2122a6318d3fe8403b37e369bb6d5bcdcecac361a539949a32"
+    },
+    {
+      "case_id": "screen_kphi_1500000_force_45p984375",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 1500000,
+      "normal_force_n": 45.984375,
+      "input_sha256": "7e5b82f8ad18039e19f37527d6916afc9669bcca200e4d6f4566d299b8cda25d"
+    },
+    {
+      "case_id": "screen_kphi_1750000_force_30p65625",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 1750000,
+      "normal_force_n": 30.65625,
+      "input_sha256": "26f1cb2204806b0860a32a8ecf47461b8abd025663cf7a073e2bced8c011281b"
+    },
+    {
+      "case_id": "screen_kphi_1750000_force_45p984375",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 1750000,
+      "normal_force_n": 45.984375,
+      "input_sha256": "d944c801d5759db26d086116daff6e84f81fc2fad68bedd8b35911febd6923c4"
+    },
+    {
+      "case_id": "screen_kphi_2000000_force_30p65625",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 2000000,
+      "normal_force_n": 30.65625,
+      "input_sha256": "323c5098eef75fe5b0116e634d2d5ddd55dbcffbca08e9ca40dc567845876d12"
+    },
+    {
+      "case_id": "screen_kphi_2000000_force_45p984375",
+      "initial_surface_seed": 1101,
+      "center_xy_m": [
+        0,
+        0
+      ],
+      "bekker_kphi": 2000000,
+      "normal_force_n": 45.984375,
+      "input_sha256": "5b4b16006fb09933f2297f2753d9d2147cd8950c2b088b763dbf9c462f57d110"
+    }
+  ],
+  "execution_policy": {
+    "screen_execution_permitted": true,
+    "bulk_target_generation_permitted": false,
+    "training_validation_test_generation_permitted": false,
+    "prior_response_reuse_permitted": false,
+    "required_result": "Fresh Chrono and Newton engineering-screen artifacts for all six identities."
+  }
+}

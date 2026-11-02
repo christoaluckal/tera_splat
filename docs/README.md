@@ -1,6 +1,6 @@
 # Tera Splat documentation
 
-Last updated: 2026-10-22
+Last updated: 2026-11-02
 
 Tera Splat studies a planning-oriented hybrid terrain model:
 
@@ -21,22 +21,24 @@ differentiable backend.
    bounded, parameter-conditioned neural bed-state prediction.
 2. [Phase 1 chronological record](newton/phase1-running.md) — current dated
    implementation evidence, frozen hashes, blockers, and next permitted gate.
-3. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
+3. [Newton handoff](newton/handoff.md) — concise compatibility pointer to the
+   active Phase 1 runtime checkpoint and continuation guard.
+4. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
    claim boundary for the completed 241-parameter residual proof.
-4. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+5. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — complete proposed architecture, backend decision, data split, losses,
    latent-state ablations, Gaussian transfer, and planner validation.
-5. [Current repository state](current-state.md) — cross-backend context for
+6. [Current repository state](current-state.md) — cross-backend context for
    Chrono, Genesis, Newton, artifacts, and execution constraints.
-6. [Newton documentation index](newton/README.md) — all Newton contracts,
+7. [Newton documentation index](newton/README.md) — all Newton contracts,
    reports, boundaries, and dated provenance.
-7. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+8. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only variation-characterization and geometric-utility protocol.
-8. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+9. [Cross-backend direction](forward-model-direction-20261006.md) — why the
    project moved from parameter-only fitting to a hybrid residual model.
-9. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+10. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
    timing, support, preparation, and scoring rules.
-10. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+11. [Contributor guidance](contributor-guidance.md) — repository, editing, and
    evidence-maintenance rules.
 
 Files in [archive](archive/) are historical provenance. They are not current
@@ -77,6 +79,10 @@ instructions.
 - The 31 N and 46 N Phase 0 rungs are complete. The Phase 1 v1/v2 evaluation is
   also complete and failed its frozen exit; the active work is a prospective
   one-action redesign under the boundary in `phase1.md`.
+- The successor contract, surfaces, model/training layer, and protected
+  evaluator are prepared. Its frozen 8/4 engineering smoke is currently
+  running with two workers; no aggregate summary exists, so bulk generation,
+  fitting, and all protected targets remain locked.
 - The current hard gates include provenance, numerical integrity, held-out
   predictive generalization, and an expertise-aware claim boundary.
   Contact overlap is classified as an artifact unless it is gross; local

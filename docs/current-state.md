@@ -1,13 +1,39 @@
 # Current Chrono-to-MPM State
 
-Last verified: 2026-10-19
+Last verified: 2026-11-02
 
 This document provides cross-backend context and historical conclusions. The
 sole operational authority for the active campaign is
-[Newton Phase 0](newton/phase0.md). Do not use duplicated counts or next-step
-text below in place of that ledger. Dated investigation history is preserved in
+[Newton Phase 1](newton/phase1.md), with dated runtime evidence in
+[the Phase 1 running record](newton/phase1-running.md). Phase 0 remains the
+immutable authority for its completed campaign. Do not use duplicated counts
+or next-step text below in place of those ledgers. Dated investigation history is preserved in
 [calibration-history-through-2026-08-29.md](archive/calibration-history-through-2026-08-29.md)
 and is not a source of current next steps.
+
+## 2026-11-02 Phase 1 successor handoff
+
+The original Phase 1 v1/v2 evaluation is complete and failed its frozen exit.
+The active branch is a prospective one-action successor over an
+engineering-plausible synthetic SCM family, with `bekker_kphi` as its only
+varied soil control. Its 48/16/24 split plus six protected sensitivity inputs,
+surface qualification, D0/R0/R1/R2S/R2E model ladder, training adapter, and
+locked evaluator are prepared prospectively.
+
+The immediate gate is the frozen 8-train/4-validation engineering smoke. At
+2026-11-02 00:05 EST its original supervisor PID `1955843` and two Chrono
+workers were active: members 000 and 001 were complete, members 002 and 003
+were running, and eight members remained queued. No aggregate smoke summary
+existed. Therefore no bulk plan, training plan, model fit, evaluation plan,
+protected unlock/open marker, protected target, successor prediction, or final
+report is permitted or present.
+
+Do not launch a duplicate smoke supervisor or poll it automatically. On an
+explicit user request, recheck the supervisor, workers, run log, and aggregate
+summary once. Only a verified 12/12 passing summary may open the remaining 40
+training and 12 validation members; protected targets stay closed through
+bulk generation, fitting, and validation-only selection. The concise
+compatibility entry point is [the Newton handoff](newton/handoff.md).
 
 ## 2026-10-17 fresh-only reset
 
@@ -16,8 +42,9 @@ diagnostics. They are not admissible for current qualification, training,
 validation, or test claims because same-build determinism and complete
 provenance were not established before reuse.
 
-The active campaign is governed by [Newton Phase 0](newton/phase0.md) and the
-frozen [fresh hierarchical protocol](newton/fresh-hierarchical-phase0-20261017.md).
+At that point, the campaign was governed by [Newton Phase 0](newton/phase0.md)
+and the frozen
+[fresh hierarchical protocol](newton/fresh-hierarchical-phase0-20261017.md).
 The fresh reset established independent per-action Chrono, bed-generation, and
 Newton paths; measured repeat variation rather than a bitwise-equality gate;
 hard provenance and numerical-integrity gates; explicit contact-artifact

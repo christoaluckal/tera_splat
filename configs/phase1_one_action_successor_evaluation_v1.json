@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "phase1_one_action_successor_evaluation_v1",
+  "status": "prepared_selection_gate_locked",
+  "authority": "docs/newton/phase1.md",
+  "successor_contract": "configs/phase1_one_action_successor_contract_v1.json",
+  "dataset_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_plan.json",
+  "bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_summary.json",
+  "training_config": "configs/phase1_one_action_successor_training_v1.json",
+  "training_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/training_plan.json",
+  "normalization": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/normalization.json",
+  "selection_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/selection_summary.json",
+  "required_identity": {
+    "contract_sha256": "834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd",
+    "episode_manifest_sha256": "2df4ced81aa85a88536b72bd28c8a736e8dabf898ffeb891891678b9e7682725",
+    "test_lock_sha256": "0390d46bfd5860b08518f3b99ab116084f24138939c04435f29582c3feedf713",
+    "sensitivity_lock_sha256": "a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139"
+  },
+  "membership": {
+    "test": 24,
+    "protected_sensitivity": 6,
+    "test_holdout_groups": {
+      "unseen_position": 5,
+      "unseen_force": 5,
+      "unseen_kphi": 5,
+      "unseen_initial_surface": 4,
+      "joint_combination": 5
+    },
+    "test_and_sensitivity_must_remain_locked_until_selection": true,
+    "single_joint_unlock_marker": true,
+    "open_once": true
+  },
+  "models": {
+    "learned": ["D0", "R0", "R1", "R2S", "R2E"],
+    "core_selection_pool": ["D0", "R0", "R1"],
+    "optional_ablation_pool": ["R2S", "R2E"],
+    "baselines": ["no_deformation", "raw_newton"],
+    "newton_conditioned_claim_candidates": ["R0", "R1"]
+  },
+  "metrics": {
+    "checkpoints": ["loaded", "post_unload"],
+    "primary_regions": ["footprint", "twice_radius"],
+    "primary_metric": "whole_episode_rmse_m",
+    "episode_is_resampling_unit": true,
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20261101
+  },
+  "parameter_controls": {
+    "controls": ["kphi_shuffled", "kphi_constant_reference"],
+    "shuffle_seed": 20261101,
+    "metric": "relative_median_rmse_increase",
+    "minimum_degradation": 0.02,
+    "require_paired_bootstrap_lower_bound_above_zero": true
+  },
+  "success_thresholds": {
+    "median_rmse_reduction_vs_raw_newton_minimum": 0.3,
+    "episode_improvement_fraction_minimum": 0.9,
+    "maximum_regression_relative": 0.1,
+    "maximum_regression_absolute_m": 0.001,
+    "maximum_median_rmse_m": 0.003,
+    "protected_sensitivity_direction_fraction_minimum": 0.9,
+    "newton_added_value_joint_relative_margin_minimum": 0.05,
+    "optional_field_value_relative_margin_minimum": 0.05,
+    "nominal_interval_coverage": 0.9,
+    "accepted_interval_coverage_range": [0.8, 1.0]
+  },
+  "claim_routing": {
+    "D0_passes": "learned_direct_surrogate",
+    "R0_or_R1_passes_without_beating_D0": "neural_correction_without_newton_added_value",
+    "R0_or_R1_passes_and_beats_D0": "neural_correction_with_newton_added_value",
+    "no_core_model_passes": "no_positive_successor_claim"
+  },
+  "protected_use": {
+    "test": "locked_accuracy_and_claim_routing_only",
+    "protected_sensitivity": "directional_parameter_sensitivity_only",
+    "may_not_fit_normalize_calibrate_or_select": true,
+    "directional_quantities": [
+      "peak_depression_m",
+      "mean_depression_m",
+      "displaced_volume_m3"
+    ],
+    "directional_edges": "adjacent_kphi_pairs_within_each_force",
+    "required_eligible_comparisons_per_model": 24,
+    "minimum_target_change": {
+      "peak_depression_m": 1e-9,
+      "mean_depression_m": 1e-9,
+      "displaced_volume_m3": 1e-12
+    }
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1",
+    "dataset_output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1",
+    "chrono_output_root": "../tera_splat_sim/validity_experiment/chrono_episodes/phase1_one_action_successor_contract_v1/dataset_smoke_v1",
+    "training_python": "/eng/home/christoa/miniconda3/envs/test/bin/python",
+    "device": "cuda:0",
+    "freeze_plan_after_selection_before_first_protected_target": true,
+    "unlock_test_and_sensitivity_together": true
+  }
+}
