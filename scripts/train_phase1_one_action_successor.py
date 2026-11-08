@@ -38,6 +38,10 @@ EXPECTED_TEST_LOCK_SHA256 = (
 EXPECTED_SENSITIVITY_LOCK_SHA256 = (
     "a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139"
 )
+EXPECTED_BULK_RECOVERY_ID = "phase1_one_action_successor_bulk_recovery_v2"
+EXPECTED_LEGACY_BULK_SUMMARY_SHA256 = (
+    "f80c9f018758438ecac0300cfc35c51e828af08a3268ba5fc791a2501f748955"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -115,6 +119,11 @@ def require_bulk_summary(config: Mapping[str, Any]) -> dict[str, Any]:
     summary = json.loads(path.read_text(encoding="utf-8"))
     if summary.get("status") != config["required_bulk_status"]:
         raise RuntimeError("successor bulk train/validation summary has not passed")
+    if (
+        summary.get("recovery_id") != EXPECTED_BULK_RECOVERY_ID
+        or config.get("required_bulk_recovery_id") != EXPECTED_BULK_RECOVERY_ID
+    ):
+        raise RuntimeError("successor bulk recovery identity changed")
     if summary.get("training_plan_freeze_permitted") is not True:
         raise RuntimeError("successor bulk does not permit training-plan freeze")
     if summary.get("test_or_protected_sensitivity_permitted") is not False:
@@ -130,11 +139,37 @@ def require_bulk_summary(config: Mapping[str, Any]) -> dict[str, Any]:
     checks = summary.get("checks", {})
     if not checks.get("test_and_sensitivity_targets_unopened"):
         raise RuntimeError("successor protected target locks are not intact")
+    required_recovery_checks = (
+        "legacy_failure_shape_preserved",
+        "legacy_summary_unchanged",
+        "all_artifacts_match_frozen_recovery_plan",
+        "all_complete",
+        "all_component_guide_checks_pass",
+        "all_admitted",
+    )
+    if not all(checks.get(name) is True for name in required_recovery_checks):
+        raise RuntimeError("successor bulk recovery checks have not all passed")
+    if checks.get("simulator_rerun_performed") is not False:
+        raise RuntimeError("successor bulk recovery reran a simulator")
+    if checks.get("artifact_replacement_performed") is not False:
+        raise RuntimeError("successor bulk recovery replaced frozen artifacts")
     identity = summary.get("identity", {})
     if identity.get("test_lock_sha256") != EXPECTED_TEST_LOCK_SHA256:
         raise RuntimeError("successor test lock changed before training")
     if identity.get("sensitivity_lock_sha256") != EXPECTED_SENSITIVITY_LOCK_SHA256:
         raise RuntimeError("successor sensitivity lock changed before training")
+    if (
+        identity.get("legacy_bulk_summary_sha256")
+        != EXPECTED_LEGACY_BULK_SUMMARY_SHA256
+    ):
+        raise RuntimeError("successor legacy bulk failure identity changed")
+    reanalysis = summary.get("reanalysis", {})
+    if reanalysis.get("recovered_ids") != ["p1s_train_joint-design_019"]:
+        raise RuntimeError("successor bulk recovery membership changed")
+    if reanalysis.get("simulator_outputs_reused_unchanged") is not True:
+        raise RuntimeError("successor bulk recovery did not preserve simulator outputs")
+    if reanalysis.get("protected_targets_opened") is not False:
+        raise RuntimeError("successor bulk recovery opened protected targets")
     if len(summary.get("episodes", {})) != 64 or not all(
         item.get("complete") is True and item.get("admitted") is True
         for item in summary["episodes"].values()
@@ -146,6 +181,16 @@ def require_bulk_summary(config: Mapping[str, Any]) -> dict[str, Any]:
 def source_paths(config_path: Path) -> dict[str, Path]:
     return {
         "training_config": config_path.resolve(),
+        "bulk_recovery_config": base.repo_path(
+            json.loads(config_path.read_text(encoding="utf-8"))[
+                "bulk_recovery_config"
+            ]
+        ),
+        "bulk_recovery_runner": SCRIPT_DIR
+        / "recover_phase1_one_action_successor_bulk_v2.py",
+        "bulk_recovery_tests": REPO_ROOT
+        / "tests"
+        / "test_recover_phase1_one_action_successor_bulk_v2.py",
         "successor_trainer": Path(__file__).resolve(),
         "successor_model": SCRIPT_DIR / "phase1_one_action_successor_model.py",
         "successor_tests": REPO_ROOT

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "branch_id": "phase1_one_action_successor_direct_v4",
+  "status": "prospective_before_authoritative_validation_and_fresh_targets",
+  "authority": "docs/newton/phase1.md",
+  "scientific_scope": "one_action_direct_surrogate_in_frozen_synthetic_domain",
+  "antecedent": {
+    "failed_report": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report.json",
+    "failed_report_sha256": "c5995e619d602a092aa784ef54ba697d4482b5712c9913a87c8b7c011e49c3f9",
+    "qualification": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report_qualification.json",
+    "qualification_sha256": "9205c2ee0bb9eefeb08d5e9cf758046ac3c071891bda6f260b8efebbb55b1570",
+    "failed_direct_v2_validation": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v2/validation_summary.json",
+    "failed_direct_v2_validation_sha256": "d27590cdc8a05f52194dd91bdd78be54a0708c3bfa39a2888ebf2115ac48db96",
+    "direct_v3_preflight_validation": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v3/validation_summary.json",
+    "direct_v3_preflight_validation_sha256": "3d266422651920d860070d1c17066a3de18427cbc4ef9de30597270c6bb98af5",
+    "direct_v3_preflight_only_because_confirmation_lock_followed_validation": true,
+    "revealed_v1_test_use": "diagnosis_and_branch_design_only_never_authoritative_validation_or_confirmation"
+  },
+  "frozen_sources": {
+    "domain_contract": "configs/phase1_one_action_successor_contract_v1.json",
+    "domain_contract_sha256": "834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd",
+    "original_dataset_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_plan.json",
+    "original_dataset_plan_sha256": "b326a96bbbcd82e863984eef016e0d320c479f5ec1b7ff937ec4da031d1070ef",
+    "training_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/training_plan.json",
+    "training_plan_sha256": "2b3b71023c908b1c2c953e558edf4e1dae28c7af775b7f091f16aff5190a0426",
+    "normalization": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/normalization.json",
+    "normalization_sha256": "969a3378dab6de540eed912a30c613ead129a43e7e6d8d0df49712c2f04269d6",
+    "selection": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/selection_summary.json",
+    "selection_sha256": "3a2ffef309fc36a6018698182dec626f187e8b94894c41e0f76c5cbe46fbe08e",
+    "d0_checkpoint": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/models/D0/seed_20261102/model.pt",
+    "d0_checkpoint_sha256": "a29fc8c762b0603e100aad7aba00ba53384275ff8d4a9fa2e77b3d8d26a6eb59"
+  },
+  "candidate": {
+    "name": "D1",
+    "family": "frozen_D0_reference_differenced_kphi_sensitivity_wrapper",
+    "base_model": "D0_seed_20261102",
+    "reference_kphi_normalized": 0.0,
+    "sensitivity_gain": 1.0,
+    "initial_residual_scale": 1.0,
+    "formula": "initial + scale * ((D0(kphi) + gain * (D0(kphi) - D0(train_mean_kphi))) - initial)",
+    "no_fitting_or_gradient_updates": true
+  },
+  "validation": {
+    "split": "original_16_validation_episodes_only",
+    "shuffle_seed": 20261107,
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20261107,
+    "output": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/validation_summary.json",
+    "v1_test_ids_forbidden": true,
+    "must_run_after_confirmation_plan_freeze": true
+  },
+  "confirmation_design": {
+    "design": "fresh_deterministic_halton_joint_confirmation",
+    "halton_start_index": 6001,
+    "test_episode_count": 24,
+    "sensitivity_episode_count": 6,
+    "test_surface_seeds": [5101, 5102, 5103, 5104, 5105],
+    "sensitivity_surface_seed": 5106,
+    "sensitivity_center_xy_m": [-0.055, 0.045],
+    "sensitivity_normal_force_points_n": [30.65625, 45.984375],
+    "sensitivity_bekker_kphi_points": [1500000.0, 1750000.0, 2000000.0],
+    "all_surface_seeds_require_qualification_before_unlock": true,
+    "all_inputs_must_be_distinct_from_original_94": true
+  },
+  "confirmation_protocol": {
+    "fresh_surface_seeds_required": true,
+    "target_lock_required_before_authoritative_validation": true,
+    "single_joint_unlock_after_validation": true,
+    "revealed_v1_test_is_not_confirmation": true,
+    "accuracy_regions": ["footprint", "twice_radius"],
+    "parameter_control_regions": ["footprint"],
+    "parameter_control_metric": "paired_mean_rmse_increase_relative_to_mean_candidate_rmse",
+    "parameter_control_locality_rationale": "bekker_kphi ablation is tested where the bounded contact response is directly supported; twice-radius accuracy remains mandatory but weak outer response is not treated as parameter-identifiability evidence",
+    "parameter_control_statistic_rationale": "one paired mean effect with a whole-episode bootstrap interval avoids conflicting unpaired median and paired-mean decisions",
+    "protected_sensitivity_direction_required": true
+  },
+  "success_thresholds": {
+    "median_rmse_reduction_vs_raw_newton_minimum": 0.3,
+    "episode_improvement_fraction_minimum": 0.9,
+    "maximum_regression_relative": 0.1,
+    "maximum_regression_absolute_m": 0.001,
+    "maximum_median_rmse_m": 0.003,
+    "parameter_control_paired_mean_relative_degradation_minimum": 0.02,
+    "parameter_control_paired_lower_bound_above_zero": true,
+    "protected_sensitivity_direction_fraction_minimum": 0.9,
+    "nominal_interval_coverage": 0.9,
+    "accepted_interval_coverage_range": [0.8, 1.0]
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4",
+    "confirmation_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/confirmation_plan.json",
+    "dataset_output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/dataset",
+    "chrono_output_root": "../tera_splat_sim/validity_experiment/chrono_episodes/phase1_one_action_successor_direct_v4"
+  }
+}

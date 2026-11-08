@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "recovery_id": "phase1_one_action_successor_protected_admission_recovery_v3",
+  "status": "prospective_artifact_only_after_failed_protected_analysis",
+  "authority": "docs/newton/phase1.md",
+  "evaluation_config": "configs/phase1_one_action_successor_evaluation_v1.json",
+  "required_evaluation_plan_sha256": "5b9f1062bcc54c55696addb54b3f5c0fea953335281ee08d0c5dfe3ddd9cc02c",
+  "required_open_marker_sha256": "9d461aedf6ad6329cac4134ae7b39c400472843b501972aba359c3b769fbfa14",
+  "failed_protected_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_dataset_summary.json",
+  "required_failed_protected_summary_sha256": "b47c316faa8635ae348c155d30105ac4a2d9dceb7c1b3d7a25e1ba38dbd2a086",
+  "serial_recovery_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_recovery_v2/recovery_summary.json",
+  "required_serial_recovery_summary_sha256": "d18ad7f01780628d13ba7822de8649450a0e00dbc726e8beb799bfa678cf23d8",
+  "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_admission_recovery_v3",
+  "semantics": {
+    "artifact_only": true,
+    "simulator_rerun_performed": false,
+    "tensor_array_replacement_performed": false,
+    "preserve_failed_analysis": true,
+    "require_exact_24_test_only_false_no_test_target": true,
+    "replace_smoke_sentinel_with_joint_unlock_check": true,
+    "preserve_serial_execution_identity_qualification": true,
+    "prediction_requires_recovered_30_member_admission": true
+  }
+}

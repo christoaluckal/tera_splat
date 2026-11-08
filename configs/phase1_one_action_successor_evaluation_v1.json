@@ -5,7 +5,10 @@
   "authority": "docs/newton/phase1.md",
   "successor_contract": "configs/phase1_one_action_successor_contract_v1.json",
   "dataset_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_plan.json",
-  "bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_summary.json",
+  "bulk_recovery_config": "configs/phase1_one_action_successor_bulk_recovery_v2.json",
+  "legacy_bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_summary.json",
+  "bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_recovery_v2_summary.json",
+  "required_bulk_recovery_id": "phase1_one_action_successor_bulk_recovery_v2",
   "training_config": "configs/phase1_one_action_successor_training_v1.json",
   "training_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/training_plan.json",
   "normalization": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/normalization.json",
@@ -14,7 +17,8 @@
     "contract_sha256": "834db42409fd48dfb2136b93192dd5fd22233733ac09dfaf8d7e5bcaf6aef4fd",
     "episode_manifest_sha256": "2df4ced81aa85a88536b72bd28c8a736e8dabf898ffeb891891678b9e7682725",
     "test_lock_sha256": "0390d46bfd5860b08518f3b99ab116084f24138939c04435f29582c3feedf713",
-    "sensitivity_lock_sha256": "a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139"
+    "sensitivity_lock_sha256": "a003ec52f2fb43c94d5d760e06a924c3b49809a0ddf415a6abbb718ff18a4139",
+    "legacy_bulk_summary_sha256": "f80c9f018758438ecac0300cfc35c51e828af08a3268ba5fc791a2501f748955"
   },
   "membership": {
     "test": 24,

@@ -111,6 +111,14 @@ class SuccessorEvaluationTests(unittest.TestCase):
         self.assertTrue(cfg["membership"]["single_joint_unlock_marker"])
         self.assertTrue(cfg["metrics"]["episode_is_resampling_unit"])
         self.assertEqual(cfg["metrics"]["bootstrap_resamples"], 10_000)
+        self.assertEqual(
+            cfg["required_bulk_recovery_id"],
+            evaluation.EXPECTED_BULK_RECOVERY_ID,
+        )
+        self.assertEqual(
+            cfg["required_identity"]["legacy_bulk_summary_sha256"],
+            evaluation.EXPECTED_LEGACY_BULK_SUMMARY_SHA256,
+        )
 
     def test_locked_membership_rechecks_groups_and_sensitivity_grid(self) -> None:
         selected = membership()

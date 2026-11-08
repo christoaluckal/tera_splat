@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "recovery_id": "phase1_one_action_successor_bulk_recovery_v2",
+  "status": "prepared_after_v1_bulk_failure_before_training",
+  "authority": "docs/newton/phase1.md",
+  "purpose": "Preserve the failed v1 bulk summary and re-evaluate only its legacy single-tolerance guide check under the independently justified component-specific guide contract before any training or protected target is opened.",
+  "legacy_bulk_config": "configs/phase1_one_action_successor_bulk_v1.json",
+  "legacy_bulk_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_plan.json",
+  "legacy_bulk_plan_sha256": "5e56f58570666c81e73e06ee34ee3f4e4193c9917d81cae74d11f66fb0de8b49",
+  "legacy_bulk_summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_summary.json",
+  "legacy_bulk_summary_sha256": "f80c9f018758438ecac0300cfc35c51e828af08a3268ba5fc791a2501f748955",
+  "expected_legacy_status": "failed_or_incomplete",
+  "expected_legacy_failure_ids": ["p1s_train_joint-design_019"],
+  "expected_legacy_failed_episode_checks": ["guide"],
+  "guide_contract": {
+    "horizontal_position_error_m": 0.000001,
+    "horizontal_speed_mps": 0.000005,
+    "angular_speed_radps": 0.000001,
+    "orientation_quaternion_error": 0.000001
+  },
+  "guide_contract_precedent": {
+    "prospective_config": "configs/phase1_evaluation_v2.json",
+    "prospective_config_sha256": "c06c75f587dc1af868a48eeb6651f3a5b51a23fd9247f84a1415c4b9537d21cf",
+    "full_duration_qualification": "diagnostics/phase1_newton_dual_benchmark_20261030/full_duration_summary.json",
+    "full_duration_qualification_sha256": "957174ff2290725a4b56dcdbbfec0e6b53d53576ed3b4910d9f59fe7cb2b6c18",
+    "required_qualification_status": "passed_full_duration_qualification_with_non_bitwise_drift",
+    "selected_before_successor_bulk_failure_was_observed": true
+  },
+  "policy": {
+    "reanalysis_only": true,
+    "simulator_rerun_prohibited": true,
+    "artifact_replacement_prohibited": true,
+    "legacy_summary_rewrite_prohibited": true,
+    "all_train_validation_artifacts_hash_bound_before_reanalysis": true,
+    "test_and_protected_sensitivity_targets_must_remain_absent": true,
+    "training_remains_locked_until_recovery_summary_passes": true
+  },
+  "expected_counts": {
+    "total": 64,
+    "train": 48,
+    "validation": 16,
+    "test": 0,
+    "protected_sensitivity": 0
+  },
+  "output": {
+    "plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_recovery_v2_plan.json",
+    "summary": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_recovery_v2_summary.json"
+  },
+  "source_files": {
+    "recovery_runner": "scripts/recover_phase1_one_action_successor_bulk_v2.py",
+    "recovery_tests": "tests/test_recover_phase1_one_action_successor_bulk_v2.py",
+    "legacy_bulk_runner": "scripts/run_phase1_one_action_successor_bulk.py",
+    "legacy_bulk_config": "configs/phase1_one_action_successor_bulk_v1.json",
+    "successor_training_runner": "scripts/train_phase1_one_action_successor.py"
+  }
+}

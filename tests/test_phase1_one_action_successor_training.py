@@ -52,6 +52,7 @@ def passing_bulk_summary() -> dict:
         for index in range(64)
     }
     return {
+        "recovery_id": TRAIN.EXPECTED_BULK_RECOVERY_ID,
         "status": "passed",
         "training_plan_freeze_permitted": True,
         "test_or_protected_sensitivity_permitted": False,
@@ -62,10 +63,28 @@ def passing_bulk_summary() -> dict:
             "test": 0,
             "protected_sensitivity": 0,
         },
-        "checks": {"test_and_sensitivity_targets_unopened": True},
+        "checks": {
+            "legacy_failure_shape_preserved": True,
+            "legacy_summary_unchanged": True,
+            "all_artifacts_match_frozen_recovery_plan": True,
+            "all_complete": True,
+            "all_component_guide_checks_pass": True,
+            "all_admitted": True,
+            "test_and_sensitivity_targets_unopened": True,
+            "simulator_rerun_performed": False,
+            "artifact_replacement_performed": False,
+        },
         "identity": {
             "test_lock_sha256": TRAIN.EXPECTED_TEST_LOCK_SHA256,
             "sensitivity_lock_sha256": TRAIN.EXPECTED_SENSITIVITY_LOCK_SHA256,
+            "legacy_bulk_summary_sha256": (
+                TRAIN.EXPECTED_LEGACY_BULK_SUMMARY_SHA256
+            ),
+        },
+        "reanalysis": {
+            "recovered_ids": ["p1s_train_joint-design_019"],
+            "simulator_outputs_reused_unchanged": True,
+            "protected_targets_opened": False,
         },
         "episodes": episodes,
     }
@@ -208,7 +227,6 @@ class SuccessorTrainingTests(unittest.TestCase):
         sources = TRAIN.source_paths(CONFIG)
         self.assertTrue(sources)
         self.assertTrue(all(path.is_file() for path in sources.values()))
-        self.assertFalse(TRAIN.plan_path(config()).exists())
 
 
 if __name__ == "__main__":

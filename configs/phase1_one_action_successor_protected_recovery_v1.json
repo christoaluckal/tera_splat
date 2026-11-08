@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recovery_id": "phase1_one_action_successor_protected_recovery_v1",
+  "status": "prospective_after_failed_attempt_before_retry",
+  "authority": "docs/newton/phase1.md",
+  "evaluation_config": "configs/phase1_one_action_successor_evaluation_v1.json",
+  "required_evaluation_plan_sha256": "5b9f1062bcc54c55696addb54b3f5c0fea953335281ee08d0c5dfe3ddd9cc02c",
+  "required_open_marker_sha256": "9d461aedf6ad6329cac4134ae7b39c400472843b501972aba359c3b769fbfa14",
+  "failed_episode_id": "p1s_test_joint-combination_019",
+  "companion_episode_id": "p1s_test_joint-combination_020",
+  "failed_log_sha256": "452151089d7bdcafa0c4754e71f154635f4a0b6686971da59fe06a1bab81c71f",
+  "failure_mode": "nonfinite_plastic_jacobian_during_residual_state_export",
+  "execution": {
+    "workers": 2,
+    "device": "cuda:0",
+    "failed_attempt_archive": "failed_attempts/attempt_1_nonfinite_plastic_jacobian",
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_recovery_v1"
+  },
+  "semantics": {
+    "preserve_failed_attempt": true,
+    "replace_completed_official_response": false,
+    "generate_only_missing_official_response": true,
+    "companion_is_recovery_evidence_not_evaluation_membership": true,
+    "require_two_concurrent_processes": true,
+    "allow_additional_retry_without_new_plan": false,
+    "prediction_requires_original_30_member_admission": true
+  }
+}

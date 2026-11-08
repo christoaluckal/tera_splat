@@ -1,6 +1,6 @@
 # Phase 1 chronological implementation and evidence record
 
-Last updated: 2026-11-01
+Last updated: 2026-11-07
 
 Status: active append-only evidence record
 
@@ -27,6 +27,13 @@ must not redefine Phase 1 or maintain a competing success criterion.
 | v2 recovery contract | conditional evaluation complete; prospective identity deviation preserved | numerical admission passes 24/24; all predictions and audits exist; the episode-012 serial retry and post-lock JSON compatibility shim remain explicit qualifications |
 | Phase 1 exit | evaluated and failed, not demonstrated | conditional v2 report passes 33/49 checks and fails 16; H1 improves raw Newton but fails joint, material-use, parameter-control, and sensitivity gates; H2 is worse than H1 |
 | post-v2 research boundary | documented; next contract remains prospective | first prove one-action prediction over a justified plausible simulator domain; sequential world model follows; deeper terramechanics triggers claim/expertise review |
+| successor engineering smoke | complete and passed | 12/12 complete and admitted at 8 train/4 validation/0 test/0 sensitivity; summary SHA-256 `8c66e79f513ef40f1e680efad719500713f57523c9013c4907fa880060919989`; remaining train/validation permitted; protected denied |
+| successor bulk train/validation | complete; legacy failure preserved; artifact-only recovery passed | 64/64 Chrono/Newton/tensor pairs complete; v1 summary `f80c9f...8955` fails only member 019's legacy guide check; recovery plan `aedca2...5ab6` binds 384 artifacts and passing summary `dfacb7...1d81`; no rerun or protected access |
+| successor training | complete and selected on validation | plan `2b3b71...0426` and train-only normalization `969a33...9d6` frozen; 15/15 equal-capacity fits complete; selection/calibration summary `3a2ffe...e08e` used only 16 validation episodes |
+| successor protected evaluation | complete and closed failed | 30/30 admitted after preserved serial and artifact-only qualifications; prediction `b825bd...a2dc3` passes sensitivity direction for all five models; final report `c5995e...c3f9` permits no claim; qualification `9205c2...1570` records `phase1_goal_achieved=false` |
+| successor model-type result | direct D0 strongest; Newton-conditioned variants add no demonstrated value | protected median RMSE, loaded footprint / loaded twice-radius / post footprint / post twice-radius: D0 1.825/1.856/1.825/1.855 mm; R0 3.161/2.859/3.595/3.369; R1 3.309/2.964/3.815/3.395; R2S 3.304/2.949/3.869/3.406; R2E 3.574/2.988/4.045/3.492 |
+| direct-v4 D1 validation | authoritative validation passed | no-refit D0 sensitivity wrapper; confirmation plan `a6d3dc...d4428` preceded validation; summary `ed23f6...a22` passes 20/20 on 16 validation episodes with zero v1 test use |
+| direct-v4 protected confirmation | Chrono generation active | surfaces 5101--5106 qualified; joint unlock/open completed once; protected plan `7385bb...63ab`; at 20:19 EST on 2026-11-07, 14/30 Chrono manifests complete and members 014/015 active; downstream bed/Newton/admission/prediction/report pending |
 
 The operational simulator screen, corrected v3 latent-input qualification, and
 12-episode engineering smoke set have passed. The smoke aggregate now permits
@@ -3230,6 +3237,616 @@ Downstream handoff after a verified smoke pass:
 The successor source/config hashes recorded in the preceding entries were
 rechecked and are unchanged. The smoke, bulk, training, and evaluation gates
 therefore remain bound to their documented implementations.
+
+### 2026-11-02 — Successor smoke passed and unprotected bulk launched
+
+Question:
+
+- determine whether the frozen successor smoke passed its aggregate gate, then
+  freeze and run only the permitted unprotected train/validation continuation
+  without opening either protected set.
+
+Measured smoke evidence:
+
+- the original two-worker run completed all 12 Chrono episodes, four required
+  bed preparations, all 12 Newton responses, tensor conversion, analysis, and
+  aggregate summary generation;
+- all 12/12 members are complete and admitted at 8 training, 4 validation,
+  0 test, and 0 protected sensitivity, and every aggregate check is true;
+- `remaining_train_validation_permitted` is true while
+  `test_or_protected_sensitivity_permitted` is false;
+- the passing summary is bound to smoke-plan SHA-256
+  `3d861da58edaf697ca7b5b494589fce99b926a7a3c13c19dec19026eedbafee7` and
+  has SHA-256
+  `8c66e79f513ef40f1e680efad719500713f57523c9013c4907fa880060919989`.
+
+Frozen bulk continuation and runtime state:
+
+- `phase1_one_action_successor_contract_v1/dataset_smoke_v1/bulk_plan.json`
+  has SHA-256
+  `5e56f58570666c81e73e06ee34ee3f4e4193c9917d81cae74d11f66fb0de8b49`;
+- the plan totals 48 training and 16 validation members, hash-binds and reuses
+  all 12 admitted smoke members, and selects exactly 52 new members: 40 training
+  plus 12 validation;
+- the plan contains zero test and zero protected-sensitivity members and keeps
+  protected generation explicitly denied;
+- the original bulk supervisor is active as PID `1981098` under
+  `python3 scripts/run_phase1_one_action_successor_bulk.py --stage all --workers 2`;
+  at 10:59 EST its two workers were executing training members 008 and 009;
+- no `bulk_summary.json` exists yet.
+
+Decision and continuation guard:
+
+- the smoke gate has passed and the unprotected bulk run is active;
+- do not launch a duplicate supervisor or infer bulk admission from partial
+  outputs;
+- training, evaluation-plan freeze, joint protected unlock, all protected
+  generation, prediction, and reporting remain prohibited;
+- only a passing 48/16 bulk summary with all 64 members complete and admitted,
+  explicit training permission, and explicit protected denial may permit the
+  training-plan freeze.
+
+Claim boundary:
+
+- the passing smoke demonstrates only that the frozen small pipeline completed
+  and met its engineering admission checks; it does not demonstrate predictive
+  accuracy, Newton added value, parameter sensitivity, or real-soil validity;
+- launching the bulk continuation creates no protected target and changes no
+  successor scientific claim.
+
+### 2026-11-03 — Unprotected bulk progress checkpoint
+
+Question:
+
+- reconcile the original two-worker bulk supervisor after the date boundary,
+  record material forward progress, and preserve every downstream lock.
+
+Measured evidence at 01:23 EST:
+
+- the original supervisor PID `1981098` remains active under the frozen bulk
+  command;
+- new training members 008--038 completed in order without an emitted error;
+- workers advanced to new training members 039 and 040, so 31/40 new training
+  members are complete;
+- nine new training members, all 12 new validation members, Newton response and
+  tensor generation, and the aggregate bulk summary remain unfinished;
+- no protected worker or protected target was created.
+
+Decision and claim boundary:
+
+- continue the original supervisor without a duplicate or restart;
+- do not infer episode admission or training permission from the 31 partial
+  Chrono completions;
+- training, evaluation-plan freeze, protected unlock, prediction, and reporting
+  remain prohibited until their documented gates pass;
+- this checkpoint records runtime progress only and changes no scientific
+  claim.
+
+### 2026-11-03 — Chrono generation complete and Newton responses active
+
+Question:
+
+- reconcile the single frozen bulk supervisor after completion of target
+  generation, record the response-stage boundary, and preserve every later
+  gate.
+
+Measured evidence at 19:04 EST:
+
+- the original supervisor PID `1981098` remains active under the frozen bulk
+  command with exactly two Newton response workers;
+- all 40 new training and 12 new validation Chrono episodes are complete, so
+  the plan's 48/16 Chrono membership is complete after reusing the 12 smoke
+  members;
+- all five reusable Newton beds and preparations for surface seeds 4101--4104
+  and 4201 are complete;
+- new training responses 008--023 are durable, for 16/52 new responses and
+  28/64 response manifests after including the 12 reused smoke responses;
+- workers are executing new training responses 024 and 025 on `cuda:0`;
+- no protected worker or target was created, and no new tensor admission or
+  `bulk_summary.json` exists yet.
+
+Decision and claim boundary:
+
+- continue the original supervisor without a duplicate or restart through all
+  remaining responses, tensor conversion, analysis, and aggregate admission;
+- do not infer member admission or training permission from Chrono or response
+  completion alone;
+- training-plan freeze, model fitting, evaluation-plan freeze, protected
+  unlock, prediction, and reporting remain prohibited until their documented
+  gates pass;
+- this checkpoint records runtime progress only and changes no scientific
+  claim.
+
+### 2026-11-05 — Bulk failure preserved, artifact-only recovery passed, training launched
+
+Question:
+
+- determine whether the completed 48/16 bulk set permits training without
+  erasing a frozen failure, rerunning a simulator, replacing an artifact, or
+  weakening either protected lock.
+
+Completed bulk evidence:
+
+- all 64 Chrono, Newton, tensor, and episode-summary artifacts are complete at
+  48 training, 16 validation, zero test, and zero protected sensitivity;
+- the original `bulk_summary.json` has SHA-256
+  `f80c9f018758438ecac0300cfc35c51e828af08a3268ba5fc791a2501f748955`
+  and remains `failed_or_incomplete`;
+- member `p1s_train_joint-design_019` alone is rejected: horizontal guide
+  speed is `1.3220210438912167e-6` m/s against the legacy unified `1e-6`
+  tolerance. Every other numerical, interaction, tensor, count, surface, and
+  protected-lock check passes;
+- the v1 summary and all simulator/tensor artifacts remain unchanged.
+
+Prospective basis and frozen recovery:
+
+- the component-specific guide contract was selected before this successor
+  failure in `phase1_evaluation_v2.json`: horizontal speed `5e-6` m/s,
+  with horizontal position, angular speed, and orientation each `1e-6`;
+- the independent full-duration dual-worker qualification records
+  `passed_full_duration_qualification_with_non_bitwise_drift`;
+- the recovery config, runner, and focused tests were added as a distinct v2
+  analysis path. Four recovery tests, nine updated successor training tests,
+  syntax checks, and whitespace checks pass;
+- the recovery plan was frozen before reanalysis at SHA-256
+  `aedca2736bbe8fbf5b2543d9d41d470c5243834acfb7945201eccd821bb85ab6`.
+  It binds six files for each of 64 members, all 384 artifact hashes, the exact
+  failed v1 summary, sources, train/validation manifest, and both protected
+  locks. It prohibits simulation reruns and artifact replacement;
+- the separate recovery summary has SHA-256
+  `dfacb7ed29b61c061dff01314e3035530db7a89d81617e4c117db7e90acc1d81`,
+  passes 64/64 under the frozen component contract, records only member 019 as
+  recovered, permits training-plan freeze, and continues to deny protected
+  generation.
+
+Training freeze and launch:
+
+- training-plan SHA-256:
+  `2b3b71023c908b1c2c953e558edf4e1dae28c7af775b7f091f16aff5190a0426`;
+- train-only normalization SHA-256:
+  `969a3378dab6de540eed912a30c613ead129a43e7e6d8d0df49712c2f04269d6`;
+- D0, R0, R1, R2S, and R2E each have 288,532 parameters and use the three
+  already declared seeds 20261101--20261103;
+- the full 15-fit command is active as PID `2328423`. At 01:01 EST, D0 seed
+  20261101 was the sole complete model card.
+
+Decision and claim boundary:
+
+- continue the single training process through all 15 fits, then perform
+  validation-only selection and uncertainty calibration;
+- do not freeze evaluation, unlock protected targets, or inspect protected
+  outcomes before selection is complete;
+- the recovery fixes an inherited numerical-contract mismatch using an
+  independently prospective threshold; it does not establish predictive
+  accuracy, Newton added value, parameter sensitivity, or real-soil validity.
+
+### 2026-11-05 — Validation selection complete and protected evaluation opened once
+
+Question:
+
+- can validation-only selection, recovery-bound evaluation freeze, and the
+  single joint protected unlock/open transition complete without target
+  leakage or a duplicate execution chain?
+
+Training and selection evidence:
+
+- all 15 equal-capacity D0/R0/R1/R2S/R2E fits completed for seeds
+  20261101--20261103, with 15 model cards, histories, and checkpoints;
+- selection and uncertainty calibration used only the 16 validation episodes;
+- selected seeds are D0 `20261102`, R0 `20261101`, R1 `20261103`, R2S
+  `20261103`, and R2E `20261102`;
+- `selection_summary.json` has SHA-256
+  `3a2ffef309fc36a6018698182dec626f187e8b94894c41e0f76c5cbe46fbe08e`
+  and status `models_selected_before_protected_unlock`;
+- protected targets remained absent throughout fitting, selection, and
+  calibration.
+
+Recovery-bound evaluation freeze:
+
+- the evaluator now requires the passed recovery ID, all recovery checks, the
+  immutable legacy bulk-summary SHA-256, exact recovered-member identity, no
+  simulator rerun, no artifact replacement, and no protected access;
+- 13 focused evaluation, five protected-runner, six prediction, four recovery,
+  and nine training tests pass; syntax and whitespace checks also pass;
+- `evaluation_plan.json` has SHA-256
+  `5b9f1062bcc54c55696addb54b3f5c0fea953335281ee08d0c5dfe3ddd9cc02c`
+  and status `frozen_after_validation_selection_before_first_protected_target`;
+- the plan binds exactly 24 test and six protected-sensitivity episodes, all
+  selected model-card/checkpoint/history hashes, the validation-only
+  calibration, both target locks, and the recovery sources. It records
+  `protected_targets_opened: false` at freeze.
+
+Unlock and active execution:
+
+- the explicit joint unlock marker binds evaluation plan
+  `5b9f1062...cc02c`, selection `3a2ffef3...e08e`, test lock
+  `0390d46b...f713`, and sensitivity lock `a003ec52...4139`, with 24/6 counts
+  and `targets_opened: false`;
+- the qualified command
+  `/eng/home/christoa/miniconda3/envs/test/bin/python scripts/run_phase1_one_action_successor_protected.py --stage all --workers 2`
+  launched once as session `33604`;
+- its Chrono stage wrote the sole open-once marker immediately before starting
+  the first two protected episodes. At 02:38 EST both Chrono workers were
+  active; no duplicate protected process was launched.
+
+Decision and claim boundary:
+
+- continue session `33604` through all 30 Chrono targets, reusable-bed
+  preparation, Newton responses, tensor conversion, and aggregate admission;
+- prediction remains prohibited until `protected_dataset_summary.json` passes
+  all 30 members. The final report remains prohibited until prediction
+  completes under the frozen selected artifacts;
+- this checkpoint proves ordering and identity only. It does not establish any
+  accuracy, uncertainty, sensitivity, Newton-added-value, or Phase 1 exit gate.
+
+### 2026-11-05 — Protected Chrono generation reached 14/30
+
+Measured evidence at 08:39 EST:
+
+- the original protected supervisor PID `2340298` and session `33604` remain
+  active after six hours with exactly two Chrono workers;
+- 14/30 protected Chrono manifests are durable in frozen membership order;
+- episodes `p1s_test_unseen-kphi_014` and
+  `p1s_test_unseen-initial-surface_015` are active, both CPU-bound normally;
+- no protected-generation error, second supervisor, prediction artifact, or
+  report exists.
+
+Fail-closed continuation:
+
+- temporary watcher session `82982` polls only the exact protected supervisor
+  PID and command. After it exits, the watcher invokes the existing predictor,
+  followed by the report only if prediction succeeds;
+- this does not bypass a gate: prediction independently requires the protected
+  summary to be `passed`, `prediction_permitted: true`, and bound to the frozen
+  evaluation plan. The report independently revalidates the prediction and all
+  protected artifacts;
+- if protected admission fails, the predictor refuses and the watcher exits
+  before reporting.
+
+Decision and claim boundary:
+
+- preserve both sessions and do not launch another protected, prediction, or
+  report process;
+- 14 Chrono manifests prove generation progress only. All predictive and Phase
+  1 exit claims remain prohibited until admission, prediction, and the locked
+  report complete and are audited.
+
+### 2026-11-05 — All 24 protected-test Chrono targets complete
+
+Measured evidence at 12:37 EST:
+
+- all 24 frozen protected-test Chrono manifests are durable under the original
+  supervisor PID `2340298` and its exact two-worker queue;
+- sensitivity members `p1s_protected_sensitivity_matched-kphi-sweep_000` and
+  `_001` are active, so the six-member sensitivity block is the only remaining
+  Chrono work;
+- no protected-generation error, duplicate supervisor, prediction artifact,
+  or report exists. Watcher session `82982` remains dormant behind aggregate
+  admission.
+
+Decision and claim boundary:
+
+- continue the same supervisor through six sensitivity targets, bed/prior
+  reuse, all 30 Newton responses, tensor conversion, and admission;
+- 24/24 test Chrono completion establishes target-generation progress only. It
+  does not permit prediction or establish any accuracy, sensitivity,
+  uncertainty, Newton-added-value, or Phase 1 exit claim.
+
+### 2026-11-06 — Protected Newton failed closed; missing-only recovery frozen
+
+Failure evidence:
+
+- the original session `33604` completed all 30 Chrono targets, all five bed
+  builds and preparations, and 29/30 protected Newton responses;
+- `p1s_test_joint-combination_019` alone exited during residual-state export
+  because `plastic_jacobian` contained non-finite values. It produced no
+  response manifest. Its log SHA-256 is
+  `452151089d7bdcafa0c4754e71f154635f4a0b6686971da59fe06a1bab81c71f`;
+- the protected supervisor exited nonzero. The continuation watcher attempted
+  prediction, but the predictor independently rejected the incomplete
+  protected artifact set before inference; no report was produced;
+- the other 29 official response-manifest identities remain complete and are
+  now bound by the recovery plan. No failed file has been deleted or replaced.
+
+Prospective recovery frozen before retry:
+
+- [recovery config](../../configs/phase1_one_action_successor_protected_recovery_v1.json),
+  [runner](../../scripts/recover_phase1_one_action_successor_protected_v1.py),
+  and [focused tests](../../tests/test_recover_phase1_one_action_successor_protected_v1.py)
+  define a separate recovery identity;
+- three focused tests, bytecode compilation, and whitespace checks pass;
+- recovery-plan SHA-256 is
+  `d48f40ecb05fa194b21cb5f7cab4acc75006513d898d292c398a7c1c17035f89`.
+  It binds the unchanged evaluation plan/open marker, exact failed files, all
+  29 completed official manifests, source identities, and the exact retry and
+  companion inputs;
+- runtime must move the failed partial response and log into the episode-local
+  `failed_attempts/attempt_1_nonfinite_plastic_jacobian/` archive, generate
+  only missing official member 019, and concurrently run member 020 into a
+  recovery-only companion directory. The companion is execution evidence and
+  cannot enter evaluation membership or replace member 020's official data;
+- a second retry is prohibited without another prospective plan. Even a
+  passing recovery summary cannot permit prediction: the original 30-member
+  protected analyzer must still admit every test and sensitivity member.
+
+Decision and claim boundary:
+
+- execute the one frozen two-process recovery attempt, then run the original
+  protected analyzer only if both recovery manifests pass finite, guide, and
+  preparation checks and all 29 prior manifests remain hash-identical;
+- this recovery plan preserves the failed attempt and execution identity. It
+  does not establish protected admission, predictive accuracy, sensitivity,
+  uncertainty, Newton-added-value, or the Phase 1 exit.
+
+### 2026-11-07 — Dual-process recovery failed; qualified serial recovery frozen
+
+Measured v1 recovery result:
+
+- the frozen two-process recovery ran member 019 and the recovery-only member
+  020 companion concurrently for about 64 minutes;
+- the companion passed all finite, guide, and preparation checks with manifest
+  SHA-256 `9df3e15e22298a113028e2847c6d83977cdb8d237ec926ec514300b4fabe8955`;
+- official member 019 again failed at residual export on a non-finite
+  `plastic_jacobian`; its second failed log SHA-256 is
+  `bf8bab4cd6af778fa09050b1ef84d45a2ee52a8035d7e59d0d0187dde5a61777`;
+- recovery summary SHA-256 is
+  `6f46e5350a87579d66937e0fbc5e0942f357fdb0f82449d89dd7768ba38a3f6e`.
+  It records `status=failed`, preserves the first attempt, confirms all 29
+  completed manifests unchanged, and keeps `prediction_permitted=false`;
+- the fail-closed continuation stopped on that failed recovery summary. It did
+  not invoke protected admission, prediction, or reporting.
+
+Prospective serial v2 recovery:
+
+- [v2 config](../../configs/phase1_one_action_successor_protected_recovery_v2.json),
+  [runner](../../scripts/recover_phase1_one_action_successor_protected_v2.py),
+  and [focused tests](../../tests/test_recover_phase1_one_action_successor_protected_v2.py)
+  define one serial missing-only retry after the two dual-process failures;
+- two focused tests, bytecode compilation, and whitespace checks pass;
+- plan SHA-256 is
+  `4da69d0c61f9e3bf65083febd2c45432806ea56ed17d25a2b207d7b96cb7bd9f`.
+  It binds both failed attempts, the v1 recovery plan and failed summary, all
+  29 completed official manifests, unchanged source identities, and the exact
+  member-019 input before the serial retry;
+- the plan explicitly records that a successful member-019 response is a
+  serial execution-identity qualification and may not be represented as a
+  clean two-worker protected response set. It permits no further unplanned
+  retry and cannot itself permit prediction.
+
+Decision and claim boundary:
+
+- execute the one frozen serial attempt, preserve the second failed response
+  before runtime, then require the v2 summary and original 30-member protected
+  admission in sequence;
+- even if numerically complete, the final report must retain the member-019
+  execution qualification. This checkpoint establishes neither admission nor
+  any positive predictive or Phase 1 claim.
+
+Serial completion and analyzer mismatch:
+
+- the unchanged serial member-019 response completed. Recovery-v2 summary
+  SHA-256 is
+  `d18ad7f01780628d13ba7822de8649450a0e00dbc726e8beb799bfa678cf23d8`;
+  all six recovery checks pass, both failed attempts remain hash-preserved,
+  all 30 official manifests exist, and the execution qualification is explicit;
+- the original protected analyzer then completed all 30 tensor exports but
+  emitted failed summary SHA-256
+  `b47c316faa8635ae348c155d30105ac4a2d9dceb7c1b3d7a25e1ba38dbd2a086`;
+- exactly the 24 test members are marked unadmitted. Every one passes all
+  numerical, interaction, tensor-shape, finite, signal, and memory checks and
+  fails only `no_test_target`. All six protected-sensitivity members admit;
+- `no_test_target` is the engineering-smoke sentinel that correctly prevents
+  test export before unlock. Reusing it after the frozen joint unlock/open is
+  a protected-bridge context error, not a scientific or numerical failure.
+
+Artifact-only admission recovery frozen before correction:
+
+- [config](../../configs/phase1_one_action_successor_protected_admission_recovery_v3.json),
+  [runner](../../scripts/recover_phase1_one_action_successor_protected_admission_v3.py),
+  and [tests](../../tests/test_recover_phase1_one_action_successor_protected_admission_v3.py)
+  define a no-simulation, no-tensor-array recovery;
+- two focused tests, bytecode compilation, and whitespace checks pass;
+- plan SHA-256 is
+  `e5576d39a4ab46365ccc18a902f784570f2490e5dfbbc1189ff40b5c3cb40693`.
+  It binds the failed summary, serial recovery, unlock/open identities, sources,
+  and all 180 protected artifact hashes before correction;
+- runtime must archive the failed aggregate and all 60 original per-episode
+  JSONs, leave every Chrono/Newton/NPZ artifact unchanged, and replace only
+  the 24 false smoke sentinels with a true
+  `protected_target_opened_after_joint_unlock` check. The recovered summary
+  must retain the serial execution qualification and independently rehash all
+  protected artifacts before permitting prediction.
+
+### 2026-11-07 — Protected admission and prediction complete; successor hypothesis fails
+
+Question:
+
+- does the fully qualified successor evaluation satisfy every frozen predictive
+  gate and therefore achieve the Phase 1 goal?
+
+Measured recovery and prediction evidence:
+
+- artifact-only admission recovery summary SHA-256 is
+  `785694d82628973a446dfe11dbfac617d5a459abb4f51b4ebef7cc520b25307b`;
+  all recovery checks pass, no simulator or tensor array was rerun or replaced,
+  and the original failed aggregate plus all 60 per-episode JSONs are archived;
+- recovered protected-summary SHA-256 is
+  `fb9f71ea3af06f6acea13bbe33762b9bfb9481ae3fa02eea733563f9c427facc`.
+  It admits all 24 test and six sensitivity members and preserves the member-019
+  serial-retry qualification;
+- protected-prediction SHA-256 is
+  `b825bd2cbf2c7bfcbec020fd776a1895b8b7a7c3fa1c522bb1bc6c88986a2dc3`.
+  It contains 24 test predictions; D0, R0, R1, R2S, and R2E each achieve the
+  required sensitivity direction in all 24 eligible comparisons.
+
+Frozen final result:
+
+- final-report SHA-256 is
+  `c5995e619d602a092aa784ef54ba697d4482b5712c9913a87c8b7c011e49c3f9`;
+  it records `status=failed`, `supported_claim_permitted=false`, and
+  `claim_route=no_positive_successor_claim`;
+- D0, R0, R1, R2S, and R2E all fail at least one required gate. There is no
+  passing correction model and no model demonstrates Newton added value;
+- D0 is the strongest absolute predictor: median RMSE is about 1.82--1.86 mm
+  across the four checkpoint/region pairs and median raw-Newton reduction is
+  55.7--76.1%. It still fails one post-unload footprint failure-tail case and
+  the twice-radius `kphi` constant/shuffled controls, so it cannot support the
+  frozen claim;
+- the immutable qualification record, SHA-256
+  `9205c2ee0bb9eefeb08d5e9cf758046ac3c071891bda6f260b8efebbb55b1570`,
+  binds the report to prediction, the recovered admission, the serial Newton
+  recovery, and the preserved original failed analysis. All 11 provenance and
+  result checks pass; it records `phase1_goal_achieved=false`.
+
+Decision and claim boundary:
+
+- close this successor evaluation as an informative, provenance-qualified
+  failed hypothesis. Do not relabel it as Phase 1 completion and do not create
+  a Phase 1 completion report;
+- the result concerns one held-out vertical action in the frozen synthetic
+  domain. It does not establish sequential rollout, planner benefit,
+  constitutive validation, named-soil calibration, or sim-to-real transfer;
+- any continuation must freeze a new prospective model or protocol branch
+  before using the now-revealed test evidence. The current test set may inform
+  diagnosis but cannot be reused as an unbiased confirmation set.
+
+### 2026-11-07 — Direct-v4 validation passed; fresh protected confirmation active
+
+Question:
+
+- can the strongest direct predictor be repaired prospectively for material
+  sensitivity and confirmed on fresh protected identities without retraining,
+  using the revealed successor test only for diagnosis and branch design;
+- what does the completed model ladder say about direct versus
+  Newton-conditioned prediction; and
+- what exactly is running now?
+
+Antecedent model evidence:
+
+- all 15 equal-capacity three-level U-Net fits completed from 48 training
+  episodes, with seed selection and calibration using only 16 validation
+  episodes;
+- D0 consumes initial geometry, action geometry, force, and `Kphi`, with no
+  Newton input; R0 adds raw Newton loaded/post displacement; R1 adds occupancy,
+  mass, action-aligned vertical velocity, contact count, and normal impulse;
+  R2S and R2E separately add stress and elastic state;
+- the completed 24-test protected report gives the following median RMSE
+  values in millimetres:
+
+| Model | Loaded footprint | Loaded twice-radius | Post footprint | Post twice-radius | Outcome |
+| --- | ---: | ---: | ---: | ---: | --- |
+| D0 | 1.825 | 1.856 | 1.825 | 1.855 | strongest; failed one failure-tail and twice-radius parameter controls |
+| R0 | 3.161 | 2.859 | 3.595 | 3.369 | no Newton added value |
+| R1 | 3.309 | 2.964 | 3.815 | 3.395 | no Newton added value |
+| R2S | 3.304 | 2.949 | 3.869 | 3.406 | no stress-field value |
+| R2E | 3.574 | 2.988 | 4.045 | 3.492 | no elastic-field value |
+
+- all models passed 24/24 protected sensitivity-direction comparisons, but all
+  failed at least one mandatory predictive gate. D0's median reduction from
+  raw Newton was 76.1%, 64.8%, 66.3%, and 55.7% in the same order. The
+  Newton-conditioned models were worse than D0 and failed every
+  Newton-added-value region;
+- this evidence shows that the tested fusion did not use Newton productively.
+  It does not by itself prove whether the Newton prior lacks incremental signal
+  or the equal-capacity early/residual fusion and training design failed to
+  extract it.
+
+Prospective branch ordering:
+
+- direct-v2 validation failed and remains preserved at SHA-256
+  `d27590cdc8a05f52194dd91bdd78be54a0708c3bfa39a2888ebf2115ac48db96`;
+- direct-v3 preflight validation passed at SHA-256
+  `3d266422651920d860070d1c17066a3de18427cbc4ef9de30597270c6bb98af5`,
+  but its confirmation lock followed validation, so it is not authoritative;
+- direct-v4 corrected the ordering. Confirmation plan SHA-256
+  `a6d3dcc5872f5b0398bc51cf7ef800e8c66a577d2eeec08d731345bed80d4428`
+  froze the model, fresh 24-test lock, six-case sensitivity lock, episode
+  manifest, thresholds, and forbidden use of v1 test identities before
+  authoritative validation.
+
+Candidate and authoritative validation:
+
+- D1 is a deterministic
+  `frozen_D0_reference_differenced_kphi_sensitivity_wrapper` around
+  `D0_seed_20261102`; its formula is
+  `initial + ((D0(Kphi) + (D0(Kphi) - D0(train_mean_Kphi))) - initial)`;
+- reference, gain, and residual scale are frozen. There is no fitting, gradient
+  update, new normalization, or protected-target use;
+- authoritative validation-summary SHA-256 is
+  `ed23f62cea6137daea91ea8a259b9edd947f4bd202294a9e9d511b6702d27a22`.
+  It uses the original 16 validation episodes, uses zero v1 test episodes, and
+  passes all 20 frozen checks;
+- validation median RMSE is 2.266/2.035/2.266/2.033 mm for loaded footprint,
+  loaded twice-radius, post footprint, and post twice-radius. Corresponding
+  median reduction from raw Newton is 69.8%/59.0%/56.5%/51.3%, and improvement
+  fractions are 100%/100%/93.75%/100%;
+- constant-reference `Kphi` increases paired mean footprint RMSE by 2.66% at
+  both checkpoints, and shuffled `Kphi` increases it by 4.11%; all four
+  control lower bounds are above zero.
+
+Surface, unlock, and reporting identities:
+
+- all six fresh surface seeds 5101--5106 pass analytic and native SCM
+  round-trip qualification; plan and summary SHA-256 values are
+  `c13026d2ed02ebeacfced01cf4d0ceec47c1ad63ca1ab2c11409d56671946704`
+  and
+  `a73f71b25347d8cac62f771d6e7f6238a24d08a4bb55475a82644841519310c3`;
+- joint unlock
+  `588e8efc693838249b9eb0a26af2cdda0bf93083690b935dadbc1a7cff419837`
+  occurred only after authoritative validation and all-surface qualification;
+  target-open marker
+  `4ff1265799d430ef00900a0a03e8d3e0d4c72aa769455e2fbe2f54fd9cf2be57`
+  then opened the two protected sets together;
+- protected execution-plan SHA-256 is
+  `7385bba039c90a3a172c122bce270702c44c2bd0655030742687ec0c0cc363ab`
+  and requires exactly two workers;
+- reporting plan SHA-256 is
+  `b89417e6d7e7a3942ceb131446841a20555e88d88191076d8ef9dfb682abf60f`.
+  It froze after seven Chrono manifests existed, but before target inspection,
+  tensor target export, prediction, or scoring. Scientific thresholds and D1
+  identity were already frozen before unlock. This ordering fact remains an
+  explicit provenance qualification.
+
+Live protected execution at 20:19 EST:
+
+- the original supervisor PID `2589639` is healthy under
+  `run_phase1_one_action_successor_direct_v4_protected.py --stage chrono`;
+- 14/30 Chrono manifests are complete. Members 000--013 are complete; members
+  014 and 015 are the active workers;
+- no direct-v4 bed preparation, Newton response, tensor admission, protected
+  prediction, or final report exists yet;
+- the guarded continuation order is Chrono 30/30, six bed preparations, 30
+  Newton responses, protected analysis/admission 30/30, locked D1 prediction,
+  then the 25-gate final report. Do not launch a duplicate supervisor or change
+  the frozen two-worker execution identity.
+
+Measured runtime analysis:
+
+- a Newton response operates on roughly 304,865 particles at a 0.25 ms
+  timestep. It repeats a 2.0 s/8,000-step pre-settle, then 1,400 loaded and
+  1,000 post-unload steps, about 10,400 MPM steps per episode;
+- the implicit MPM configuration permits 50 solver iterations, eight coupled
+  proxy iterations, and 16 rigid substeps;
+- historical full-duration cases took about 2,570 seconds each serially.
+  Running two on the single RTX 5090 took about 3,880 seconds per pair, with
+  median GPU utilization 92% and only 1.325x aggregate throughput;
+- settled-state restoration, persistent batching, altered numerics, or a
+  different worker count could accelerate a future branch, but none may be
+  inserted silently into the frozen direct-v4 confirmation.
+
+Decision and claim boundary:
+
+- continue the existing protected run without retraining or changing its
+  execution identity;
+- the current 30 targets are test/sensitivity evidence, not additional
+  training data;
+- a full direct-v4 pass could support only a one-action learned direct-surrogate
+  claim in the frozen synthetic domain. D1 consumes no Newton field and cannot
+  demonstrate Newton+neural added value;
+- a redesigned gated/late-fusion Newton+neural model may reuse the 48 training
+  and 16 validation targets, but it would require a separately frozen model and
+  fresh protected confirmation. The old 24 and current 30 protected targets
+  cannot be used for fitting or unbiased model selection.
 
 ## Maintenance contract
 

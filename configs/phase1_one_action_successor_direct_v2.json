@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "branch_id": "phase1_one_action_successor_direct_v2",
+  "status": "prospective_before_fresh_confirmation_targets",
+  "authority": "docs/newton/phase1.md",
+  "scientific_scope": "one_action_direct_surrogate_in_frozen_synthetic_domain",
+  "antecedent": {
+    "failed_report": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report.json",
+    "failed_report_sha256": "c5995e619d602a092aa784ef54ba697d4482b5712c9913a87c8b7c011e49c3f9",
+    "qualification": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report_qualification.json",
+    "qualification_sha256": "9205c2ee0bb9eefeb08d5e9cf758046ac3c071891bda6f260b8efebbb55b1570",
+    "revealed_v1_test_use": "diagnosis_and_branch_design_only_never_validation_selection_or_confirmation"
+  },
+  "frozen_sources": {
+    "training_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/training_plan.json",
+    "training_plan_sha256": "2b3b71023c908b1c2c953e558edf4e1dae28c7af775b7f091f16aff5190a0426",
+    "normalization": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/normalization.json",
+    "normalization_sha256": "969a3378dab6de540eed912a30c613ead129a43e7e6d8d0df49712c2f04269d6",
+    "selection": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/selection_summary.json",
+    "selection_sha256": "3a2ffef309fc36a6018698182dec626f187e8b94894c41e0f76c5cbe46fbe08e",
+    "d0_checkpoint": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/training_v1/models/D0/seed_20261102/model.pt",
+    "d0_checkpoint_sha256": "a29fc8c762b0603e100aad7aba00ba53384275ff8d4a9fa2e77b3d8d26a6eb59"
+  },
+  "candidate": {
+    "name": "D1",
+    "family": "frozen_D0_reference_differenced_kphi_sensitivity_wrapper",
+    "base_model": "D0_seed_20261102",
+    "reference_kphi_normalized": 0.0,
+    "sensitivity_gain": 1.0,
+    "initial_residual_scale": 1.0,
+    "formula": "initial + scale * ((D0(kphi) + gain * (D0(kphi) - D0(train_mean_kphi))) - initial)",
+    "no_fitting_or_gradient_updates": true
+  },
+  "validation": {
+    "split": "original_16_validation_episodes_only",
+    "shuffle_seed": 20261107,
+    "bootstrap_resamples": 10000,
+    "bootstrap_confidence": 0.95,
+    "bootstrap_seed": 20261107,
+    "output": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v2/validation_summary.json",
+    "v1_test_ids_forbidden": true
+  },
+  "confirmation_protocol": {
+    "fresh_test_episode_count": 24,
+    "fresh_sensitivity_episode_count": 6,
+    "fresh_surface_seeds_required": true,
+    "target_lock_required_before_validation": true,
+    "single_joint_unlock_after_validation": true,
+    "revealed_v1_test_is_not_confirmation": true,
+    "accuracy_regions": ["footprint", "twice_radius"],
+    "parameter_control_regions": ["footprint"],
+    "parameter_control_locality_rationale": "bekker_kphi ablation is tested where the bounded contact response is directly supported; twice-radius accuracy remains mandatory but weak outer response is not treated as parameter-identifiability evidence",
+    "protected_sensitivity_direction_required": true
+  },
+  "success_thresholds": {
+    "median_rmse_reduction_vs_raw_newton_minimum": 0.3,
+    "episode_improvement_fraction_minimum": 0.9,
+    "maximum_regression_relative": 0.1,
+    "maximum_regression_absolute_m": 0.001,
+    "maximum_median_rmse_m": 0.003,
+    "parameter_control_minimum_degradation": 0.02,
+    "parameter_control_paired_lower_bound_above_zero": true,
+    "protected_sensitivity_direction_fraction_minimum": 0.9,
+    "nominal_interval_coverage": 0.9,
+    "accepted_interval_coverage_range": [0.8, 1.0]
+  }
+}

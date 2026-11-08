@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "qualification_id": "phase1_one_action_successor_final_qualification_v1",
+  "authority": "docs/newton/phase1.md",
+  "output": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report_qualification.json",
+  "required_artifacts": {
+    "final_report": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/final_evaluation_report.json",
+      "sha256": "c5995e619d602a092aa784ef54ba697d4482b5712c9913a87c8b7c011e49c3f9"
+    },
+    "prediction_results": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_prediction_results.json",
+      "sha256": "b825bd2cbf2c7bfcbec020fd776a1895b8b7a7c3fa1c522bb1bc6c88986a2dc3"
+    },
+    "protected_dataset_summary": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_dataset_summary.json",
+      "sha256": "fb9f71ea3af06f6acea13bbe33762b9bfb9481ae3fa02eea733563f9c427facc"
+    },
+    "serial_recovery_summary": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_recovery_v2/recovery_summary.json",
+      "sha256": "d18ad7f01780628d13ba7822de8649450a0e00dbc726e8beb799bfa678cf23d8"
+    },
+    "admission_recovery_summary": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_admission_recovery_v3/recovery_summary.json",
+      "sha256": "785694d82628973a446dfe11dbfac617d5a459abb4f51b4ebef7cc520b25307b"
+    },
+    "original_failed_protected_summary": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_contract_v1/evaluation_v1/protected_admission_recovery_v3/original_failed_analysis/protected_dataset_summary.json",
+      "sha256": "b47c316faa8635ae348c155d30105ac4a2d9dceb7c1b3d7a25e1ba38dbd2a086"
+    }
+  },
+  "required_claim_boundary": "The result concerns one held-out vertical action in the frozen synthetic domain; it does not establish sequential rollout, planner benefit, constitutive validation, named-soil calibration, or sim-to-real transfer.",
+  "execution_identity_qualification": "member 019 is a serial retry after two preserved dual-process failures",
+  "analysis_qualification": "the 24 protected test rows were admitted by an artifact-only correction of a post-unlock smoke-sentinel context mismatch; no simulator or tensor array was rerun or replaced"
+}
