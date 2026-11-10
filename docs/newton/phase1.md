@@ -2,9 +2,9 @@
 
 Created: 2026-10-23
 
-Last updated: 2026-11-07
+Last updated: 2026-11-10
 
-Status: successor v1 closed failed; direct-v4 protected confirmation active
+Status: complete; direct-v4 D1 passed 25/25 protected gates and final audit
 
 ## Authority
 
@@ -21,7 +21,13 @@ no-refit `D1` wrapper around the selected `D0` checkpoint on 24 fresh test and
 six fresh sensitivity episodes. Its confirmation identity was frozen before
 authoritative validation, validation passed, all six fresh surfaces qualified,
 and the joint protected unlock/open occurred once in order. Protected Chrono
-generation is active; no direct-v4 prediction or final report exists yet. Work
+generation is complete at 30/30. A separately frozen revision-only
+continuation preserves the original protected identity after the first bed
+invocation failed closed on a repository revision mismatch. Six metric beds,
+six prepared Newton states, and all 30 Newton responses are complete. The
+protected analyzer admits 30/30. Locked D1 prediction, the 25-gate report,
+outcome-neutral final qualification, and the completion audit all pass. Phase
+1 is complete under the narrow learned one-action direct-surrogate claim. Work
 deferred to the sequential stage remains explicit below.
 
 [Phase 0](phase0.md) remains the authority for the completed proof and its
@@ -35,38 +41,39 @@ all new work.
 This section is the entry point for a new agent or session. Read the sources in
 the order below before changing code or launching simulations:
 
-1. this document for the completed v1/v2 result and the active prospective
-   scope, research ordering, and claim boundary;
+1. this document for the completed Phase 1 result, research ordering, and claim
+   boundary;
 2. the [Phase 1 chronological record](phase1-running.md) for dated
-   implementation evidence, frozen hashes, decisions, blockers, and the next
-   permitted gate;
-3. the [Phase 0 completion report](phase0-completion-20261022.md) for the
+   implementation evidence, frozen hashes, decisions, and blockers;
+3. the [Phase 1 completion report](phase1-completion-20261110.md) for the
+   protected metrics, final identities, completion audit, and claim boundary;
+4. the [Phase 0 completion report](phase0-completion-20261022.md) for the
    frozen result, implementation changes, verification, hashes, and claim
    boundary;
-4. the [Phase 0 authority](phase0.md) for the completed action ledger, frozen
+5. the [Phase 0 authority](phase0.md) for the completed action ledger, frozen
    numerical contract, chronology, and artifact routing;
-5. the [fresh Phase 0 protocol](fresh-hierarchical-phase0-20261017.md) for the
+6. the [fresh Phase 0 protocol](fresh-hierarchical-phase0-20261017.md) for the
    prospective split and evidence hierarchy inherited by Phase 1;
-6. the [Chrono oracle contract](../chrono-oracle-run-contract.md) for action,
+7. the [Chrono oracle contract](../chrono-oracle-run-contract.md) for action,
    timing, mask, support, and acceptance semantics;
-7. the [current repository state](../current-state.md) for cross-backend
+8. the [current repository state](../current-state.md) for cross-backend
    context and known limitations;
-8. the [hybrid roadmap](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+9. the [hybrid roadmap](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    for design background only; this document overrides its phase numbering;
-9. the [contributor guidance](../contributor-guidance.md) before modifying
+10. the [contributor guidance](../contributor-guidance.md) before modifying
    experiments, claims, or evidence documents;
-10. the [Newton documentation index](README.md) for the complete dated report
+11. the [Newton documentation index](README.md) for the complete dated report
     and action-specific experiment index;
-11. the [tracked diagnostics index](../../diagnostics/README.md) for the
+12. the [tracked diagnostics index](../../diagnostics/README.md) for the
     lightweight JSON, CSV, and Markdown evidence that led to the inherited
     Newton prior; and
-12. the [Chrono simulator documentation](../../../tera_splat_sim/docs/README.md)
+13. the [Chrono simulator documentation](../../../tera_splat_sim/docs/README.md)
     for the adjacent oracle repository and its environment contract.
 
-The first two documents are sufficient to identify the live goal and current
-gate. Items 3--12 recover why the inherited baseline exists and where its
-evidence lives. Dated historical reports are provenance, not alternative live
-instructions.
+The first three documents are sufficient to recover the completed goal,
+evidence, and claim boundary. Items 4--13 recover why the inherited baseline
+exists and where its evidence lives. Dated historical reports are provenance,
+not alternative live instructions.
 
 ### Live successor checkpoint and continuation guard
 
@@ -131,11 +138,11 @@ no positive successor claim. A separate immutable qualification record,
 SHA-256
 `9205c2ee0bb9eefeb08d5e9cf758046ac3c071891bda6f260b8efebbb55b1570`,
 binds the report to the serial retry and artifact-only admission provenance.
-The successor evaluation is closed as an informative failed experiment, but
-the Phase 1 goal is not complete. Any continuation must freeze a new
-prospective model or protocol branch before using this test evidence.
+The successor evaluation closed as an informative failed experiment and did
+not complete Phase 1. Direct-v4 therefore froze a new prospective model and
+fresh protected protocol before using any new confirmation evidence.
 
-### Direct-v4 prospective confirmation checkpoint
+### Direct-v4 completion checkpoint
 
 The permitted continuation is
 `phase1_one_action_successor_direct_v4`. It does not retrain a model and it is
@@ -187,24 +194,76 @@ the protected execution plan SHA-256 is
 and the open-once marker SHA-256 is
 `4ff1265799d430ef00900a0a03e8d3e0d4c72aa769455e2fbe2f54fd9cf2be57`.
 
-At 20:19 EST on 2026-11-07, the original two-worker protected supervisor is
-healthy: 14/30 Chrono manifests are complete, and members 014 and 015 are
-active. Do not launch a second supervisor or
-change the frozen two-worker identity. After Chrono reaches 30/30, run the
-frozen bed, Newton, and analysis stages, then the already frozen prediction and
-reporting stages. Prediction remains prohibited until all 30 episodes are
-complete and admitted.
+All 30 protected Chrono manifests are complete and accepted. The original
+Chrono supervisor exited successfully.
 
-Newton is expected to dominate the remaining wall time. Each response rebuilds
-roughly 304,865 particles and repeats a 2.0 s pre-settle at 0.25 ms before the
-0.35 s loaded and 0.25 s post-unload windows: about 10,400 MPM steps per
-episode. The implicit solver permits 50 iterations, with eight proxy iterations
-and 16 rigid substeps. Historical full-duration measurement was about 43
+The first bed-stage invocation failed closed before writing a downstream
+artifact. The protected execution plan binds `tera_splat` revision
+`e80203483879dcbae3bbac274ebf25314d97427b`, but committing the already-frozen
+direct-v4 implementation and documentation moved the repository to
+`20cb535cbefb719bcb392cc06f24fc290d1ff955`. The runtime found exactly one
+changed stable identity key, `repository_revisions`; `tera_splat_sim` remains
+at `14b3fce4a0d57b3cbc531226faa0e27c890c7526`, and the source, input,
+environment, membership, thresholds, worker count, and model identities remain
+unchanged. The revision-only recovery config, runner, and tests are
+[phase1_one_action_successor_direct_v4_revision_rebind_v1.json](../../configs/phase1_one_action_successor_direct_v4_revision_rebind_v1.json),
+[recover_phase1_one_action_successor_direct_v4_revision.py](../../scripts/recover_phase1_one_action_successor_direct_v4_revision.py),
+and
+[test_recover_phase1_one_action_successor_direct_v4_revision.py](../../tests/test_recover_phase1_one_action_successor_direct_v4_revision.py).
+Five focused recovery tests and three protected-runtime regression tests pass.
+The prospective revision-only recovery plan froze before any downstream
+artifact at SHA-256
+`0b37fb917c0ee95135b4971c348ee41ae07b19fd486f93fcaaf341b9318c5d54`.
+It binds all completed Chrono files, records 30/30 machine-accepted episodes,
+proves that `repository_revisions` is the sole changed stable key, preserves
+two workers, and keeps prediction prohibited until the protected analyzer
+passes. All six metric beds, all six Newton prepared states, and all 30 Newton
+responses subsequently completed. Every response is finite and
+`acceptance_eligible=true`; response manifests retain the pre-admission
+diagnostic convention `status=diagnostic_only` and `accepted=false`.
+
+The protected analyzer passes all aggregate checks and admits 30/30: 24 test
+and six protected-sensitivity episodes. Its summary SHA-256 is
+`32d4768e87d1ece6d7b7c4f46bf2c362e6a9698906ef4cf9e400ae3c46ab7e06`,
+with `status=passed` and `prediction_permitted=true`. The two-worker supervisor
+exited successfully; no direct-v4 simulator, terrain, or Newton-response
+process is currently running. The outcome-neutral final-qualification plan
+froze before protected admission/prediction/report at SHA-256
+`687131c6e1f3367d5b549c0d808ce9b3cea72d7ce4ea86ccadec10efa76ff259`.
+The reporting-only revision continuation froze after admission and before
+prediction/report at SHA-256
+`9dd7f3728e8279af4566624018f5e7d099ef3d54e63094225dad2cc7fbdd3856`.
+
+Locked prediction SHA-256 is
+`9403c434a20d254b924378a361e7cf7fda0aec415f723580350e75105dda3a62`.
+All 24 eligible protected sensitivity comparisons have the correct direction.
+Final-report SHA-256 is
+`a73067698b08de907915f2db877a2667f7ec862eee0c29a2cc3a2192bb80a2e8`:
+all 25 precommitted hypothesis checks pass, no failed check is recorded, and
+`phase1_goal_achieved=true`. D1 protected median RMSE is 1.827, 1.933,
+1.827, and 1.933 mm for loaded footprint, loaded twice-radius, post-unload
+footprint, and post-unload twice-radius. Median reductions from raw Newton are
+78.29%, 64.31%, 67.97%, and 55.19%; episode improvement fractions against both
+raw Newton and no deformation are 100%, 100%, 95.83%, and 100%.
+
+Final qualification SHA-256
+`eece4dc223903bbfa177cda22eea597a3497ecb1b9d59bd7d956a5904728544c`
+records `qualified_passed_result`. Independent completion-audit SHA-256
+`d6535856a73edc1bf29c51cfd2b63f32e8855e244498fdf1f988a376e5f436cd`
+revalidates every prediction artifact, recomputes the qualifier, and passes.
+The supported route is `learned_one_action_direct_surrogate`; D1 consumes no
+Newton fields and cannot support a Newton+neural added-value claim. The full
+result is in the [Phase 1 completion report](phase1-completion-20261110.md).
+
+Newton dominated the completed protected-runtime wall time. Each response
+rebuilt roughly 304,865 particles and repeated a 2.0 s pre-settle at 0.25 ms
+before the 0.35 s loaded and 0.25 s post-unload windows: about 10,400 MPM steps
+per episode. The implicit solver permits 50 iterations, with eight proxy
+iterations and 16 rigid substeps. Historical full-duration measurement was about 43
 minutes serial per response; two responses sharing one RTX 5090 required about
 64.7 minutes per pair and improved aggregate throughput by only 1.325x. The
-current frozen runtime cannot silently adopt checkpoint reuse or a different
-worker count; either optimization requires a separately qualified prospective
-execution branch.
+completed frozen runtime did not adopt checkpoint reuse or a different worker
+count; either optimization remains a separately qualified prospective branch.
 
 ### Frozen baseline inherited from Phase 0
 
@@ -617,7 +676,7 @@ to Newton admission or permission for bulk generation. The repository-relative
 current machine; preserve repository-relative paths in contracts so the data
 volume can be relocated.
 
-### Current Phase 1 state and next permitted work
+### Current Phase 1 completion state
 
 The original machine-readable Phase 1 contract and target-free prospective
 48/16/24 episode plan remain frozen. The plan fixes all 88 input
@@ -744,16 +803,14 @@ preparation-failure, export-diagnosis,
 qualification, smoke, and contract evidence is recorded in the
 [Phase 1 chronological record](phase1-running.md).
 
-The post-v2 direction is now explicit. The immediate objective is reliable
-one-action prediction over a prospectively justified, engineering-plausible
-parameter domain, while measuring where Newton fails and whether a network
-corrects it. The completed parameter box is operationally qualified but has
-not been established as realistic for a named soil. Inputs should remain
+The post-v2 direction produced the successful direct-v4 result: reliable
+one-action prediction is established over the prospectively frozen synthetic
+parameter domain. The completed parameter box remains operationally qualified
+but is not realistic calibration for a named soil. Inputs should remain
 robotics-defensible or directly exported by MPM; deeper soil constitutive
-modeling is not an implicit next step. If it becomes necessary for acceptable
-prediction, the claim boundary and expertise requirements must be reviewed
-before another contract is frozen. Sequential world-model work follows only
-after the one-action mapping succeeds.
+modeling is not an implicit next step. Sequential world-model work is now the
+next research stage and requires its own prospective contract and fresh
+protected evidence.
 
 The first successor draft is now machine-readable and source-backed. It narrows
 the candidate terrain to a cohesionless, dry-sand-like synthetic SCM family,
@@ -885,17 +942,20 @@ across checkpoint/region combinations and do not beat D0; no Newton-added-value
 or optional-field-value claim passes. Qualification `9205c2...1570` records
 `phase1_goal_achieved=false`.
 
-The separate direct-v4 branch is now active under its own fresh identities.
+The separate direct-v4 branch is complete under its own fresh identities.
 Its fixed D1 wrapper performs no fitting and consumes no Newton fields. The
 confirmation plan was frozen before authoritative validation; validation then
 passed all 20 gates on the original 16 validation episodes without using any
 v1 test member. All six new surfaces qualified, the joint unlock/open occurred
-once, and the frozen two-worker runtime is generating 24 fresh test plus six
-fresh sensitivity targets. At the 20:19 EST checkpoint on 2026-11-07, 14/30
-Chrono manifests are complete and members 014 and 015 are active. Bed
-preparation, Newton response, tensor admission, locked prediction, and the
-25-gate report remain pending. This run can support only a direct-surrogate
-claim; it cannot establish Newton+neural added value.
+once, and all 24 fresh test plus six fresh sensitivity Chrono targets are now
+complete. The revision-only continuation is frozen at `0b37fb...5d54`; six
+metric beds, six prepared Newton states, and 30/30 finite responses pass. The
+protected dataset summary `32d476...7e06` admits all 30 and permits prediction.
+No simulator worker is active. Locked prediction `9403c4...a62`, final report
+`a73067...a2e8`, qualification `eece4d...544c`, and completion audit
+`d65358...436cd` all pass. The report passes 25/25 checks and closes Phase 1
+under the direct-surrogate claim. It cannot establish Newton+neural added
+value.
 
 The bulk route is complete and passed: all five preparations and all 64
 train/validation Chrono/Newton/tensor pairs are admitted, with stress and
@@ -920,14 +980,14 @@ parameters. Those targets remain excluded from fitting, normalization,
 calibration, model selection, and locked-test accuracy. They may be used only
 by the predeclared final evaluator for the directional sensitivity diagnostic.
 
-### Planned Phase 1 routing
+### Phase 1 artifact routing
 
 These are the canonical locations and their current evidence state:
 
-| Future artifact | Canonical location | Current state |
+| Artifact | Canonical location | Current state |
 | --- | --- | --- |
 | machine contract | [phase1_bed_state_v1.json](../../configs/phase1_bed_state_v1.json) | frozen pre-screening contract |
-| chronological evidence | [phase1-running.md](phase1-running.md) | active through the closed failed successor, direct-v4 prospective freeze/validation/unlock, and the live protected confirmation |
+| chronological evidence | [phase1-running.md](phase1-running.md) | complete through direct-v4 freeze/validation/unlock, 30/30 protected runtime/admission, 25/25 report, final qualification, and completion audit |
 | dataset plan | `.../phase1_bed_state_v1/dataset_plan.json` | frozen locally; 48/16/24 inputs; test identities opened once only after selection |
 | contract planner | [run_phase1_contract_screen.py](../../scripts/run_phase1_contract_screen.py) | frozen target-free plan complete |
 | surface/material screening | [run_phase1_screening.py](../../scripts/run_phase1_screening.py) and [run_phase1_newton_common_base.py](../../scripts/run_phase1_newton_common_base.py) | six surfaces and Chrono 5/5 pass; original Newton screen preserved failed; common-base v2 admits all 5 pairings as a bounded coarse prior |
@@ -956,7 +1016,11 @@ These are the canonical locations and their current evidence state:
 | successor final qualification | [phase1_one_action_successor_final_qualification_v1.json](../../configs/phase1_one_action_successor_final_qualification_v1.json), [qualify_phase1_one_action_successor_final.py](../../scripts/qualify_phase1_one_action_successor_final.py), and [test_qualify_phase1_one_action_successor_final.py](../../tests/test_qualify_phase1_one_action_successor_final.py) | qualification `9205c2...1570` binds the immutable failed report, prediction, recovered admission, serial recovery, and archived original failure; it records `phase1_goal_achieved=false` and requires a new prospective branch |
 | direct-v4 candidate and authoritative validation | [phase1_one_action_successor_direct_v4.json](../../configs/phase1_one_action_successor_direct_v4.json), [plan_phase1_one_action_successor_direct_v4.py](../../scripts/plan_phase1_one_action_successor_direct_v4.py), and [validate_phase1_one_action_successor_direct_v4.py](../../scripts/validate_phase1_one_action_successor_direct_v4.py) | confirmation plan `a6d3dc...d4428` froze before validation; D1 is a no-refit D0 sensitivity wrapper; validation `ed23f6...a22` passes all 20 checks on 16 validation episodes and uses zero v1 test episodes |
 | direct-v4 surface qualification and joint unlock | [qualify_phase1_one_action_successor_direct_v4_surfaces.py](../../scripts/qualify_phase1_one_action_successor_direct_v4_surfaces.py) and [unlock_phase1_one_action_successor_direct_v4.py](../../scripts/unlock_phase1_one_action_successor_direct_v4.py) | seeds 5101--5106 pass analytic/native-SCM checks; joint unlock `588e8e...9837` and target-open marker `4ff126...be57` occurred once after validation and qualification |
-| direct-v4 protected confirmation | [run_phase1_one_action_successor_direct_v4_protected.py](../../scripts/run_phase1_one_action_successor_direct_v4_protected.py) and [evaluate_phase1_one_action_successor_direct_v4.py](../../scripts/evaluate_phase1_one_action_successor_direct_v4.py) | protected plan `7385bb...63ab` and reporting plan `b89417...f60f` are frozen; at 20:19 EST on 2026-11-07, Chrono is 14/30 complete with 014 and 015 active; bed/Newton/admission/prediction/report remain pending |
+| direct-v4 protected confirmation | [run_phase1_one_action_successor_direct_v4_protected.py](../../scripts/run_phase1_one_action_successor_direct_v4_protected.py) and [evaluate_phase1_one_action_successor_direct_v4.py](../../scripts/evaluate_phase1_one_action_successor_direct_v4.py) | protected plan `7385bb...63ab` and reporting plan `b89417...f60f` are frozen; protected summary `32d476...7e06` admits 30/30; prediction `9403c4...a62` and report `a73067...a2e8` pass all 25 gates |
+| direct-v4 revision-only continuation | [phase1_one_action_successor_direct_v4_revision_rebind_v1.json](../../configs/phase1_one_action_successor_direct_v4_revision_rebind_v1.json), [recover_phase1_one_action_successor_direct_v4_revision.py](../../scripts/recover_phase1_one_action_successor_direct_v4_revision.py), and [test_recover_phase1_one_action_successor_direct_v4_revision.py](../../tests/test_recover_phase1_one_action_successor_direct_v4_revision.py) | plan `0b37fb...5d54` froze before downstream runtime, binds 30/30 accepted Chrono payloads, proves revision-only identity change, preserves two workers, and prohibits prediction; 5 recovery plus 3 runtime tests pass |
+| direct-v4 reporting continuation | [phase1_one_action_successor_direct_v4_reporting_rebind_v1.json](../../configs/phase1_one_action_successor_direct_v4_reporting_rebind_v1.json), [run_phase1_one_action_successor_direct_v4_reporting_rebind.py](../../scripts/run_phase1_one_action_successor_direct_v4_reporting_rebind.py), and [test_run_phase1_one_action_successor_direct_v4_reporting_rebind.py](../../tests/test_run_phase1_one_action_successor_direct_v4_reporting_rebind.py) | plan `9dd7f3...3856` froze after 30/30 admission and before prediction/report; it delegates unchanged prediction/reporting through the qualified revision-only execution plan |
+| direct-v4 final qualification | [phase1_one_action_successor_direct_v4_final_qualification_v1.json](../../configs/phase1_one_action_successor_direct_v4_final_qualification_v1.json), [qualify_phase1_one_action_successor_direct_v4_final.py](../../scripts/qualify_phase1_one_action_successor_direct_v4_final.py), and [test_qualify_phase1_one_action_successor_direct_v4_final.py](../../tests/test_qualify_phase1_one_action_successor_direct_v4_final.py) | outcome-neutral plan `687131...f259` preceded the outcome; qualification `eece4d...544c` passes all provenance/coherence checks and records `phase1_goal_achieved=true` |
+| direct-v4 completion audit | [phase1_one_action_successor_direct_v4_completion_audit_v1.json](../../configs/phase1_one_action_successor_direct_v4_completion_audit_v1.json), [audit_phase1_one_action_successor_direct_v4_completion.py](../../scripts/audit_phase1_one_action_successor_direct_v4_completion.py), and [test_audit_phase1_one_action_successor_direct_v4_completion.py](../../tests/test_audit_phase1_one_action_successor_direct_v4_completion.py) | audit `d65358...436cd` revalidates all prediction artifacts and qualifier checks, passes, and closes Phase 1 under the bounded direct-surrogate claim |
 | Phase 1 output root | `outputs/validity_experiment/newton/phase1_bed_state_v1/` | bulk and training/selection passed; v1 admission failed 23/24; v2 conditional admission passed 24/24 and its complete report records `phase1_exit_demonstrated=false` |
 | final report | `outputs/validity_experiment/newton/phase1_bed_state_v1/evaluation_v2/final_evaluation_report.json` | conditional v2 report complete and failed; no Phase 1 completion report is created |
 
@@ -1569,7 +1633,19 @@ data source, and need for terramechanics expertise rather than treating greater
    `no_positive_successor_claim`; qualification `9205c2...1570` binds the
    recovery provenance and records `phase1_goal_achieved=false`. This
    successor branch is closed. Further work requires a new prospective branch.
+   **Direct-v4 completed and passed 2026-11-10:** the no-refit D1 candidate,
+   fresh 24-test lock, six-case sensitivity lock, thresholds, and confirmation
+   protocol froze before authoritative validation. Validation passed 20/20;
+   the protected runtime and admission passed 30/30; the reporting continuation
+   froze before prediction/report. The final report passes all 25 hypothesis
+   checks, final qualification records `qualified_passed_result`, and the
+   independent completion audit revalidates all prediction artifacts and
+   qualifier checks. This supports only the bounded learned one-action direct
+   surrogate claim, not Newton+neural added value.
 11. Mark Phase 1 complete only if every required gate above passes.
+    **Complete 2026-11-10:** direct-v4 report `a73067...a2e8`, qualification
+    `eece4d...544c`, and completion audit `d65358...436cd` all pass and record
+    `phase1_goal_achieved=true`.
 
 ## Kept for Phase 2
 

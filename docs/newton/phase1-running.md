@@ -1,8 +1,8 @@
 # Phase 1 chronological implementation and evidence record
 
-Last updated: 2026-11-07
+Last updated: 2026-11-10
 
-Status: active append-only evidence record
+Status: completed append-only evidence record; further experiments belong to Phase 2
 
 The authoritative goal, scope, ordering, and exit gates remain in
 [phase1.md](phase1.md). This file records what was attempted, the frozen
@@ -25,7 +25,7 @@ must not redefine Phase 1 or maintain a competing success criterion.
 | U-Net model ladder | fit and selected on validation | 12 models completed; B3/H0/H1/H2 share 289,172 parameters; selected seeds are 20261024/20261023/20261023/20261023; calibration fit on validation only |
 | v1 locked evaluator | preserved failed | evaluation plan SHA-256 `789720e5...`; 24/24 responses complete; 23/24 admitted; episode 009 alone fails the frozen guide guard; prediction correctly refused |
 | v2 recovery contract | conditional evaluation complete; prospective identity deviation preserved | numerical admission passes 24/24; all predictions and audits exist; the episode-012 serial retry and post-lock JSON compatibility shim remain explicit qualifications |
-| Phase 1 exit | evaluated and failed, not demonstrated | conditional v2 report passes 33/49 checks and fails 16; H1 improves raw Newton but fails joint, material-use, parameter-control, and sensitivity gates; H2 is worse than H1 |
+| historical v1/v2 Phase 1 exit | evaluated and failed, not demonstrated | conditional v2 report passes 33/49 checks and fails 16; H1 improves raw Newton but fails joint, material-use, parameter-control, and sensitivity gates; H2 is worse than H1 |
 | post-v2 research boundary | documented; next contract remains prospective | first prove one-action prediction over a justified plausible simulator domain; sequential world model follows; deeper terramechanics triggers claim/expertise review |
 | successor engineering smoke | complete and passed | 12/12 complete and admitted at 8 train/4 validation/0 test/0 sensitivity; summary SHA-256 `8c66e79f513ef40f1e680efad719500713f57523c9013c4907fa880060919989`; remaining train/validation permitted; protected denied |
 | successor bulk train/validation | complete; legacy failure preserved; artifact-only recovery passed | 64/64 Chrono/Newton/tensor pairs complete; v1 summary `f80c9f...8955` fails only member 019's legacy guide check; recovery plan `aedca2...5ab6` binds 384 artifacts and passing summary `dfacb7...1d81`; no rerun or protected access |
@@ -33,7 +33,9 @@ must not redefine Phase 1 or maintain a competing success criterion.
 | successor protected evaluation | complete and closed failed | 30/30 admitted after preserved serial and artifact-only qualifications; prediction `b825bd...a2dc3` passes sensitivity direction for all five models; final report `c5995e...c3f9` permits no claim; qualification `9205c2...1570` records `phase1_goal_achieved=false` |
 | successor model-type result | direct D0 strongest; Newton-conditioned variants add no demonstrated value | protected median RMSE, loaded footprint / loaded twice-radius / post footprint / post twice-radius: D0 1.825/1.856/1.825/1.855 mm; R0 3.161/2.859/3.595/3.369; R1 3.309/2.964/3.815/3.395; R2S 3.304/2.949/3.869/3.406; R2E 3.574/2.988/4.045/3.492 |
 | direct-v4 D1 validation | authoritative validation passed | no-refit D0 sensitivity wrapper; confirmation plan `a6d3dc...d4428` preceded validation; summary `ed23f6...a22` passes 20/20 on 16 validation episodes with zero v1 test use |
-| direct-v4 protected confirmation | Chrono generation active | surfaces 5101--5106 qualified; joint unlock/open completed once; protected plan `7385bb...63ab`; at 20:19 EST on 2026-11-07, 14/30 Chrono manifests complete and members 014/015 active; downstream bed/Newton/admission/prediction/report pending |
+| direct-v4 protected confirmation | complete and passed | protected summary `32d476...7e06` admits 30/30; prediction `9403c4...a62`; report `a73067...a2e8` passes 25/25; qualification `eece4d...544c` and completion audit `d65358...436cd` pass with `phase1_goal_achieved=true` |
+| direct-v4 D1 protected performance | bounded one-action direct-surrogate claim supported | median RMSE, loaded footprint / loaded twice-radius / post footprint / post twice-radius: 1.827/1.933/1.827/1.933 mm; reduction vs raw Newton 78.29%/64.31%/67.97%/55.19%; improvement fraction 100%/100%/95.83%/100%; 24/24 sensitivity directions |
+| Phase 1 exit | complete | completion report [phase1-completion-20261110.md](phase1-completion-20261110.md); sequential prediction, planner benefit, named-soil calibration, and sim-to-real remain Phase 2/out of claim |
 
 The operational simulator screen, corrected v3 latent-input qualification, and
 12-episode engineering smoke set have passed. The smoke aggregate now permits
@@ -3848,15 +3850,247 @@ Decision and claim boundary:
   fresh protected confirmation. The old 24 and current 30 protected targets
   cannot be used for fitting or unbiased model selection.
 
+### 2026-11-08 — Direct-v4 Chrono complete; downstream paused at revision-only identity gate
+
+Question:
+
+- did protected Chrono generation finish, what Phase 1 work is running now,
+  and can the frozen downstream stages start without changing the scientific
+  identity;
+- what do the completed model results currently establish?
+
+Measured state at 15:35 EST:
+
+- all 30 direct-v4 Chrono manifests exist: 24 fresh tests and six protected
+  sensitivity cases. The final test and sensitivity logs both report accepted
+  loaded convergence;
+- the original Chrono supervisor exited successfully. No direct-v4, Newton
+  preparation, Newton response, or terrain process is running;
+- no direct-v4 bed-preparation manifest, Newton-response manifest, tensor
+  manifest, episode summary, protected prediction, or final report exists;
+- the 30 members remain protected evaluation evidence, not new training data.
+  The fitting set remains 48 training episodes, with 16 validation episodes
+  used for model selection and calibration.
+
+Current model-type analysis:
+
+| Model | Type | Loaded footprint | Loaded twice-radius | Post footprint | Post twice-radius | Current conclusion |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| D0 | direct three-level U-Net; no Newton input | 1.825 | 1.856 | 1.825 | 1.855 | best protected-test accuracy, but failed one failure-tail and the twice-radius `Kphi` controls |
+| R0 | raw-Newton residual U-Net | 3.161 | 2.859 | 3.595 | 3.369 | worse than D0; no Newton added value |
+| R1 | Newton mechanics-field residual U-Net | 3.309 | 2.964 | 3.815 | 3.395 | worse than D0; no Newton added value |
+| R2S | R1 plus stress fields | 3.304 | 2.949 | 3.869 | 3.406 | no optional stress-field value |
+| R2E | R1 plus elastic fields | 3.574 | 2.988 | 4.045 | 3.492 | no optional elastic-field value |
+| D1 | fixed no-refit direct D0 `Kphi` wrapper; no Newton input | 2.266 | 2.035 | 2.266 | 2.033 | validation only; passed 20/20 validation checks, protected performance not yet available |
+
+The D0--R2E values are protected-test median RMSE in millimetres; D1 values
+are validation median RMSE and therefore are not a protected-test comparison.
+All D0--R2E variants passed sensitivity direction but failed at least one
+mandatory predictive gate. The evidence continues to show that the tested
+Newton-conditioned fusion is worse than the direct model; it does not isolate
+whether Newton itself or the fusion/training design is the main cause. D1 can
+only support a direct-surrogate result and cannot establish Newton+neural added
+value.
+
+Downstream blocker and prospective response:
+
+- the first frozen bed-stage invocation stopped before producing any artifact
+  with `direct-v4 protected execution identity changed: ['repository_revisions']`;
+- the protected plan records `tera_splat` revision
+  `e80203483879dcbae3bbac274ebf25314d97427b`; the current committed revision is
+  `20cb535cbefb719bcb392cc06f24fc290d1ff955`. The `tera_splat_sim` revision is
+  unchanged at `14b3fce4a0d57b3cbc531226faa0e27c890c7526`;
+- runtime comparison found no source, environment, input, membership,
+  threshold, model, or worker-count difference. The change arose when the
+  already-frozen direct-v4 implementation and documentation were committed;
+- a draft prospective revision-rebind config, runner, and focused test now
+  exist. No recovery plan has been frozen and no recovery stage has run. They
+  must be validated before becoming evidence.
+
+Decision and next gate:
+
+- preserve the failed bed invocation and the original protected plan; do not
+  weaken its identity check in place;
+- validate and freeze a separate revision-only continuation while all
+  downstream artifacts remain absent. It must bind every completed Chrono file,
+  preserve exactly two workers, prohibit Chrono reruns and target inspection,
+  and permit no model, threshold, or positive-claim change;
+- only after that gate may the unchanged sequence resume: six bed
+  preparations, 30 Newton responses, admission of all 30, locked D1
+  prediction, and the 25-gate report.
+
+### 2026-11-09 — Revision-only continuation frozen; Newton responses active
+
+Measured evidence:
+
+- the recovery implementation was strengthened before freeze to reject partial
+  downstream directories/logs and to machine-validate all 30 Chrono members;
+- Python compilation passes, five focused recovery tests pass, and all three
+  existing protected-runtime regression tests pass;
+- recovery-plan SHA-256 is
+  `0b37fb917c0ee95135b4971c348ee41ae07b19fd486f93fcaaf341b9318c5d54`.
+  It records `changed_execution_identity_keys=["repository_revisions"]`,
+  30 protected episodes, 30 accepted Chrono results, all Chrono file hashes,
+  downstream absence at freeze, and `prediction_permitted=false`;
+- all six metric-bed PLY/metadata pairs exist. Every metadata record states
+  `loaded_or_post_unload_target_consumed=false`;
+- all six Newton prepared-bed manifests exist and are accepted;
+- at 05:47 EST, the original recovery supervisor and exactly two response
+  workers are healthy. Members 000/001 are active, 0/30 response manifests are
+  complete, and the RTX 5090 reports 88% utilization at 273 W.
+
+Runtime update at 06:44 EST:
+
+- members 000 and 001 completed without a process failure; both manifests are
+  finite and `acceptance_eligible=true`;
+- their top-level `status=diagnostic_only` and `accepted=false` are the frozen
+  pre-admission convention, not final rejection. Formal acceptance remains
+  deferred to the protected analyzer;
+- members 002 and 003 are the active workers, with 2/30 response manifests
+  durable.
+
+Decision and claim boundary:
+
+- continue the same attached two-worker supervisor without source, worker,
+  parameter, model, threshold, or artifact replacement;
+- no prediction or protected performance claim is permitted until all 30
+  responses complete and all 30 episodes pass frozen admission;
+- the result remains a direct D1 confirmation. It cannot establish
+  Newton+neural added value because D1 consumes no Newton field.
+
+### 2026-11-10 — Direct-v4 protected runtime and admission complete; reporting pending
+
+Measured runtime and admission evidence:
+
+- the frozen two-worker campaign completed all 30 Newton responses without a
+  retry. All 30 response manifests are finite and
+  `acceptance_eligible=true`; their top-level `status=diagnostic_only` and
+  `accepted=false` values retain the pre-admission diagnostic convention;
+- the response supervisor exited successfully. No direct-v4 simulator,
+  terrain, Newton-response, or training process is currently running;
+- the protected analyzer generated 30 episode summaries and passed every
+  aggregate check. It admits exactly 24 fresh tests and six protected
+  sensitivity episodes, sets `prediction_permitted=true`, and records
+  protected-dataset-summary SHA-256
+  `32d4768e87d1ece6d7b7c4f46bf2c362e6a9698906ef4cf9e400ae3c46ab7e06`;
+- the summary hash-binds each Chrono manifest, Newton manifest, model-input
+  archive, target archive, tensor manifest, and episode summary. Admission is
+  a data-integrity gate, not a model-performance result;
+- outcome-neutral final-qualification plan SHA-256
+  `687131c6e1f3367d5b549c0d808ce9b3cea72d7ce4ea86ccadec10efa76ff259`
+  froze before protected admission, prediction, or final reporting and records
+  `outcome_known_before_freeze=false`.
+
+Current model-type performance:
+
+| Model | Type | Loaded footprint | Loaded twice-radius | Post footprint | Post twice-radius | Evidence state |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| D0 | direct three-level U-Net; no Newton input | 1.825 | 1.856 | 1.825 | 1.855 | strongest prior protected result, but failed one failure-tail and twice-radius `Kphi` controls |
+| R0 | raw-Newton residual U-Net | 3.161 | 2.859 | 3.595 | 3.369 | worse than D0; no Newton added value |
+| R1 | Newton mechanics-field residual U-Net | 3.309 | 2.964 | 3.815 | 3.395 | worse than D0; no Newton added value |
+| R2S | R1 plus stress fields | 3.304 | 2.949 | 3.869 | 3.406 | no optional stress-field value |
+| R2E | R1 plus elastic fields | 3.574 | 2.988 | 4.045 | 3.492 | no optional elastic-field value |
+| D1 | fixed no-refit D0 `Kphi` wrapper; no Newton input | 2.266 | 2.035 | 2.266 | 2.033 | validation only; passed 20/20 checks; protected performance still unknown |
+
+The D0--R2E values are prior protected-test median RMSE in millimetres. The D1
+values are validation median RMSE and are not directly comparable protected
+evidence. The completed model ladder still says that direct D0 outperforms all
+tested Newton-conditioned variants; it does not establish whether the Newton
+prior or the neural fusion/training design is the primary cause. Direct-v4 D1
+does not consume Newton fields, so even a full pass cannot establish a
+Newton+neural added-value claim.
+
+Current work and next gate:
+
+- no long-running compute is active. A narrowly scoped reporting-only
+  revision-continuation implementation is present but has not yet been
+  validated or frozen as evidence;
+- the next permitted sequence is to validate and freeze that continuation,
+  run the already locked D1 protected prediction, generate the unchanged
+  25-gate report, and execute the frozen final qualifier;
+- no retraining, model change, threshold change, or use of the 30 protected
+  targets for fitting or selection is permitted. Phase 1 remains incomplete
+  until the protected D1 report passes all required gates and final
+  qualification records achievement.
+
+### 2026-11-10 — D1 passes 25/25; Phase 1 completion audit passes
+
+Prospective reporting order:
+
+- the reporting-only revision continuation was validated with four focused
+  tests plus the frozen reporter, recovery, and qualifier suites;
+- it froze after protected admission and before prediction/report at SHA-256
+  `9dd7f3728e8279af4566624018f5e7d099ef3d54e63094225dad2cc7fbdd3856`,
+  recording `prediction_or_report_existed_at_freeze=false`;
+- it changes no candidate, threshold, target, tensor, or reporter source. It
+  delegates the unchanged reporter through the already qualified
+  revision-only protected execution plan.
+
+Protected result:
+
+- prediction SHA-256 is
+  `9403c434a20d254b924378a361e7cf7fda0aec415f723580350e75105dda3a62`;
+  it contains 24 test rows and 30 hash-bound prediction archive/summary pairs;
+- all 24 eligible protected sensitivity comparisons match the Chrono
+  direction;
+- final-report SHA-256 is
+  `a73067698b08de907915f2db877a2667f7ec862eee0c29a2cc3a2192bb80a2e8`.
+  All 25 precommitted checks pass, `failed_hypothesis_checks=[]`, and the report
+  records `phase1_goal_achieved=true`, `supported_claim_permitted=true`, and
+  `claim_route=learned_one_action_direct_surrogate`.
+
+Protected D1 performance:
+
+| Region/checkpoint | Median RMSE, mm | Reduction vs raw Newton | Episode improvement fraction | Coverage |
+| --- | ---: | ---: | ---: | ---: |
+| loaded footprint | 1.827 | 78.29% | 100.00% | 90.36% |
+| loaded twice-radius | 1.933 | 64.31% | 100.00% | 91.89% |
+| post-unload footprint | 1.827 | 67.97% | 95.83% | 89.98% |
+| post-unload twice-radius | 1.933 | 55.19% | 100.00% | 92.00% |
+
+- no episode violates the frozen raw-Newton failure-tail tolerance;
+- the constant-reference `Kphi` control increases paired mean footprint RMSE
+  by 2.44% at loaded and post-unload, with bootstrap lower bounds above zero;
+- shuffled `Kphi` increases paired mean footprint RMSE by 5.69% at both
+  checkpoints, also with lower bounds above zero.
+
+Qualification and completion:
+
+- outcome-neutral final qualification SHA-256 is
+  `eece4dc223903bbfa177cda22eea597a3497ecb1b9d59bd7d956a5904728544c`.
+  It passes all 11 provenance/coherence checks and records
+  `qualified_passed_result`;
+- the retrospective completion auditor compiles, three focused tests pass,
+  and it revalidates the continuation, all 30 prediction artifacts, both
+  prospective plans, every report link, and recomputed qualifier checks;
+- completion-audit SHA-256 is
+  `d6535856a73edc1bf29c51cfd2b63f32e8855e244498fdf1f988a376e5f436cd`.
+  It records `status=passed` and `phase1_goal_achieved=true`;
+- the full frozen result and claim boundary are in
+  [phase1-completion-20261110.md](phase1-completion-20261110.md).
+
+Decision and claim boundary:
+
+- Phase 1 is complete as a parameter-conditioned learned one-action direct
+  surrogate in the frozen synthetic domain;
+- D1 consumes no Newton field. Neither this result nor the failed R0/R1/R2S/R2E
+  ladder supports Newton+neural added value;
+- sequential rollout, planner benefit, constitutive validation, named-soil
+  calibration, sim-to-real transfer, and extrapolation remain unsupported;
+- any Phase 2 sequential/world-model work requires a new prospective contract
+  and fresh protected evidence. Phase 1 protected targets are diagnosis-only
+  for future model design.
+
 ## Maintenance contract
 
-
-For every subsequent experiment:
+Phase 1 is closed. For any correction or retrospective audit:
 
 1. append a dated entry containing the question, frozen inputs, commands or
    implementation, measured evidence, decision, claim boundary, and artifacts;
 2. update the current snapshot from machine-readable evidence;
-3. update [phase1.md](phase1.md) in the same change if the permitted next work,
-   domain, routing, or exit status changes;
+3. update [phase1.md](phase1.md) in the same change if the evidence, routing,
+   or completion status is corrected;
 4. never rewrite a failed result into a pass or delete a superseded result;
-5. keep validation and test targets locked according to the frozen plan.
+5. keep validation and test targets locked according to the frozen plan;
+6. place new sequential/world-model experiments under a separately frozen
+   Phase 2 authority rather than reopening Phase 1.

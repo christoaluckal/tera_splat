@@ -1,6 +1,6 @@
 # Current Chrono-to-MPM State
 
-Last verified: 2026-11-02
+Last verified: 2026-11-10
 
 This document provides cross-backend context and historical conclusions. The
 sole operational authority for the active campaign is
@@ -11,7 +11,27 @@ or next-step text below in place of those ledgers. Dated investigation history i
 [calibration-history-through-2026-08-29.md](archive/calibration-history-through-2026-08-29.md)
 and is not a source of current next steps.
 
-## 2026-11-02 Phase 1 successor handoff
+## 2026-11-10 Phase 1 complete
+
+Phase 1 is complete under the bounded learned one-action direct-surrogate
+claim. The prospectively frozen direct-v4 D1 candidate passed all 25 protected
+gates on 24 fresh tests plus six protected sensitivity episodes. Final
+qualification and the independent completion audit both record
+`phase1_goal_achieved=true`.
+
+D1 protected median RMSE is 1.827/1.933 mm loaded and 1.827/1.933 mm
+post-unload for footprint/twice-radius regions. Reductions from raw Newton are
+78.29%/64.31% and 67.97%/55.19%; all 24 eligible sensitivity directions pass.
+D1 consumes no Newton field. The tested Newton-conditioned R0/R1/R2S/R2E
+models remain worse than direct D0 and support no Newton-added-value claim.
+
+Read the [Phase 1 authority](newton/phase1.md),
+[completion report](newton/phase1-completion-20261110.md), and
+[chronological record](newton/phase1-running.md) for exact metrics and hashes.
+Sequential rollout, planner benefit, named-soil calibration, and sim-to-real
+remain unsupported and require a new prospective Phase 2 contract.
+
+## Historical checkpoint: 2026-11-02 Phase 1 successor handoff
 
 The original Phase 1 v1/v2 evaluation is complete and failed its frozen exit.
 The active branch is a prospective one-action successor over an

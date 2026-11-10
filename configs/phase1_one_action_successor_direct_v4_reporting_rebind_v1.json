@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "continuation_id": "phase1_one_action_successor_direct_v4_reporting_rebind_v1",
+  "status": "prospective_after_protected_admission_before_prediction_or_report",
+  "recovery_config": {
+    "path": "configs/phase1_one_action_successor_direct_v4_revision_rebind_v1.json",
+    "sha256": "99079570d25937404621eeb79aeb750f3e6ca02ffba982313d14916c9a7b0458"
+  },
+  "recovery_plan": {
+    "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/revision_rebind_v1/recovery_plan.json",
+    "sha256": "0b37fb917c0ee95135b4971c348ee41ae07b19fd486f93fcaaf341b9318c5d54"
+  },
+  "reporting_plan": {
+    "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/reporting_plan.json",
+    "sha256": "b89417e6d7e7a3942ceb131446841a20555e88d88191076d8ef9dfb682abf60f"
+  },
+  "protected_dataset_summary": {
+    "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/protected_dataset_summary.json",
+    "sha256": "32d4768e87d1ece6d7b7c4f46bf2c362e6a9698906ef4cf9e400ae3c46ab7e06"
+  },
+  "final_qualification_plan": {
+    "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/final_qualification_plan.json",
+    "sha256": "687131c6e1f3367d5b549c0d808ce9b3cea72d7ce4ea86ccadec10efa76ff259"
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/reporting_revision_rebind_v1",
+    "allowed_stages": ["predict", "report"]
+  },
+  "semantics": {
+    "reuse_frozen_revision_only_proof": true,
+    "require_30_of_30_protected_admission": true,
+    "require_prediction_permitted": true,
+    "preserve_frozen_reporter_sources_thresholds_and_candidate": true,
+    "preserve_final_qualification_plan": true,
+    "permit_protected_runtime_or_tensor_change": false,
+    "permit_model_threshold_or_claim_boundary_change": false,
+    "permit_positive_claim_before_25_gate_report": false
+  }
+}

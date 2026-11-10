@@ -1,6 +1,6 @@
 # Newton documentation index
 
-Last updated: 2026-11-02
+Last updated: 2026-11-10
 
 This directory contains the Newton-specific numerical contracts, experiment
 reports, transfer evidence, and handoff material for the Chrono-to-MPM terrain
@@ -8,36 +8,41 @@ forward-model study.
 
 ## Read in this order
 
-1. [Active Phase 1 goal](phase1.md) — sole operational authority for the
-   completed failed v1/v2 exit and the prospective one-action redesign,
-   world-model destination, and expertise-aware claim boundary.
+1. [Completed Phase 1 authority](phase1.md) — sole authority for the failed
+   v1/v2 paths, successful direct-v4 exit, Phase 2 destination, and
+   expertise-aware claim boundary.
 2. [Phase 1 chronological record](phase1-running.md) — dated implementation
-   evidence, frozen identities, decisions, blockers, and next permitted work.
-3. [Completed Phase 0](phase0.md) — frozen action ledger, claims, evidence, and
+   evidence, frozen identities, decisions, blockers, and final qualification.
+3. [Phase 1 completion report](phase1-completion-20261110.md) — protected D1
+   metrics, model-type conclusion, artifact identities, and claim boundary.
+4. [Alternate MPM-backbone handoff](../mpm-backend-pipeline-handoff.md) —
+   backend-neutral adapter and qualification contract that requires a raw MPM
+   or MPM-plus-neural final model.
+5. [Completed Phase 0](phase0.md) — frozen action ledger, claims, evidence, and
    artifact routing for the completed residual proof.
-4. [Fresh hierarchical Phase 0 protocol](fresh-hierarchical-phase0-20261017.md)
+6. [Fresh hierarchical Phase 0 protocol](fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only evidence boundary, variation characterization, and
    geometric-utility hierarchy.
-5. [Running analysis through 2026-10-19](running-analysis.md) — detailed
+7. [Running analysis through 2026-10-19](running-analysis.md) — detailed
    pre-consolidation decision provenance; current entries belong in
    `phase1-running.md`.
-6. [Static 35 mm proxy qualification](static-proxy-qualification-20261009.md)
+8. [Static 35 mm proxy qualification](static-proxy-qualification-20261009.md)
    — original strict Phase 0 sentinel result and expansion stop gate.
-7. [Bounded coarse-prior admission](coarse-prior-admission-20261016.md) —
+9. [Bounded coarse-prior admission](coarse-prior-admission-20261016.md) —
    strict/coarse status split, frozen v2 limits, and pilot restart.
-8. [Consolidated experiment report](experiment-consolidated-20261008.md) —
+10. [Consolidated experiment report](experiment-consolidated-20261008.md) —
    canonical interpretation of preparation, contact, calibration, transfer,
    and stop/go results.
-9. [Fixed-domain contract](fixed-domain.md) — qualified historical numerical and mechanics
+11. [Fixed-domain contract](fixed-domain.md) — qualified historical numerical and mechanics
    configuration.
-10. [Hybrid model design](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+12. [Hybrid model design](../hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — historical design background; `phase1.md` owns the current destination.
 
-The current ordering is: first establish reliable one-action prediction over a
-prospectively justified, engineering-plausible simulator domain; then build a
-sequential footprint world model. Inputs remain robotics-defensible or
-simulator-native. If progress requires deeper constitutive soil theory, the
-claim and expertise boundary must be revisited before the pipeline expands.
+Reliable one-action prediction is now established by direct-v4 within the
+frozen synthetic domain. The next prospective research stage is a sequential
+footprint world model. Inputs remain robotics-defensible or simulator-native.
+If progress requires deeper constitutive soil theory, the claim and expertise
+boundary must be revisited before the pipeline expands.
 
 `phase1.md` owns all new Phase 1 work. `phase0.md` remains the sole authority
 for its completed campaign; all other files are frozen protocols,
@@ -47,9 +52,11 @@ compatibility pointers, or dated provenance.
 
 | Date | Document | Purpose |
 | --- | --- | --- |
-| live | [Active Phase 1 goal](phase1.md) | Failed v1/v2 result, prospective one-action scope, world-model destination, and claim boundary |
-| live | [Phase 1 chronological record](phase1-running.md) | Append-only implementation evidence, hashes, decisions, and next permitted work |
-| live | [Newton handoff pointer](handoff.md) | Compatibility entry point to the active Phase 1 handoff and current smoke gate |
+| live | [Completed Phase 1 authority](phase1.md) | Failed v1/v2 paths, successful direct-v4 exit, Phase 2 destination, and claim boundary |
+| live | [Phase 1 chronological record](phase1-running.md) | Append-only implementation evidence, hashes, decisions, and final qualification |
+| live | [Newton handoff pointer](handoff.md) | Compatibility entry point to the completed Phase 1 result and Phase 2 boundary |
+| live | [Alternate MPM-backbone handoff](../mpm-backend-pipeline-handoff.md) | Backend-neutral raw-MPM or MPM-plus-neural execution contract |
+| 2026-11-10 | [Phase 1 completion report](phase1-completion-20261110.md) | Protected D1 result, completion audit, model-type conclusion, and claim boundary |
 | 2026-10-22 | [Completed Phase 0](phase0.md) | Frozen ledger, chronology, result, and claims |
 | 2026-09-21 | [Fixed-domain contract](fixed-domain.md) | Public stock-contact Newton domain and local material study |
 | 2026-09-28 | [Original handoff](handoff-20260928.md) | State before A2-A10; retained for provenance |

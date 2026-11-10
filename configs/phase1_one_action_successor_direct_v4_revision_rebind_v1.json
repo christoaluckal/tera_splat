@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recovery_id": "phase1_one_action_successor_direct_v4_revision_rebind_v1",
+  "status": "prospective_before_bed_newton_tensor_prediction_or_scoring",
+  "direct_v4_config": "configs/phase1_one_action_successor_direct_v4.json",
+  "required_direct_v4_config_sha256": "158cf29d62d594820b1b87a8a47bf8280b136724975313409cadffa1aa2746b6",
+  "protected_execution_plan": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/protected_execution_plan.json",
+  "required_protected_execution_plan_sha256": "7385bba039c90a3a172c122bce270702c44c2bd0655030742687ec0c0cc363ab",
+  "protected_open_marker": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/targets_opened.json",
+  "required_protected_open_marker_sha256": "4ff1265799d430ef00900a0a03e8d3e0d4c72aa769455e2fbe2f54fd9cf2be57",
+  "repository_revisions": {
+    "frozen": {
+      "tera_splat": "e80203483879dcbae3bbac274ebf25314d97427b",
+      "tera_splat_sim": "14b3fce4a0d57b3cbc531226faa0e27c890c7526"
+    },
+    "rebound": {
+      "tera_splat": "20cb535cbefb719bcb392cc06f24fc290d1ff955",
+      "tera_splat_sim": "14b3fce4a0d57b3cbc531226faa0e27c890c7526"
+    }
+  },
+  "execution": {
+    "output_root": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/revision_rebind_v1",
+    "workers": 2,
+    "allowed_stages": ["bed", "newton", "analyze", "all"]
+  },
+  "semantics": {
+    "allow_only_repository_revision_rebind": true,
+    "require_all_non_revision_execution_keys_identical": true,
+    "require_all_30_chrono_manifests_complete_before_freeze": true,
+    "bind_every_completed_chrono_file_before_downstream_runtime": true,
+    "require_downstream_artifacts_absent_before_freeze": true,
+    "forbid_chrono_rerun": true,
+    "preserve_frozen_protected_plan": true,
+    "preserve_frozen_open_marker": true,
+    "permit_target_inspection_before_prediction": false,
+    "permit_threshold_or_model_change": false,
+    "permit_positive_claim": false
+  }
+}

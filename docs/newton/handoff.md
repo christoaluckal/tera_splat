@@ -1,19 +1,20 @@
 # Newton handoff
 
-Status: direct-v4 protected confirmation active; successor v1 closed failed
+Status: Phase 1 complete; direct-v4 D1 passed 25/25 protected gates
 
-The live handoff, current gate, claim boundary, and guarded continuation order
-are the [Fresh-session handoff in `phase1.md`](phase1.md#fresh-session-handoff).
+The completed Phase 1 result, claim boundary, and Phase 2 handoff are in the
+[Fresh-session handoff in `phase1.md`](phase1.md#fresh-session-handoff) and the
+[dated completion report](phase1-completion-20261110.md).
 The append-only runtime evidence is in
 [`phase1-running.md`](phase1-running.md). The latest dated entry records the
 closed successor result, direct-v4 freeze/validation/unlock, model performance,
-and the live protected runtime.
+protected runtime/admission, reporting, qualification, and completion audit.
 
 The original 64-point neural training is complete: 48 episodes were used for
-training and 16 for validation. The 30 direct-v4 members now being generated
-are 24 fresh locked tests plus six protected sensitivity cases. They are not
-additional training data and must never enter fitting, normalization,
-calibration, or selection.
+training and 16 for validation. Chrono generation is now complete for all 30
+direct-v4 members: 24 fresh locked tests plus six protected sensitivity cases.
+They are not additional training data and must never enter fitting,
+normalization, calibration, or selection.
 
 The completed protected successor comparison used equal-capacity three-level
 U-Nets:
@@ -33,7 +34,7 @@ The result shows that the tested Newton-conditioned neural integration is worse
 than D0; it does not prove whether the primary cause is the Newton prior or the
 fusion/training design.
 
-The active direct-v4 candidate is D1, a deterministic, no-refit
+The successful direct-v4 candidate is D1, a deterministic, no-refit
 reference-differenced `Kphi`-sensitivity wrapper around selected
 `D0_seed_20261102`. It consumes no Newton field and cannot establish a
 Newton+neural added-value claim. Confirmation plan
@@ -44,23 +45,76 @@ passes all 20 checks on the original 16 validation episodes and uses zero v1
 test episodes. D1 validation median RMSE is 2.266 / 2.035 / 2.266 / 2.033 mm,
 with 69.8% / 59.0% / 56.5% / 51.3% median reduction from raw Newton.
 
+On the fresh protected set, D1 median RMSE is 1.827 / 1.933 / 1.827 / 1.933
+mm for loaded footprint, loaded twice-radius, post-unload footprint, and
+post-unload twice-radius. Median reductions from raw Newton are 78.29% /
+64.31% / 67.97% / 55.19%; the corresponding episode improvement fractions
+against both raw Newton and no deformation are 100% / 100% / 95.83% / 100%.
+All four failure-tail and coverage gates pass, both constant and shuffled
+`Kphi` controls pass, and all 24 eligible protected sensitivity comparisons
+have the correct direction.
+
 All six fresh surfaces 5101--5106 qualified before joint unlock. Protected
 execution plan
 `7385bba039c90a3a172c122bce270702c44c2bd0655030742687ec0c0cc363ab`
-requires exactly two workers. At 20:19 EST on 2026-11-07, the original
-supervisor is healthy with 14/30 Chrono manifests complete; members 014 and 015
-are active. Do not launch a duplicate supervisor or change the execution
-identity. The continuation order is: finish Chrono 30/30, run six bed
-preparations, run 30 Newton responses, analyze/admit all 30, run locked D1
-prediction, then generate the 25-gate report.
+requires exactly two workers. All 30 Chrono manifests are complete and
+accepted.
 
-Newton will likely dominate the remaining wall time. Each response repeats
-about 10,400 implicit-MPM steps over roughly 304,865 particles, including an
-8,000-step pre-settle. Historical measurement is about 43 minutes serial per
-response; two workers sharing the RTX 5090 complete a pair in about 64.7
-minutes, only 1.325x aggregate throughput. Settled-state reuse or a different
-worker count would require a new prospective execution qualification and must
-not be introduced into this frozen run.
+The first bed-stage invocation failed closed before producing any downstream
+artifact because the protected plan recorded `tera_splat` revision
+`e80203483879dcbae3bbac274ebf25314d97427b`, while the subsequently committed
+documentation/direct-v4 sources moved `HEAD` to
+`20cb535cbefb719bcb392cc06f24fc290d1ff955`. Runtime comparison reported only
+`repository_revisions` as changed; the sibling `tera_splat_sim` revision and
+all non-revision protected-plan identities remained unchanged. The separate
+prospective revision-only continuation plan is now frozen at SHA-256
+`0b37fb917c0ee95135b4971c348ee41ae07b19fd486f93fcaaf341b9318c5d54`.
+It binds every completed Chrono file, records all 30 episodes accepted, proves
+that `repository_revisions` is the sole changed execution key, records
+downstream absence at freeze, preserves exactly two workers, and prohibits
+prediction. Five focused recovery tests and three protected-runtime regression
+tests pass.
+
+All six deterministic metric beds, all six Newton preparations, and all 30
+Newton responses are complete. Every response is finite and
+`acceptance_eligible=true`; the response-level `accepted=false` value remains
+the frozen pre-admission diagnostic convention rather than a rejection. The
+two-worker supervisor exited successfully, and no direct-v4 simulator,
+terrain, or Newton-response worker is currently running.
+
+The protected analyzer admitted all 30 episodes: 24 fresh tests
+and six protected sensitivity cases. The protected dataset summary is
+`passed`, permits prediction, and has SHA-256
+`32d4768e87d1ece6d7b7c4f46bf2c362e6a9698906ef4cf9e400ae3c46ab7e06`.
+It binds all 30 Chrono manifests, Newton manifests, model-input archives,
+target archives, tensor manifests, and episode summaries. The outcome-neutral
+final-qualification plan was frozen before admission/prediction/report at
+SHA-256
+`687131c6e1f3367d5b549c0d808ce9b3cea72d7ce4ea86ccadec10efa76ff259`.
+The reporting-only continuation then froze before prediction/report at
+`9dd7f3728e8279af4566624018f5e7d099ef3d54e63094225dad2cc7fbdd3856`.
+
+Locked prediction
+`9403c434a20d254b924378a361e7cf7fda0aec415f723580350e75105dda3a62`
+and final report
+`a73067698b08de907915f2db877a2667f7ec862eee0c29a2cc3a2192bb80a2e8`
+are complete. The report passes all 25 checks with no failure, records
+`phase1_goal_achieved=true`, and permits only the
+`learned_one_action_direct_surrogate` claim. Final qualification
+`eece4dc223903bbfa177cda22eea597a3497ecb1b9d59bd7d956a5904728544c`
+and completion audit
+`d6535856a73edc1bf29c51cfd2b63f32e8855e244498fdf1f988a376e5f436cd`
+both pass. Phase 1 is complete. The next scientific gate is a new prospective
+Phase 2 sequential/world-model contract; no Phase 1 protected target may be
+reused as unbiased confirmation.
+
+Newton dominated the completed protected-runtime wall time. Each response
+repeated about 10,400 implicit-MPM steps over roughly 304,865 particles,
+including an 8,000-step pre-settle. Historical measurement was about 43
+minutes serial per response; two workers sharing the RTX 5090 completed a pair
+in about 64.7 minutes, only 1.325x aggregate throughput. Settled-state reuse or
+a different worker count remains a future-branch optimization and was not
+introduced into this frozen run.
 
 All 64 successor train/validation
 Chrono, Newton, and tensor pairs are complete. The immutable v1 bulk summary,
@@ -121,12 +175,12 @@ gates, no correction model passes, no Newton added value is demonstrated, and
 no supported claim is permitted. Qualification record SHA-256
 `9205c2ee0bb9eefeb08d5e9cf758046ac3c071891bda6f260b8efebbb55b1570`
 binds that report to the serial retry, artifact-only correction, and archived
-failure. This successor evaluation is closed, but Phase 1 is not complete.
-Direct-v4 is the separately frozen prospective continuation of that failed
-result; it does not retroactively change the v1 outcome or reuse the revealed
-v1 test as confirmation.
+failure. That successor evaluation closed without completing Phase 1.
+Direct-v4 was the separately frozen prospective continuation and later passed;
+it does not retroactively change the v1 outcome or reuse the revealed v1 test
+as confirmation.
 
 [Phase 0](phase0.md) remains the immutable authority for the completed Phase 0
 campaign and its artifacts. This filename is retained so older reports and
-external notes still reach the active handoff without creating a competing
+external notes still reach the completed handoff without creating a competing
 operational ledger.

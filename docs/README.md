@@ -1,6 +1,6 @@
 # Tera Splat documentation
 
-Last updated: 2026-11-02
+Last updated: 2026-11-10
 
 Tera Splat studies a planning-oriented hybrid terrain model:
 
@@ -17,28 +17,31 @@ differentiable backend.
 
 ## Start here
 
-1. [Active Phase 1 goal](newton/phase1.md) — sole goal and exit contract for
-   bounded, parameter-conditioned neural bed-state prediction.
+1. [Completed Phase 1 authority](newton/phase1.md) — successful bounded direct
+   one-action result, failed Newton-conditioned paths, and claim boundary.
 2. [Phase 1 chronological record](newton/phase1-running.md) — current dated
    implementation evidence, frozen hashes, blockers, and next permitted gate.
-3. [Newton handoff](newton/handoff.md) — concise compatibility pointer to the
-   active Phase 1 runtime checkpoint and continuation guard.
-4. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
+3. [MPM-backbone experiment handoff](mpm-backend-pipeline-handoff.md) —
+   backend-neutral adapter, qualification, data, training, and protected-test
+   contract for raw MPM or MPM-plus-neural experiments.
+4. [Newton handoff](newton/handoff.md) — concise compatibility pointer to the
+   completed Phase 1 result and Phase 2 boundary.
+5. [Completed Phase 0](newton/phase0.md) — frozen action ledger, evidence, and
    claim boundary for the completed 241-parameter residual proof.
-5. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
+6. [Hybrid model design](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md)
    — complete proposed architecture, backend decision, data split, losses,
    latent-state ablations, Gaussian transfer, and planner validation.
-6. [Current repository state](current-state.md) — cross-backend context for
+7. [Current repository state](current-state.md) — cross-backend context for
    Chrono, Genesis, Newton, artifacts, and execution constraints.
-7. [Newton documentation index](newton/README.md) — all Newton contracts,
+8. [Newton documentation index](newton/README.md) — all Newton contracts,
    reports, boundaries, and dated provenance.
-8. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
+9. [Fresh hierarchical Phase 0](newton/fresh-hierarchical-phase0-20261017.md)
    — frozen fresh-only variation-characterization and geometric-utility protocol.
-9. [Cross-backend direction](forward-model-direction-20261006.md) — why the
+10. [Cross-backend direction](forward-model-direction-20261006.md) — why the
    project moved from parameter-only fitting to a hybrid residual model.
-10. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
+11. [Chrono oracle contract](chrono-oracle-run-contract.md) — target episode,
    timing, support, preparation, and scoring rules.
-11. [Contributor guidance](contributor-guidance.md) — repository, editing, and
+12. [Contributor guidance](contributor-guidance.md) — repository, editing, and
    evidence-maintenance rules.
 
 Files in [archive](archive/) are historical provenance. They are not current
@@ -48,8 +51,9 @@ instructions.
 
 | Topic | Entry point |
 | --- | --- |
-| Active Phase 1 goal | [newton/phase1.md](newton/phase1.md) |
+| Completed Phase 1 authority | [newton/phase1.md](newton/phase1.md) |
 | Phase 1 chronological evidence | [newton/phase1-running.md](newton/phase1-running.md) |
+| Alternate MPM backend pipeline | [mpm-backend-pipeline-handoff.md](mpm-backend-pipeline-handoff.md) |
 | Current Phase 0 status | [newton/phase0.md](newton/phase0.md) |
 | Cross-backend context | [current-state.md](current-state.md) |
 | Hybrid architecture | [hybrid-chrono-mpm-residual-gaussian-planning-20261008.md](hybrid-chrono-mpm-residual-gaussian-planning-20261008.md) |
@@ -72,17 +76,18 @@ instructions.
 
 ## Current decision snapshot
 
-- [Phase 1](newton/phase1.md) owns all new model, data, scope, and exit
-  decisions. Phase 0 remains frozen evidence and must not be rerun or re-fit.
+- [Phase 1](newton/phase1.md) owns the completed one-action result and claim
+  boundary. Phase 0 remains frozen evidence and must not be rerun or re-fit.
 - No pre-2026-10-17 Chrono episode, particle bed, MPM preparation, or response
   is admissible for the current Phase 0 dataset or model score.
-- The 31 N and 46 N Phase 0 rungs are complete. The Phase 1 v1/v2 evaluation is
-  also complete and failed its frozen exit; the active work is a prospective
-  one-action redesign under the boundary in `phase1.md`.
-- The successor contract, surfaces, model/training layer, and protected
-  evaluator are prepared. Its frozen 8/4 engineering smoke is currently
-  running with two workers; no aggregate summary exists, so bulk generation,
-  fitting, and all protected targets remain locked.
+- The 31 N and 46 N Phase 0 rungs are complete. Phase 1 v1/v2 failed its
+  frozen exit. The later direct-v4 D1 branch passed all 25 fresh protected
+  checks and completed Phase 1, but it contains no MPM input and does not
+  establish Newton-added value.
+- New alternate-backend work follows the
+  [MPM-backbone experiment handoff](mpm-backend-pipeline-handoff.md). Its final
+  model must retain an actual MPM rollout, with or without a neural residual;
+  direct neural models are fairness baselines only.
 - The current hard gates include provenance, numerical integrity, held-out
   predictive generalization, and an expertise-aware claim boundary.
   Contact overlap is classified as an artifact unless it is gross; local

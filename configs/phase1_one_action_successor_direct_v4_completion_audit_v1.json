@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "audit_id": "phase1_one_action_successor_direct_v4_completion_audit_v1",
+  "status": "retrospective_evidence_binding_after_qualified_protected_result",
+  "authority": "docs/newton/phase1.md",
+  "execution": {
+    "output": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/phase1_completion_audit.json"
+  },
+  "evidence": {
+    "reporting_continuation_plan": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/reporting_revision_rebind_v1/continuation_plan.json",
+      "sha256": "9dd7f3728e8279af4566624018f5e7d099ef3d54e63094225dad2cc7fbdd3856"
+    },
+    "final_qualification_plan": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/final_qualification_plan.json",
+      "sha256": "687131c6e1f3367d5b549c0d808ce9b3cea72d7ce4ea86ccadec10efa76ff259"
+    },
+    "protected_dataset_summary": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/protected_dataset_summary.json",
+      "sha256": "32d4768e87d1ece6d7b7c4f46bf2c362e6a9698906ef4cf9e400ae3c46ab7e06"
+    },
+    "prediction_results": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/protected_prediction_results.json",
+      "sha256": "9403c434a20d254b924378a361e7cf7fda0aec415f723580350e75105dda3a62"
+    },
+    "final_report": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/final_evaluation_report.json",
+      "sha256": "a73067698b08de907915f2db877a2667f7ec862eee0c29a2cc3a2192bb80a2e8"
+    },
+    "final_qualification": {
+      "path": "outputs/validity_experiment/newton/phase1_one_action_successor_direct_v4/final_evaluation_report_qualification.json",
+      "sha256": "eece4dc223903bbfa177cda22eea597a3497ecb1b9d59bd7d956a5904728544c"
+    }
+  },
+  "requirements": {
+    "protected_episode_count": 30,
+    "test_episode_count": 24,
+    "protected_sensitivity_episode_count": 6,
+    "hypothesis_check_count": 25,
+    "required_hypothesis_checks": [
+      "absolute:loaded:footprint",
+      "absolute:loaded:twice_radius",
+      "absolute:post_unload:footprint",
+      "absolute:post_unload:twice_radius",
+      "coverage:loaded:footprint",
+      "coverage:loaded:twice_radius",
+      "coverage:post_unload:footprint",
+      "coverage:post_unload:twice_radius",
+      "episode_fraction:loaded:footprint",
+      "episode_fraction:loaded:twice_radius",
+      "episode_fraction:post_unload:footprint",
+      "episode_fraction:post_unload:twice_radius",
+      "failure_tail:loaded:footprint",
+      "failure_tail:loaded:twice_radius",
+      "failure_tail:post_unload:footprint",
+      "failure_tail:post_unload:twice_radius",
+      "parameter_control:kphi_constant_reference:loaded:footprint",
+      "parameter_control:kphi_constant_reference:post_unload:footprint",
+      "parameter_control:kphi_shuffled:loaded:footprint",
+      "parameter_control:kphi_shuffled:post_unload:footprint",
+      "protected_sensitivity_direction",
+      "raw_reduction:loaded:footprint",
+      "raw_reduction:loaded:twice_radius",
+      "raw_reduction:post_unload:footprint",
+      "raw_reduction:post_unload:twice_radius"
+    ],
+    "qualification_checks": [
+      "candidate_unchanged",
+      "claim_boundary_unchanged",
+      "exact_25_hypothesis_checks",
+      "failed_check_list_exact",
+      "prediction_artifact_links",
+      "prediction_complete",
+      "protected_dataset_passed",
+      "qualification_plan_preceded_outcome",
+      "report_artifact_links",
+      "report_outcome_coherent",
+      "revision_only_qualification_preserved"
+    ],
+    "claim_route": "learned_one_action_direct_surrogate",
+    "claim_boundary": "The result concerns one held-out vertical action in the frozen synthetic domain; it does not establish sequential rollout, planner benefit, constitutive validation, named-soil calibration, or sim-to-real transfer.",
+    "reporting_plan_sha256": "b89417e6d7e7a3942ceb131446841a20555e88d88191076d8ef9dfb682abf60f",
+    "protected_execution_plan_sha256": "7385bba039c90a3a172c122bce270702c44c2bd0655030742687ec0c0cc363ab"
+  },
+  "semantics": {
+    "audit_only_no_new_scientific_gate": true,
+    "require_revalidation_of_every_prediction_artifact": true,
+    "require_recomputation_of_qualification_checks": true,
+    "preserve_direct_surrogate_claim_boundary": true,
+    "permit_newton_added_value_claim": false,
+    "permit_sequential_or_sim_to_real_claim": false
+  }
+}
