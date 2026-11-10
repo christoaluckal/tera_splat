@@ -5,6 +5,11 @@ Last updated: 2026-11-10
 Status: executable design and agent handoff; no alternate backend is qualified
 by this document alone
 
+The live branch-specific authority is now
+[the alternate MPM goal](mpm/goal.md), and all running experiment evidence
+belongs in [the alternate MPM running record](mpm/running.md). This document is
+retained as the design handoff and provenance source.
+
 ## Purpose
 
 This document tells a new agent how to evaluate another Material Point Method

@@ -15,6 +15,14 @@ prior because its public numerical/contact domain and state export are already
 qualified. Genesis remains a separate comparator and possible future
 differentiable backend.
 
+## Active alternate MPM study
+
+- [Alternate MPM backend goal](mpm/goal.md) — live Warp-first,
+  Taichi-second execution contract and claim boundary for branch `mpm_test`.
+- [Alternate MPM running record](mpm/running.md) — the sole detailed ledger
+  for environment, implementation, runtime, failure, retry, and artifact
+  evidence.
+
 ## Start here
 
 1. [Completed Phase 1 authority](newton/phase1.md) — successful bounded direct
@@ -51,6 +59,9 @@ instructions.
 
 | Topic | Entry point |
 | --- | --- |
+| Alternate MPM live goal | [mpm/goal.md](mpm/goal.md) |
+| Alternate MPM running evidence | [mpm/running.md](mpm/running.md) |
+| Alternate MPM documentation index | [mpm/README.md](mpm/README.md) |
 | Completed Phase 1 authority | [newton/phase1.md](newton/phase1.md) |
 | Phase 1 chronological evidence | [newton/phase1-running.md](newton/phase1-running.md) |
 | Alternate MPM backend pipeline | [mpm-backend-pipeline-handoff.md](mpm-backend-pipeline-handoff.md) |
@@ -84,8 +95,9 @@ instructions.
   frozen exit. The later direct-v4 D1 branch passed all 25 fresh protected
   checks and completed Phase 1, but it contains no MPM input and does not
   establish Newton-added value.
-- New alternate-backend work follows the
-  [MPM-backbone experiment handoff](mpm-backend-pipeline-handoff.md). Its final
+- New alternate-backend work follows the live
+  [alternate MPM goal](mpm/goal.md), with all detailed execution evidence in
+  the [running record](mpm/running.md). Its final
   model must retain an actual MPM rollout, with or without a neural residual;
   direct neural models are fairness baselines only.
 - The current hard gates include provenance, numerical integrity, held-out
@@ -221,6 +233,9 @@ frozen.
 
 ## Documentation maintenance
 
+- Keep alternate-MPM scope and gates in [mpm/goal.md](mpm/goal.md), and append
+  all detailed environment, implementation, runtime, failure, retry, and
+  artifact evidence only to [mpm/running.md](mpm/running.md).
 - Update [newton/phase0.md](newton/phase0.md) for every Phase 0 ledger,
   conclusion, claim-boundary, or next-work change.
 - Update [current-state.md](current-state.md) only when broader cross-backend
